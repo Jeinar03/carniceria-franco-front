@@ -9,7 +9,7 @@ import { CategoriasService, Categoria } from 'src/services/categorias/categorias
 })
 export class CategoriasComponent implements OnInit {
 
-  private readonly adminBaseUrl = 'https://www.carniceriafrancoadmin.shop';
+  private readonly adminBaseUrl = 'https://carniceriafrancoadmin.shop';
   private readonly defaultCategoryImage = 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=500';
 
   categorias: Categoria[] = [];

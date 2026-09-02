@@ -12,7 +12,7 @@ import { environment } from 'src/environments/environment';
 })
 export class ProductosComponent implements OnInit {
 
-  private readonly adminBaseUrl = 'https://www.carniceriafrancoadmin.shop';
+  private readonly adminBaseUrl = 'https://carniceriafrancoadmin.shop';
 
   categoriaSeleccionada: number | null = null;
   categoriaSeleccionadaNombre: string = 'Todos';
