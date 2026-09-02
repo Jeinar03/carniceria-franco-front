@@ -1,0 +1,91 @@
+
+<ng-container *ngIf="configuracion$ | async as config">
+  <section class="contact-hero">
+    <div class="container position-relative">
+      <div class="hero-content text-center">
+        <span class="hero-pill">Contacto directo</span>
+        <h1 class="hero-title">{{ config.nombre }}</h1>
+        <p class="hero-subtitle">
+          Escríbenos por WhatsApp para pedidos, dudas o información. Respondemos rápido y sin formularios molestos.
+        </p>
+        <a [href]="whatsappLink" class="hero-whatsapp-btn" target="_blank" rel="noopener noreferrer">
+          <i class="fab fa-whatsapp me-2"></i>
+          Abrir WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-info-section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="contact-card contact-card-accent">
+            <div class="contact-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <h5 class="contact-title">Ubicación</h5>
+            <p class="contact-description">{{ config.direccion }}</p>
+            <a href="#footer-location" class="contact-btn">
+              <i class="fas fa-location-arrow"></i>
+              Ver datos en el footer
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+          <div class="contact-card contact-card-accent whatsapp-card">
+            <div class="contact-icon">
+              <i class="fab fa-whatsapp"></i>
+            </div>
+            <h5 class="contact-title">WhatsApp</h5>
+            <p class="contact-description">
+              Atención rápida para pedidos y consultas.
+            </p>
+            <a [href]="whatsappLink" class="contact-btn contact-btn-whatsapp" target="_blank" rel="noopener noreferrer">
+              <i class="fab fa-whatsapp"></i>
+              Escribir ahora
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+          <div class="contact-card contact-card-accent">
+            <div class="contact-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <h5 class="contact-title">Horarios</h5>
+            <div class="mini-hours">
+              <div class="mini-hours-item" *ngFor="let item of obtenerDiasOrdenados(config.horarios)">
+                <span>{{ item.dia }}</span>
+                <strong>{{ item.horario }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-cta-section">
+    <div class="container">
+      <div class="contact-cta-card">
+        <div>
+          <span class="cta-label">Llámanos o escríbenos</span>
+          <h3>Te atendemos con gusto en el canal que prefieras</h3>
+          <p>WhatsApp, correo o teléfono. Todo queda visible también en el footer para que no tengas que buscarlo.</p>
+        </div>
+        <div class="cta-actions">
+          <a [href]="whatsappLink" class="contact-btn contact-btn-whatsapp" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-whatsapp"></i>
+            WhatsApp
+          </a>
+          <a [href]="telefonoLink" class="contact-btn contact-btn-phone">
+            <i class="fas fa-phone"></i>
+            Llamar
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</ng-container>

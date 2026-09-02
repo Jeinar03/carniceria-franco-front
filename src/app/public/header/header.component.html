@@ -1,0 +1,334 @@
+<div class="container-fluid bg-dark px-0">
+  <div class="row gx-0">
+    <!-- Logo en versión escritorio -->
+    <div class="col-lg-3 bg-gradient-dark d-none d-lg-block">
+      <a
+        href="index.html"
+        class="navbar-brand w-100 h-100 m-0 p-0 d-flex align-items-center justify-content-center logo-container"
+      >
+        <img
+          src="../../../assets/img/logo.jpeg"
+          alt="Carnicería Franco Logo"
+          class="logo-img"
+          style="height: 60px; width: auto"
+        />
+        <div class="logo-text">
+          <h1 class="m-0 text-primary brand-name">CARNICERÍA</h1>
+          <h2 class="m-0 text-white brand-subtitle">FRANCO</h2>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-lg-9">
+      <!-- Navbar principal -->
+      <nav
+        class="navbar navbar-expand-lg bg-dark navbar-dark p-3 p-lg-0 px-lg-5 modern-navbar"
+      >
+        <a href="index.html" class="navbar-brand d-block d-lg-none mobile-brand">
+          <h1 class="m-0 display-6 text-primary text-uppercase">
+            Carnicería Franco
+          </h1>
+        </a>
+        <button
+          type="button"
+          class="navbar-toggler modern-toggler"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarCollapse"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div
+          class="collapse navbar-collapse justify-content-between"
+          id="navbarCollapse"
+        >
+          <div class="navbar-nav mr-auto py-0 d-flex align-items-center w-100">
+            <a routerLink="/" class="nav-item nav-link modern-nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+              <i class="fas fa-home me-2"></i>Inicio
+            </a>
+            <a routerLink="/pages/productos" class="nav-item nav-link modern-nav-link" routerLinkActive="active">
+              <i class="fas fa-box me-2"></i>Productos
+            </a>
+            <a routerLink="/pages/categorias" class="nav-item nav-link modern-nav-link" routerLinkActive="active">
+              <i class="fas fa-list me-2"></i>Categorías
+            </a>
+            <a routerLink="/contact" class="nav-item nav-link modern-nav-link" routerLinkActive="active">
+              <i class="fas fa-envelope me-2"></i>Contáctanos
+            </a>
+
+            <!-- Notificaciones -->
+            <div class="nav-item dropdown ms-lg-2 me-lg-2">
+              <button
+                class="btn btn-alerts position-relative"
+                type="button"
+                id="alertasDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-bell me-2"></i>
+                <span class="d-none d-lg-inline">Notificaciones</span>
+                <span
+                  *ngIf="cantidadAlertasNoLeidas > 0"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge"
+                >
+                  {{ cantidadAlertasNoLeidas }}
+                </span>
+              </button>
+
+              <ul class="dropdown-menu alertas-dropdown" aria-labelledby="alertasDropdown">
+                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                  <span><i class="fas fa-bell me-2"></i>Alertas del sitio</span>
+                  <span class="badge bg-dark text-light">{{ alertas.length }}</span>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+
+                <li *ngIf="loading" class="px-3 py-2 text-muted small">
+                  Cargando alertas...
+                </li>
+
+                <li *ngIf="!loading && alertas.length === 0" class="text-center py-3">
+                  <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+                  <p class="text-muted mb-0">Sin alertas disponibles</p>
+                </li>
+
+                <li *ngIf="!loading && alertasNoLeidas.length > 0" class="alertas-section-title">
+                  No leídas
+                </li>
+
+                <li
+                  *ngFor="let alerta of alertasNoLeidas"
+                  class="dropdown-item alert-item"
+                >
+                  <div class="d-flex align-items-start gap-2">
+                    <div class="flex-grow-1" (click)="abrirAlertaEnModal(alerta)">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span [class]="getClaseTipoAlerta(alerta.tipo)">{{ alerta.tipo }}</span>
+                        <small class="text-muted">{{ formatFecha(alerta.fecha_inicio || alerta.created_at) }}</small>
+                      </div>
+                      <strong class="d-block product-name">{{ alerta.titulo }}</strong>
+                      <small class="text-muted text-break">{{ alerta.descripcion }}</small>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-success"
+                      (click)="marcarComoLeida(alerta); $event.stopPropagation()"
+                    >
+                      Leída
+                    </button>
+                  </div>
+                </li>
+
+                <li *ngIf="!loading && alertasLeidas.length > 0"><hr class="dropdown-divider" /></li>
+                <li *ngIf="!loading && alertasLeidas.length > 0" class="alertas-section-title">
+                  Leídas
+                </li>
+
+                <li
+                  *ngFor="let alerta of alertasLeidas"
+                  class="dropdown-item alert-item leida"
+                  (click)="abrirAlertaEnModal(alerta)"
+                >
+                  <div class="d-flex align-items-center justify-content-between gap-2">
+                    <div>
+                      <strong class="d-block product-name">{{ alerta.titulo }}</strong>
+                      <small class="text-muted">{{ formatFecha(alerta.fecha_inicio || alerta.created_at) }}</small>
+                    </div>
+                    <i class="fas fa-check-circle text-success"></i>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Botón de Mi Carrito -->
+            <div *ngIf="isLoggedIn" class="nav-item dropdown ms-auto me-3">
+              <button
+                class="btn btn-cart position-relative"
+                type="button"
+                id="carritoDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-shopping-cart me-2"></i>
+                <span class="d-none d-lg-inline">Mi Carrito</span>
+                <span
+                  *ngIf="cantidadCarrito > 0"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge"
+                >
+                  {{ cantidadCarrito }}
+                </span>
+              </button>
+
+              <!-- Menú del carrito -->
+              <ul class="dropdown-menu carrito-dropdown" aria-labelledby="carritoDropdown">
+                <li class="dropdown-header">
+                  <i class="fas fa-shopping-cart me-2"></i>
+                  Mi Carrito de Compras
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+
+                <!-- Items del carrito -->
+                <li *ngIf="itemsCarrito.length === 0" class="text-center py-3">
+                  <i class="fas fa-shopping-basket fa-2x text-muted mb-2"></i>
+                  <p class="text-muted mb-0">Tu carrito está vacío</p>
+                </li>
+
+                <li
+                  *ngFor="let item of itemsCarrito"
+                  class="dropdown-item cart-item"
+                >
+                  <div class="d-flex align-items-start position-relative">
+                    <button
+                      class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                      style="padding: 2px 6px; font-size: 0.7rem;"
+                      (click)="eliminarDelCarrito(item.producto.id); $event.stopPropagation()">
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <img
+                      [src]="getImagenProducto(item.producto.imagen)"
+                      class="me-3 flex-shrink-0 rounded product-img"
+                      width="50"
+                      height="50"
+                      alt="Producto"
+                      style="object-fit: cover;"
+                    />
+                    <div class="text-wrap flex-grow-1">
+                      <strong class="d-block product-name">{{ item.producto.nombre }}</strong>
+                      <small class="text-muted d-block">
+                        Cantidad: {{ (+(item.cantidad || 0)).toFixed(2) }} {{ item.producto.unidad_venta }}(s)
+                      </small>
+                      <p class="mb-0 text-break" style="color: #D9BB84; font-weight: 600;">
+                        ${{ (+(item.subtotal || 0)).toFixed(2) }}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+
+                <li *ngIf="itemsCarrito.length > 0"><hr class="dropdown-divider" /></li>
+                <li *ngIf="itemsCarrito.length > 0" class="text-center p-2">
+                  <button
+                    class="btn btn-primary btn-sm w-100"
+                    (click)="verCarritoCompleto()">
+                    <i class="fas fa-eye me-2"></i>Ver carrito completo
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Botón de sesión al mismo nivel -->
+            <div class="nav-item">
+              <a
+                *ngIf="isLoggedIn"
+                (click)="logout()"
+                class="btn btn-login"
+              >
+                <i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión
+              </a>
+              <a
+                *ngIf="!isLoggedIn"
+                [routerLink]="['/login']"
+                class="btn btn-login"
+              >
+                <i class="fas fa-sign-in-alt me-2"></i>Iniciar sesión
+              </a>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center">
+            <!-- Mostrar la imagen y el nombre del usuario solo si está logueado -->
+            <div
+              *ngIf="isLoggedIn"
+              class="user-info d-flex flex-column align-items-center mx-2 position-relative"
+            >
+              <a
+                *ngIf="userImage"
+                [routerLink]="['/pages/profile']"
+                class="position-relative user-avatar"
+              >
+                <img
+                  [src]="userImage"
+                  alt="User Image"
+                  class="user-image rounded-circle"
+                />
+                <i
+                  *ngIf="profileStatusIcon"
+                  class="fas {{
+                    profileStatusIcon
+                  }} profile-status-icon position-absolute"
+                ></i>
+              </a>
+              <div class="user-name mt-2">{{ userName }}</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="notificacionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div
+      class="modal-content text-center p-4"
+      style="
+        border-radius: 24px;
+        background: #111827;
+        color: #fff;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      "
+    >
+      <!-- Botón de cierre -->
+      <button
+        type="button"
+        class="btn-close position-absolute top-0 end-0 m-3 bg-white rounded-circle p-2"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+        style="opacity: 0.9"
+      ></button>
+
+      <!-- Imagen (más grande y redondeada) -->
+      <img
+        *ngIf="modalNotificacion?.imagen_url"
+        class="mx-auto mb-3 rounded-circle shadow-lg border border-3 border-light"
+        [src]="modalNotificacion!.imagen_url"
+        style="
+          width: 120px;
+          height: 120px;
+          object-fit: cover;
+          background-color: white;
+        "
+      />
+
+      <h2 class="fw-bold mb-2" style="font-size: 1.8rem; color: white">
+        <i class="fa fa-bullhorn text-danger me-2"></i>
+        {{ modalNotificacion?.titulo }}
+      </h2>
+
+      <!-- Descripción -->
+      <p class="fs-5">{{ modalNotificacion?.descripcion }}</p>
+
+      <!-- Fecha -->
+      <div class="text-muted mb-3">
+        <small>{{ formatFecha(modalNotificacion?.fecha_inicio || modalNotificacion?.created_at || null) }}</small>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex justify-content-center gap-3">
+        <button
+          type="button"
+          class="btn btn-success px-4"
+          (click)="marcarComoLeida(modalNotificacion!, true)"
+        >
+          <i class="fas fa-check me-2"></i>Marcar como leída
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-light px-4"
+          data-bs-dismiss="modal"
+        >
+          Cerrar
+        </button>
+      
+      </div>
+    </div>
+  </div>
+</div>

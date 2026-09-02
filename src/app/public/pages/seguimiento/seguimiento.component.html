@@ -1,0 +1,152 @@
+<!-- Hero Start -->
+<div class="container-fluid bg-primary p-5 bg-hero mb-5">
+  <div class="row py-5">
+    <div class="col-12 text-center">
+      <h1 class="display-2 text-uppercase text-white mb-md-4">Seguimiento de Resultados</h1>
+      <a href="" class="btn btn-primary py-md-3 px-md-5 me-3">Home</a>
+
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid p-5">
+  <div class="mb-5 text-center">
+    <h1 class="display-3 text-uppercase mb-0">Sube aquí las fotos de tu seguimiento mes con mes</h1>
+  </div>
+
+  <!-- Mensaje de advertencia -->
+  <div *ngIf="!canUpload" class="alert alert-warning text-center mb-5">
+    No puedes subir fotos en este momento. Por favor, vuelve el {{ nextUploadDate | date: 'shortDate' }} para cargar nuevas imágenes.
+  </div>
+
+  <!-- Selección de fotos -->
+  <div *ngIf="canUpload" class="row g-5 mb-5">
+    <div class="col-lg-12">
+      <div class="d-flex flex-column align-items-center bg-dark rounded text-center py-5 px-3">
+        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px">
+          <i class="fa fa-camera fs-4 text-white"></i>
+        </div>
+        <h5 class="text-uppercase text-primary">Sube tus fotos</h5>
+        <div
+        class="upload-area d-flex flex-column align-items-center bg-dark rounded text-center py-5 px-3"
+        [class.dragover]="isDragOver"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+
+        <p class="text-white">Arrastra las imágenes aquí o selecciona desde tu dispositivo</p>
+        <input
+          type="file"
+          id="fileInput"
+          multiple
+          accept="image/*"
+          (change)="onFilesSelected($event)"
+          hidden
+        />
+        <button class="btn btn-outline-light btn-sm mt-2" (click)="triggerFileInput()">Seleccionar Imágenes</button>
+      </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Vista previa de imágenes y botón eliminar -->
+  <div class="row g-3">
+    <div class="col-lg-3" *ngFor="let img of previewImages; let i = index">
+      <div class="card">
+        <img [src]="img" class="card-img-top" alt="preview image" />
+        <div class="card-body text-center">
+          <button class="btn btn-danger" (click)="removeImage(i)">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón de subida -->
+  <div *ngIf="!canUpload" class="row mt-4">
+    <div class="col text-center">
+      <button (click)="saveImagesAsBase64()" class="btn btn-primary">Subir fotos</button>
+    </div>
+  </div>
+
+<!-- Contenedor para imágenes cargadas anteriormente -->
+<div class="container-fluid p-5">
+  <div class="mb-5 text-center">
+    <h1 class="display-3 text-uppercase mb-0">Imágenes Cargadas</h1>
+  </div>
+
+  <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+    <div class="col" *ngFor="let img of loadedImages; let i = index">
+      <div class="card shadow-sm text-center">
+        <img [src]="getImageSrc(img.image)"  (click)="openImageModal(img, i)" class="card-img-top" alt="Imagen cargada" style="height: 200px; object-fit: cover;" />
+        <div class="card-body">
+          <h6 class="card-title">Semana {{ i + 1 }}</h6>
+          <p class="card-text mb-1"><strong>Peso:</strong> {{ img.peso }} kg</p>
+          <p class="card-text mb-1"><strong>Comentarios:</strong> {{ img.comentarios }}</p>
+          <p class="card-text"><strong>Fecha:</strong> {{ img.created_at | date:'shortDate' }}</p>
+          <button (click)="deleteImage(img.id)" class="btn btn-outline-danger btn-sm mt-2">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal para previsualizar imagen -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Previsualización - Semana {{ modalImageIndex + 1 }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img [src]="modalImageSrc" class="img-fluid rounded" alt="Imagen ampliada" />
+        <div class="mt-3">
+          <p><strong>Peso:</strong> {{ modalImage?.peso }} kg</p>
+          <p><strong>Comentarios:</strong> {{ modalImage?.comentarios }}</p>
+          <p><strong>Fecha:</strong> {{ modalImage?.created_at | date:'fullDate' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal para ingresar comentarios -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="commentModalLabel">Añadir Detalles de la Imagen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Imagen de vista previa en la modal -->
+        <img [src]="currentImagePreview" class="img-fluid mb-3" alt="Preview" />
+
+        <!-- Campo para ingresar el peso actual -->
+        <div class="mb-3">
+          <label for="pesoActual" class="form-label">Peso Actual</label>
+          <input type="number" [(ngModel)]="currentImageDetails.peso" class="form-control" id="pesoActual" />
+        </div>
+
+        <!-- Campo para ingresar comentarios -->
+        <div class="mb-3">
+          <label for="comentarios" class="form-label">Comentarios</label>
+          <textarea [(ngModel)]="currentImageDetails.comentarios" class="form-control" id="comentarios" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" (click)="saveImageDetails()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+

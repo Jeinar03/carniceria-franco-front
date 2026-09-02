@@ -1,0 +1,835 @@
+<!-- Profile Hero Section -->
+<!-- <div class="profile-hero">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">Mi Perfil</h1>
+      <p class="hero-subtitle">Gestiona tu información personal y revisa tus compras</p>
+    </div>
+  </div>
+</div> -->
+
+<!-- Tab Navigation -->
+<div class="profile-tabs">
+  <div class="container">
+    <div class="tabs-wrapper">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'datos'"
+        (click)="switchTab('datos')">
+        <i class="fas fa-user me-2"></i>
+        Mis Datos
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'compras'"
+        (click)="switchTab('compras')">
+        <i class="fas fa-shopping-bag me-2"></i>
+        Mis Compras
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'recomendaciones'"
+        (click)="switchTab('recomendaciones')">
+        <i class="fas fa-magic me-2"></i>
+        Hiper Personalización
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Content Section -->
+<div class="profile-content">
+  <div class="container">
+
+    <!-- Tab: Mis Datos -->
+    <div *ngIf="activeTab === 'datos'" class="tab-content-panel fade-in">
+      <div class="row g-4">
+
+        <!-- Formulario -->
+        <div class="col-lg-8">
+          <div class="profile-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-id-card me-2"></i>
+                Información Personal
+              </h3>
+              <p class="card-subtitle">Actualiza tus datos personales</p>
+            </div>
+
+            <form [formGroup]="myForm" (ngSubmit)="submitForm()" class="profile-form" *ngIf="!loading">
+              <div class="row g-3">
+
+                <!-- Nombre -->
+                <div class="col-md-4">
+                  <label for="nombre" class="form-label">
+                    <i class="fas fa-user"></i>
+                    Nombre
+                  </label>
+                  <input type="text" formControlName="nombre" class="form-control-modern" id="nombre" placeholder="Tu nombre">
+                </div>
+
+                <!-- Apellido Paterno -->
+                <div class="col-md-4">
+                  <label for="apellido" class="form-label">
+                    <i class="fas fa-user"></i>
+                    Apellido Paterno
+                  </label>
+                  <input type="text" formControlName="apellido" class="form-control-modern" id="apellido" placeholder="Apellido paterno">
+                </div>
+
+                <!-- Apellido Materno -->
+                <div class="col-md-4">
+                  <label for="apellido2" class="form-label">
+                    <i class="fas fa-user"></i>
+                    Apellido Materno
+                  </label>
+                  <input type="text" formControlName="apellido2" class="form-control-modern" id="apellido2" placeholder="Apellido materno">
+                </div>
+
+                <!-- Correo -->
+                <div class="col-md-6">
+                  <label for="correo" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    Correo Electrónico
+                  </label>
+                  <input type="email" formControlName="correo" class="form-control-modern" id="correo">
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-md-6">
+                  <label for="telefono" class="form-label">
+                    <i class="fas fa-phone"></i>
+                    Teléfono
+                  </label>
+                  <input type="tel" formControlName="telefono" class="form-control-modern" id="telefono" placeholder="10 dígitos">
+                </div>
+
+                <!-- Dirección -->
+                <div class="col-12">
+                  <label for="direccion" class="form-label">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Dirección
+                  </label>
+                  <input type="text" formControlName="direccion" class="form-control-modern" id="direccion" placeholder="Calle y número">
+                </div>
+
+                <!-- Ciudad -->
+                <div class="col-md-4">
+                  <label for="ciudad" class="form-label">
+                    <i class="fas fa-city"></i>
+                    Ciudad
+                  </label>
+                  <input type="text" formControlName="ciudad" class="form-control-modern" id="ciudad" placeholder="Tu ciudad">
+                </div>
+
+                <!-- Estado -->
+                <div class="col-md-4">
+                  <label for="estado" class="form-label">
+                    <i class="fas fa-map"></i>
+                    Estado
+                  </label>
+                  <input type="text" formControlName="estado" class="form-control-modern" id="estado" placeholder="Tu estado">
+                </div>
+
+                <!-- Código Postal -->
+                <div class="col-md-4">
+                  <label for="codigo_postal" class="form-label">
+                    <i class="fas fa-mail-bulk"></i>
+                    Código Postal
+                  </label>
+                  <input type="text" formControlName="codigo_postal" class="form-control-modern" id="codigo_postal" placeholder="5 dígitos">
+                </div>
+
+                <!-- País -->
+                <div class="col-md-6">
+                  <label for="pais" class="form-label">
+                    <i class="fas fa-globe"></i>
+                    País
+                  </label>
+                  <input type="text" formControlName="pais" class="form-control-modern" id="pais">
+                </div>
+
+                <!-- RFC -->
+                <div class="col-md-6">
+                  <label for="rfc" class="form-label">
+                    <i class="fas fa-file-invoice"></i>
+                    RFC (Opcional)
+                  </label>
+                  <input type="text" formControlName="rfc" class="form-control-modern" id="rfc" placeholder="RFC para facturación">
+                </div>
+
+                <!-- Botón Guardar -->
+                <div class="col-12">
+                  <button type="submit" class="btn-save" [disabled]="loadingBTN || !myForm.valid || !hasCambiosPerfil()">
+                    <span *ngIf="loadingBTN" class="button-spinner">
+                      <i class="fas fa-circle-notch fa-spin"></i>
+                    </span>
+                    <span *ngIf="!loadingBTN" class="button-content">
+                      <i class="fas fa-save me-2"></i>
+                      Guardar Cambios
+                    </span>
+                  </button>
+                </div>
+
+              </div>
+            </form>
+
+            <!-- Loading Skeleton -->
+            <div *ngIf="loading" class="loading-skeleton">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de Cuenta -->
+        <div class="col-lg-4">
+          <div class="profile-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-wallet me-2"></i>
+                Resumen de Cuenta
+              </h3>
+            </div>
+
+            <div class="account-summary" *ngIf="!loading">
+              <div class="summary-item">
+                <div class="summary-icon tipo-cliente">
+                  <i class="fas fa-crown"></i>
+                </div>
+                <div class="summary-info">
+                  <span class="summary-label">Tipo de Cliente</span>
+                  <span class="summary-value">{{ myForm.get('tipo_cliente')?.value | titlecase }}</span>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon compras">
+                  <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="summary-info">
+                  <span class="summary-label">Total de Compras</span>
+                  <span class="summary-value">${{ myForm.get('total_compras')?.value }}</span>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon pedidos">
+                  <i class="fas fa-box"></i>
+                </div>
+                <div class="summary-info">
+                  <span class="summary-label">Número de Pedidos</span>
+                  <span class="summary-value">{{ myForm.get('numero_compras')?.value }}</span>
+                </div>
+              </div>
+
+              <div class="summary-item">
+                <div class="summary-icon saldo">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="summary-info">
+                  <span class="summary-label">Saldo en Cuenta</span>
+                  <span class="summary-value">${{ myForm.get('saldo_cuenta')?.value }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beneficios -->
+          <div class="profile-card benefits-card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-gift me-2"></i>
+                Tus Beneficios
+              </h3>
+            </div>
+
+            <div class="benefits-list">
+              <div class="benefit-item">
+                <i class="fas fa-truck"></i>
+                <span>Envío gratis en compras +$500</span>
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-star"></i>
+                <span>Productos premium seleccionados</span>
+              </div>
+              <div class="benefit-item">
+                <i class="fas fa-percent"></i>
+                <span>Descuentos exclusivos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab: Mis Compras -->
+    <div *ngIf="activeTab === 'compras'" class="tab-content-panel fade-in">
+
+      <!-- Estadísticas de Compras -->
+      <div class="row g-4 mb-4" *ngIf="estadisticas && compras.length > 0">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #D9BB84, #D9B384);">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Total Gastado</span>
+              <span class="stat-value">${{ formatMoney(estadisticas.total_compras) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #59514F, #3a3634);">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Compras Realizadas</span>
+              <span class="stat-value">{{ estadisticas.numero_compras }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #F2E6D0, #e6d5b5);">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Promedio por Compra</span>
+              <span class="stat-value">${{ formatMoney(estadisticas.promedio_compra) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #28a745, #20853a);">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-label">Este Mes</span>
+              <span class="stat-value">{{ estadisticas.compras_este_mes }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial de Compras -->
+      <div class="profile-card">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-history me-2"></i>
+            Historial de Compras
+          </h3>
+          <p class="card-subtitle">Total de {{ totalCompras }} compra(s) realizada(s)</p>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="loadingCompras" class="loading-state">
+          <i class="fas fa-spinner fa-spin fa-3x" style="color: #D9BB84;"></i>
+          <p class="mt-3">Cargando tus compras...</p>
+        </div>
+
+        <!-- Mensaje sin compras -->
+        <div class="empty-state" *ngIf="!loadingCompras && compras.length === 0">
+          <div class="empty-icon">
+            <i class="fas fa-shopping-bag"></i>
+          </div>
+          <h4 class="empty-title">Aún no has realizado compras</h4>
+          <p class="empty-text">Comienza a explorar nuestros productos de calidad premium</p>
+          <a routerLink="/pages/productos" class="btn-shop-now">
+            <i class="fas fa-store me-2"></i>
+            Ir a la Tienda
+          </a>
+        </div>
+
+        <!-- Lista de compras -->
+        <div class="compras-list" *ngIf="!loadingCompras && compras.length > 0">
+          <div class="compra-item" *ngFor="let compra of compras">
+            <div class="compra-header-row">
+              <div class="compra-info">
+                <span class="compra-folio">
+                  <i class="fas fa-receipt me-2"></i>
+                  {{ compra.folio }}
+                </span>
+                <span class="compra-fecha">
+                  <i class="fas fa-calendar me-2"></i>
+                  {{ compra.fecha_venta | date: 'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+              <div class="compra-status-metodo">
+                <span class="compra-estatus" [ngClass]="getEstatusClass(compra.estatus)">
+                  {{ compra.estatus | titlecase }}
+                </span>
+                <span class="compra-metodo">
+                  <i class="fas" [ngClass]="getMetodoPagoIcon(compra.metodo_pago)"></i>
+                  {{ compra.metodo_pago | titlecase }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Resumen de productos -->
+            <div class="compra-productos-resumen" *ngIf="compra.details && compra.details.length > 0">
+              <div class="producto-mini" *ngFor="let detalle of compra.details.slice(0, 3)">
+                <img [src]="getImagenProducto(detalle.product?.imagen)" [alt]="detalle.producto_nombre" class="producto-mini-img">
+                <div class="producto-mini-info">
+                  <span class="producto-mini-nombre">{{ detalle.producto_nombre }}</span>
+                  <span class="producto-mini-cantidad">{{ detalle.cantidad }} {{ detalle.unidad_venta }}</span>
+                </div>
+              </div>
+              <div class="mas-productos" *ngIf="compra.details.length > 3">
+                +{{ compra.details.length - 3 }} producto(s) más
+              </div>
+            </div>
+
+            <!-- Totales y acciones -->
+            <div class="compra-footer">
+              <div class="compra-totales">
+                <div class="total-item">
+                  <span class="total-label">Subtotal:</span>
+                  <span class="total-value">${{ formatMoney(compra.subtotal) }}</span>
+                </div>
+                <div class="total-item" *ngIf="toNumber(compra.descuento) > 0">
+                  <span class="total-label">Descuento:</span>
+                  <span class="total-value descuento">-${{ formatMoney(compra.descuento) }}</span>
+                </div>
+                <div class="total-item">
+                  <span class="total-label">IVA:</span>
+                  <span class="total-value">${{ formatMoney(compra.impuestos) }}</span>
+                </div>
+                <div class="total-item total-final">
+                  <span class="total-label">Total:</span>
+                  <span class="total-value">${{ formatMoney(compra.total) }}</span>
+                </div>
+              </div>
+              <div class="compra-actions">
+                <button
+                  class="btn-subir-evidencia"
+                  *ngIf="esTransferenciaPendiente(compra)"
+                  (click)="abrirModalEvidencia(compra)">
+                  <i class="fas fa-file-upload me-2"></i>
+                  Subir Evidencia
+                </button>
+
+                <button
+                  class="btn-responder-encuesta"
+                  *ngIf="puedeResponderSatisfaccion(compra)"
+                  (click)="abrirModalEncuesta(compra)">
+                  <i class="fas fa-star me-2"></i>
+                  Responder Satisfaccion
+                </button>
+
+                <button class="btn-ver-detalle" (click)="verDetalleCompra(compra.id)">
+                  <i class="fas fa-eye me-2"></i>
+                  Ver Detalle
+                </button>
+              </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="compra-notas" *ngIf="compra.notas">
+              <i class="fas fa-sticky-note me-2"></i>
+              <span>{{ compra.notas }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container" *ngIf="!loadingCompras && totalPaginas > 1">
+          <button
+            class="btn-pagination"
+            [disabled]="paginaActual === 1"
+            (click)="cambiarPagina(paginaActual - 1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+
+          <span class="pagination-info">
+            Página {{ paginaActual }} de {{ totalPaginas }}
+          </span>
+
+          <button
+            class="btn-pagination"
+            [disabled]="paginaActual === totalPaginas"
+            (click)="cambiarPagina(paginaActual + 1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Detalle de Compra -->
+      <div class="modal-overlay" *ngIf="mostrandoDetalle" (click)="cerrarDetalle()">
+        <div class="modal-detalle" (click)="$event.stopPropagation()">
+          <div class="modal-header-custom">
+            <h3>
+              <i class="fas fa-receipt me-2"></i>
+              Detalle de Compra
+            </h3>
+            <button class="btn-close-modal" (click)="cerrarDetalle()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="modal-body-custom" *ngIf="compraSeleccionada">
+            <!-- Info general -->
+            <div class="detalle-info-general">
+              <div class="info-item">
+                <span class="info-label">Folio:</span>
+                <span class="info-value">{{ compraSeleccionada.folio }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Fecha:</span>
+                <span class="info-value">{{ compraSeleccionada.fecha_venta | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Estatus:</span>
+                <span class="info-value" [ngClass]="getEstatusClass(compraSeleccionada.estatus)">
+                  {{ compraSeleccionada.estatus | titlecase }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Método de Pago:</span>
+                <span class="info-value">
+                  <i class="fas me-2" [ngClass]="getMetodoPagoIcon(compraSeleccionada.metodo_pago)"></i>
+                  {{ compraSeleccionada.metodo_pago | titlecase }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="detalle-productos">
+              <h4 class="detalle-section-title">Productos</h4>
+              <div class="producto-detalle-item" *ngFor="let detalle of compraSeleccionada.details">
+                <img [src]="getImagenProducto(detalle.product?.imagen)" [alt]="detalle.producto_nombre" class="producto-detalle-img">
+                <div class="producto-detalle-info">
+                  <h5 class="producto-detalle-nombre">{{ detalle.producto_nombre }}</h5>
+                  <p class="producto-detalle-codigo">Código: {{ detalle.producto_codigo }}</p>
+                  <div class="producto-detalle-precios">
+                    <span class="precio-unitario">${{ formatMoney(detalle.precio_unitario) }} / {{ detalle.unidad_venta }}</span>
+                    <span class="cantidad">x {{ toNumber(detalle.cantidad) }}</span>
+                    <span class="precio-total">${{ formatMoney(detalle.total) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumen de pago -->
+            <div class="detalle-resumen">
+              <div class="resumen-item">
+                <span>Subtotal:</span>
+                <span>${{ formatMoney(compraSeleccionada.subtotal) }}</span>
+              </div>
+              <div class="resumen-item" *ngIf="toNumber(compraSeleccionada.descuento) > 0">
+                <span>Descuento:</span>
+                <span class="descuento">-${{ formatMoney(compraSeleccionada.descuento) }}</span>
+              </div>
+              <div class="resumen-item">
+                <span>IVA (16%):</span>
+                <span>${{ formatMoney(compraSeleccionada.impuestos) }}</span>
+              </div>
+              <div class="resumen-divider"></div>
+              <div class="resumen-item resumen-total">
+                <span>Total:</span>
+                <span>${{ formatMoney(compraSeleccionada.total) }}</span>
+              </div>
+            </div>
+
+            <!-- Notas -->
+            <div class="detalle-notas" *ngIf="compraSeleccionada.notas">
+              <h4 class="detalle-section-title">Notas</h4>
+              <p>{{ compraSeleccionada.notas }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Subir Evidencia de Transferencia -->
+      <div class="modal-overlay" *ngIf="mostrandoModalEvidencia" (click)="cerrarModalEvidencia()">
+        <div class="modal-detalle modal-evidencia" (click)="$event.stopPropagation()">
+          <div class="modal-header-custom modal-header-evidencia">
+            <h3>
+              <i class="fas fa-file-upload me-2"></i>
+              Subir Evidencia de Transferencia
+            </h3>
+            <button class="btn-close-modal" (click)="cerrarModalEvidencia()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="modal-body-custom">
+            <div class="evidencia-info" *ngIf="compraEvidenciaSeleccionada">
+              <span><strong>Folio:</strong> {{ compraEvidenciaSeleccionada.folio }}</span>
+              <span><strong>Total:</strong> ${{ formatMoney(compraEvidenciaSeleccionada.total) }}</span>
+            </div>
+
+            <label for="evidenciaTransferencia" class="dropzone-evidencia">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span class="dropzone-title">Selecciona tu comprobante</span>
+              <span class="dropzone-subtitle">Formatos permitidos: JPG, PNG o PDF (max. 5MB)</span>
+              <span class="archivo-seleccionado" *ngIf="nombreArchivoEvidencia">{{ nombreArchivoEvidencia }}</span>
+            </label>
+
+            <input
+              id="evidenciaTransferencia"
+              class="input-evidencia"
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              (change)="onArchivoEvidenciaSeleccionado($event)">
+
+            <div class="evidencia-actions">
+              <button class="btn-cancelar-evidencia" (click)="cerrarModalEvidencia()" [disabled]="subiendoEvidencia">
+                Cancelar
+              </button>
+              <button class="btn-subir-confirmar" (click)="subirEvidenciaTransferencia()" [disabled]="subiendoEvidencia || !archivoEvidencia">
+                <i class="fas fa-circle-notch fa-spin me-2" *ngIf="subiendoEvidencia"></i>
+                <i class="fas fa-check me-2" *ngIf="!subiendoEvidencia"></i>
+                {{ subiendoEvidencia ? 'Subiendo...' : 'Subir Evidencia' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Encuesta de Satisfaccion -->
+      <div class="modal-overlay" *ngIf="mostrandoModalEncuesta" (click)="cerrarModalEncuesta()">
+        <div class="modal-detalle modal-encuesta" (click)="$event.stopPropagation()">
+          <div class="modal-header-custom">
+            <h3>
+              <i class="fas fa-star me-2"></i>
+              Encuesta de Satisfaccion
+            </h3>
+            <button class="btn-close-modal" (click)="cerrarModalEncuesta()" [disabled]="guardandoEncuesta">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="modal-body-custom">
+            <div class="encuesta-info" *ngIf="compraEncuestaSeleccionada">
+              <div>
+                <span class="encuesta-label">Pedido completado</span>
+                <strong>{{ compraEncuestaSeleccionada.folio }}</strong>
+              </div>
+              <span class="compra-estatus status-completada">
+                {{ compraEncuestaSeleccionada.estatus | titlecase }}
+              </span>
+            </div>
+
+            <div *ngIf="cargandoEncuesta" class="encuesta-loading">
+              <i class="fas fa-spinner fa-spin"></i>
+              <span>Cargando preguntas...</span>
+            </div>
+
+            <div *ngIf="!cargandoEncuesta && preguntasEncuesta.length > 0" class="encuesta-preguntas">
+              <div class="encuesta-pregunta" *ngFor="let pregunta of preguntasEncuesta">
+                <div class="encuesta-pregunta-header">
+                  <span class="encuesta-orden">{{ pregunta.orden }}</span>
+                  <div>
+                    <h5>{{ pregunta.pregunta }}</h5>
+                    <p *ngIf="pregunta.descripcion">{{ pregunta.descripcion }}</p>
+                  </div>
+                </div>
+
+                <div class="encuesta-escala">
+                  <button
+                    type="button"
+                    class="escala-opcion"
+                    *ngFor="let valor of obtenerValoresEscala()"
+                    [class.active]="respuestasEncuesta[pregunta.id] === valor"
+                    (click)="seleccionarRespuestaEncuesta(pregunta.id, valor)">
+                    {{ valor }}
+                  </button>
+                </div>
+
+                <textarea
+                  class="encuesta-comentario"
+                  rows="2"
+                  placeholder="Comentario opcional"
+                  [(ngModel)]="comentariosEncuesta[pregunta.id]">
+                </textarea>
+              </div>
+            </div>
+
+            <div class="encuesta-actions">
+              <button class="btn-cancelar-encuesta" (click)="cerrarModalEncuesta()" [disabled]="guardandoEncuesta">
+                Cancelar
+              </button>
+              <button
+                class="btn-enviar-encuesta"
+                (click)="guardarEncuesta()"
+                [disabled]="cargandoEncuesta || guardandoEncuesta || !encuestaCompleta">
+                <i class="fas fa-circle-notch fa-spin me-2" *ngIf="guardandoEncuesta"></i>
+                <i class="fas fa-paper-plane me-2" *ngIf="!guardandoEncuesta"></i>
+                {{ guardandoEncuesta ? 'Enviando...' : 'Enviar Respuestas' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab: Hiper Personalización -->
+    <div *ngIf="activeTab === 'recomendaciones'" class="tab-content-panel fade-in">
+
+      <!-- Header de Recomendaciones -->
+      <div class="recomendaciones-header">
+        <div class="profile-card">
+          <div class="card-header text-center">
+            <h3 class="card-title">
+              <i class="fas fa-magic me-2"></i>
+              Hiper Personalización
+            </h3>
+            <p class="card-subtitle">Recomendaciones inteligentes basadas en tu historial de compras</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loadingRecomendaciones" class="loading-state">
+        <i class="fas fa-sparkles fa-spin fa-3x" style="color: #D9BB84;"></i>
+        <p class="mt-3">Generando tus recomendaciones personalizadas...</p>
+      </div>
+
+      <!-- Sin historial de compras -->
+      <div class="empty-state" *ngIf="!loadingRecomendaciones && (!recomendaciones || recomendaciones.length === 0)">
+        <div class="empty-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h4 class="empty-title">¡Necesitamos conocerte mejor!</h4>
+        <p class="empty-text">Realiza algunas compras para generar recomendaciones personalizadas</p>
+        <a routerLink="/pages/productos" class="btn-shop-now">
+          <i class="fas fa-store me-2"></i>
+          Explorar Productos
+        </a>
+      </div>
+
+      <!-- Lista de Carritos Recomendados -->
+      <div class="recomendaciones-container" *ngIf="!loadingRecomendaciones && recomendaciones && recomendaciones.length > 0">
+
+        <div class="carrito-recomendado" *ngFor="let carrito of recomendaciones; trackBy: trackByCarrito">
+          <div class="carrito-header">
+            <div class="carrito-icon" [ngClass]="getCarritoIconClass(carrito.id)">
+              <i [class]="getCarritoIcon(carrito.nombre)"></i>
+            </div>
+            <div class="carrito-info">
+              <h4 class="carrito-nombre">{{ carrito.nombre }}</h4>
+              <p class="carrito-descripcion">{{ carrito.descripcion }}</p>
+            </div>
+            <div class="carrito-precio">
+              <div class="precio-total">${{ formatMoney(carrito.total_estimado) }}</div>
+              <div class="ahorro" *ngIf="carrito.ahorro_estimado > 0">
+                <i class="fas fa-piggy-bank me-1"></i>
+                Ahorras ${{ formatMoney(carrito.ahorro_estimado) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="productos-recomendados">
+            <div class="producto-recomendado" *ngFor="let producto of carrito.productos">
+              <div class="producto-imagen">
+                <img [src]="getImagenProducto(producto.imagen)" [alt]="producto.nombre" class="img-producto">
+                <div class="badge-oferta" *ngIf="producto.en_oferta">
+                  <i class="fas fa-tag"></i>
+                  Oferta
+                </div>
+              </div>
+
+              <div class="producto-info">
+                <h5 class="producto-nombre">{{ producto.nombre }}</h5>
+                <p class="producto-codigo">Código: {{ producto.codigo }}</p>
+                <div class="producto-categoria" *ngIf="producto.categoria_nombre">
+                  <i class="fas fa-layer-group me-1"></i>
+                  {{ producto.categoria_nombre }}
+                </div>
+              </div>
+
+              <div class="producto-cantidad">
+                <div class="cantidad-recomendada">
+                  <i class="fas fa-shopping-cart me-1"></i>
+                  {{ producto.cantidad_recomendada }} unidades
+                </div>
+                <div class="precio-info">
+                  <span class="precio-unitario" *ngIf="!producto.en_oferta">${{ formatMoney(producto.precio) }}</span>
+                  <div class="precio-oferta" *ngIf="producto.en_oferta">
+                    <span class="precio-original">${{ formatMoney(producto.precio) }}</span>
+                    <span class="precio-descuento">${{ formatMoney(producto.precio_oferta || 0) }}</span>
+                  </div>
+                  <div class="subtotal">
+                    Total: ${{ formatMoney(producto.subtotal) }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="producto-acciones">
+                <button class="btn-add-to-cart" (click)="agregarProductoAlCarrito(producto)">
+                  <i class="fas fa-plus"></i>
+                  Agregar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="carrito-actions">
+            <button class="btn-add-all" (click)="agregarCarritoCompleto(carrito)">
+              <i class="fas fa-shopping-basket me-2"></i>
+              Agregar Todo al Carrito
+            </button>
+            <div class="productos-count">
+              <i class="fas fa-cubes me-1"></i>
+              {{ carrito.productos.length }} productos
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Estadísticas de Personalización -->
+      <div class="personalizacion-stats" *ngIf="!loadingRecomendaciones && recomendaciones && recomendaciones.length > 0">
+        <div class="profile-card">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-chart-pie me-2"></i>
+              Tu Perfil de Compras
+            </h3>
+            <p class="card-subtitle">Basado en tu historial de {{ totalCompras }} compras</p>
+          </div>
+
+          <div class="stats-personalizacion">
+            <div class="stat-personalizacion">
+              <div class="stat-icon-personal productos-favoritos">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="stat-info-personal">
+                <span class="stat-label-personal">Productos Favoritos</span>
+                <span class="stat-value-personal">{{ contarProductosFavoritos() }}</span>
+              </div>
+            </div>
+
+            <div class="stat-personalizacion">
+              <div class="stat-icon-personal categorias-preferidas">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <div class="stat-info-personal">
+                <span class="stat-label-personal">Categorías Exploradas</span>
+                <span class="stat-value-personal">{{ contarCategorias() }}</span>
+              </div>
+            </div>
+
+            <div class="stat-personalizacion">
+              <div class="stat-icon-personal ahorro-total">
+                <i class="fas fa-piggy-bank"></i>
+              </div>
+              <div class="stat-info-personal">
+                <span class="stat-label-personal">Ahorro Potencial</span>
+                <span class="stat-value-personal">${{ formatMoney(calcularAhorroTotal()) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

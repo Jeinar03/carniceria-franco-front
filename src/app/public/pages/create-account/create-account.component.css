@@ -1,0 +1,2 @@
+/* Reuse the same visual language as login for consistency */
+@import '../../login/login.component.css';

@@ -1,0 +1,20 @@
+.progress {
+  height: 25px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+}
+
+.btn-primary {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.spinner-border {
+  margin-right: 8px;
+}

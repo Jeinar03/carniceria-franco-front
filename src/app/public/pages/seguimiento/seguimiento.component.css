@@ -1,0 +1,81 @@
+.card-img-top {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+}
+/* Contenedor de la línea de tiempo */
+.timeline {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Elementos individuales de la línea de tiempo */
+.timeline-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+/* Línea vertical en el centro */
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #007bff;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Contenedor de la imagen a la izquierda */
+.timeline-content-left {
+  width: 45%;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 20px;
+}
+
+/* Contenedor de la información a la derecha */
+.timeline-content-right {
+  width: 45%;
+  padding-left: 20px;
+}
+
+/* Estilo de la imagen */
+.timeline-content-left img {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 8px;
+}
+
+/* Card de información */
+.timeline-content-right .card {
+  border: 1px solid #ddd;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+.upload-area {
+  border: 2px dashed #666;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.upload-area.dragover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+.card-img-top {
+  border-radius: 6px 6px 0 0;
+}
+.card-title {
+  font-weight: 700;
+  text-transform: uppercase;
+}

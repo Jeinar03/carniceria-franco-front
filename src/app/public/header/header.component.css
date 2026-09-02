@@ -1,0 +1,425 @@
+
+/* Estilos generales mejorados */
+.container-fluid {
+  box-shadow: 0 4px 20px rgba(89, 81, 79, 0.3);
+  font-family: "Poppins", sans-serif;
+}
+
+/* Logo y marca */
+.logo-container {
+  background: linear-gradient(135deg, #59514F 0%, #3d3835 100%);
+  border-right: 3px solid #D9BB84;
+  transition: all 0.3s ease;
+}
+
+.logo-container:hover {
+  background: linear-gradient(135deg, #3d3835 0%, #59514F 100%);
+  transform: scale(1.02);
+}
+
+.logo-img {
+  filter: drop-shadow(0 4px 8px rgba(89, 81, 79, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.logo-container:hover .logo-img {
+  transform: rotate(5deg) scale(1.1);
+}
+
+.logo-text {
+  margin-left: 15px;
+  font-family: "Poppins", sans-serif !important;
+}
+
+.brand-name {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(45deg, #D9BB84, #F2E6D0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: "Poppins", sans-serif !important;
+}
+
+.brand-subtitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #F2E6D0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Navbar moderna */
+.modern-navbar {
+  background: linear-gradient(90deg, #59514F 0%, #4a433f 100%) !important;
+  border-top: 2px solid #D9BB84;
+  min-height: 70px;
+}
+
+.mobile-brand h1 {
+  background: linear-gradient(45deg, #D9BB84, #F2E6D0);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modern-toggler {
+  border: 2px solid #D9BB84;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.modern-toggler:hover {
+  background-color: #D9BB84;
+  transform: scale(1.05);
+}
+
+/* Enlaces de navegación modernos */
+.modern-nav-link {
+  color: #F2E6D0 !important;
+  font-weight: 500;
+  font-size: 1rem;
+  padding: 12px 20px !important;
+  margin: 0 5px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  font-family: "Poppins", sans-serif !important;
+}
+
+.modern-nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(242, 230, 208, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-nav-link:hover::before {
+  left: 100%;
+}
+
+.modern-nav-link:hover {
+  background: linear-gradient(45deg, #D9BB84, #D9B384);
+  color: #59514F !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 187, 132, 0.4);
+}
+
+.modern-nav-link i {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  color: #D9BB84;
+}
+
+.modern-nav-link:hover i {
+  color: #59514F;
+}
+
+/* Botón del carrito mejorado */
+.btn-cart {
+  background: linear-gradient(45deg, #D9B384, #D9BB84);
+  border: none;
+  color: #59514F;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(217, 179, 132, 0.4);
+}
+
+.btn-cart:hover {
+  background: linear-gradient(45deg, #D9BB84, #F2E6D0);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(217, 187, 132, 0.6);
+  color: #59514F;
+}
+
+.btn-alerts {
+  background: transparent;
+  border: 2px solid #D9BB84;
+  color: #F2E6D0;
+  padding: 10px 16px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-alerts:hover {
+  background: linear-gradient(45deg, #D9BB84, #D9B384);
+  color: #59514F;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 187, 132, 0.5);
+}
+
+.cart-badge {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  background-color: #59514F !important;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Botón de login/logout mejorado */
+.btn-login {
+  background: linear-gradient(45deg, #59514F, #3d3835);
+  border: 2px solid #D9BB84;
+  color: #F2E6D0;
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(89, 81, 79, 0.3);
+}
+
+.btn-login:hover {
+  background: linear-gradient(45deg, #D9BB84, #D9B384);
+  color: #59514F;
+  border-color: #F2E6D0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(217, 187, 132, 0.5);
+  text-decoration: none;
+}
+
+/* Dropdown del carrito mejorado */
+.carrito-dropdown {
+  width: 350px !important;
+  border-radius: 15px !important;
+  border: none !important;
+  box-shadow: 0 10px 40px rgba(89, 81, 79, 0.3) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background-color: #F2F2F2;
+}
+
+.alertas-dropdown {
+  width: min(400px, calc(100vw - 24px)) !important;
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 15px !important;
+  border: none !important;
+  box-shadow: 0 10px 40px rgba(89, 81, 79, 0.3) !important;
+  padding: 0 !important;
+  background-color: #F2F2F2;
+}
+
+.alertas-section-title {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #59514F;
+  font-weight: 700;
+  padding: 8px 16px;
+  background: #f6efe3;
+}
+
+.alert-item {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #F2E6D0;
+  cursor: pointer;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+
+.alert-item .d-flex {
+  min-width: 0;
+}
+
+.alert-item .flex-grow-1 {
+  min-width: 0;
+}
+
+.alert-item .btn {
+  flex-shrink: 0;
+}
+
+.alert-item:hover {
+  background: linear-gradient(90deg, #F2E6D0, #F2F2F2);
+}
+
+.alert-item.leida {
+  opacity: 0.78;
+}
+
+.dropdown-header {
+  background: linear-gradient(45deg, #D9BB84, #D9B384);
+  color: #59514F;
+  font-weight: 700;
+  padding: 15px 20px;
+  margin: 0;
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cart-item {
+  padding: 15px 20px !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #F2E6D0;
+  transition: all 0.3s ease;
+  background-color: #F2F2F2;
+}
+
+.cart-item:hover {
+  background: linear-gradient(90deg, #F2E6D0, #F2F2F2);
+  transform: translateX(5px);
+}
+
+.product-img {
+  border: 2px solid #D9B384;
+  object-fit: cover;
+}
+
+.product-name {
+  color: #59514F;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.product-description {
+  color: #59514F;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* Usuario */
+.user-image {
+  width: 45px;
+  height: 45px;
+  border: 3px solid #D9BB84;
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover .user-image {
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(217, 187, 132, 0.5);
+  border-color: #F2E6D0;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.user-name {
+  margin-top: 8px;
+  color: #F2E6D0;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.profile-status-icon {
+  bottom: 0;
+  right: -5px;
+  font-size: 1rem;
+  background: #F2E6D0;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.profile-status-icon.fa-exclamation-circle {
+  color: #D9B384;
+}
+
+.profile-status-icon.fa-check-circle {
+  color: #D9BB84;
+}
+
+/* Efectos adicionales */
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #59514F 0%, #3d3835 100%);
+}
+
+/* Botones del dropdown del carrito */
+.carrito-dropdown .btn-primary {
+  background: linear-gradient(45deg, #D9BB84, #D9B384);
+  border: none;
+  color: #59514F;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.carrito-dropdown .btn-primary:hover {
+  background: linear-gradient(45deg, #D9B384, #59514F);
+  color: #F2E6D0;
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .modern-nav-link {
+    margin: 5px 0;
+    text-align: center;
+  }
+
+  .btn-cart,
+  .btn-login {
+    width: 100%;
+    justify-content: center;
+    margin: 8px 0;
+  }
+
+  .logo-text {
+    margin-left: 10px;
+  }
+
+  .brand-name {
+    font-size: 1.4rem;
+  }
+
+  .brand-subtitle {
+    font-size: 1rem;
+  }
+
+  .alertas-dropdown,
+  .carrito-dropdown {
+    width: min(360px, calc(100vw - 24px)) !important;
+  }
+}
+
+/* Animaciones suaves */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.navbar-nav {
+  align-items: center;
+}
+
+@media (min-width: 992px) {
+  .navbar-nav {
+    flex-direction: row;
+  }
+}
+
+/* Efectos adicionales para mejor integración de colores */
+.modern-navbar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #D9BB84, transparent);
+}
+

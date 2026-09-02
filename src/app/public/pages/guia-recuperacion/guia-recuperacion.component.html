@@ -1,0 +1,50 @@
+<div class="container py-4">
+  <h1 class="mb-4">Guía de Recuperación</h1>
+
+  <ul class="injuries-list list-unstyled">
+    <li *ngFor="let lesion of lesiones" class="mb-4 border-bottom pb-3">
+      <h4 class="text-danger fw-bold">{{ lesion.titulo }}</h4>
+      <p class="text-muted">{{ lesion.descripcion }}</p>
+      <button class="btn btn-outline-primary btn-sm" (click)="abrirModal(lesion)">
+        Guía de recuperación
+      </button>
+    </li>
+  </ul>
+</div>
+
+<!-- Modal Bootstrap -->
+<div
+  class="modal fade"
+  id="modalGuia"
+  tabindex="-1"
+  aria-labelledby="modalGuiaLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg" style="border-radius: 20px; overflow: hidden;">
+      <div class="modal-header bg-primary text-white">
+        <h4 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="modalGuiaLabel">
+          <i class="fa fa-notes-medical"></i> {{ lesionSeleccionada?.titulo }}
+        </h4>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+        <div [innerHTML]="lesionSeleccionada?.modal"></div>
+      </div>
+
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <small class="text-muted">
+          Recomendación médica orientativa — consulta a un profesional.
+        </small>
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

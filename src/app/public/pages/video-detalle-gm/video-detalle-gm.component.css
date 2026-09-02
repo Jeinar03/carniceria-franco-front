@@ -1,0 +1,16 @@
+.lesion {
+  font-size: 16px;  /* Ajusta el tamaño del texto según tus necesidades */
+  line-height: 1.6; /* Mejora la legibilidad */
+  margin-bottom: 20px; /* Espaciado debajo del texto */
+  white-space: pre-wrap; /* Mantiene los saltos de línea y los espacios */
+}
+
+/* Opcional: Estilo para palabras clave en el texto */
+.lesion strong {
+  font-weight: bold; /* Resalta palabras clave */
+}
+.descripcion {
+  font-size: 28px;
+  text-align: justify; /* Justifica el texto */
+  line-height: 1.6;   /* Mejora la legibilidad */
+}

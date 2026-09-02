@@ -1,0 +1,450 @@
+<!-- Carrito Section -->
+<div class="carrito-section">
+  <div class="container-fluid px-3 px-lg-4">
+    <!-- Carrito vacío -->
+    <div *ngIf="itemsCarrito.length === 0" class="empty-cart text-center py-5">
+      <i class="fas fa-shopping-cart fa-5x mb-4" style="color: #D9BB84; opacity: 0.3;"></i>
+      <h3 style="color: #59514F;">Tu carrito está vacío</h3>
+      <p class="text-muted mb-4">Agrega productos para comenzar tu compra</p>
+      <button class="btn-continue" (click)="continuarComprando()">
+        <i class="fas fa-arrow-left me-2"></i>
+        Continuar Comprando
+      </button>
+    </div>
+
+    <!-- Carrito con productos -->
+    <div *ngIf="itemsCarrito.length > 0" class="row g-3">
+      <!-- Lista de productos -->
+      <div class="col-lg-8">
+        <div class="cart-card">
+          <div class="cart-header">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="selectAll"
+                [checked]="todoSeleccionado"
+                (change)="toggleTodoSeleccionado()">
+              <label class="form-check-label" for="selectAll">
+                Seleccionar todo ({{ itemsCarrito.length }} productos)
+              </label>
+            </div>
+            <button
+              class="btn-delete-selected"
+              [disabled]="itemsSeleccionados.size === 0 || eliminandoProducto"
+              (click)="eliminarSeleccionados()">
+              <i *ngIf="!eliminandoProducto" class="fas fa-trash me-2"></i>
+              <i *ngIf="eliminandoProducto" class="fas fa-spinner fa-spin me-2"></i>
+              {{ eliminandoProducto ? 'Eliminando...' : 'Eliminar seleccionados' }}
+            </button>
+          </div>
+
+          <!-- Items del carrito -->
+          <div class="cart-items">
+            <div class="cart-item" *ngFor="let item of itemsCarrito">
+              <!-- Checkbox de selección -->
+              <div class="item-checkbox">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  [id]="'check-' + item.producto.id"
+                  [checked]="itemsSeleccionados.has(item.producto.id)"
+                  (change)="toggleSeleccion(item.producto.id)">
+              </div>
+
+              <!-- Imagen del producto -->
+              <div class="item-image">
+                <img [src]="getImagenProducto(item.producto.imagen)" [alt]="item.producto.nombre">
+                <span *ngIf="item.producto.en_oferta" class="badge-oferta-mini">OFERTA</span>
+              </div>
+
+              <!-- Detalles del producto -->
+              <div class="item-details">
+                <h4 class="item-name">{{ item.producto.nombre }}</h4>
+                <p class="item-category">{{ item.producto.category?.nombre || 'Sin categoría' }}</p>
+                <p class="item-description">{{ item.producto.descripcion }}</p>
+                <div class="item-unit">
+                  <i class="fas fa-weight me-1"></i>
+                  {{ item.producto.unidad_venta }}
+                </div>
+              </div>
+
+              <!-- Controles de cantidad/tipo de venta -->
+              <div class="item-controls">
+                <!-- Selector de tipo de venta (solo para productos por peso) -->
+                <div class="sale-type-selector" *ngIf="puedeVendersePorPesos(item.producto.unidad_venta)">
+                  <label class="sale-type-option">
+                    <input
+                      type="radio"
+                      [name]="'tipoVenta' + item.producto.id"
+                      [value]="'cantidad'"
+                      [checked]="item.tipoVenta === 'cantidad'"
+                      (change)="cambiarTipoVenta(item.producto.id, 'cantidad')">
+                    <span class="sale-type-label">
+                      <i class="fas fa-balance-scale"></i>
+                      Por cantidad
+                    </span>
+                  </label>
+                  <label class="sale-type-option">
+                    <input
+                      type="radio"
+                      [name]="'tipoVenta' + item.producto.id"
+                      [value]="'pesos'"
+                      [checked]="item.tipoVenta === 'pesos'"
+                      (change)="cambiarTipoVenta(item.producto.id, 'pesos')">
+                    <span class="sale-type-label">
+                      <i class="fas fa-dollar-sign"></i>
+                      Por pesos
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Controles de cantidad -->
+                <div class="quantity-section">
+                  <!-- Por cantidad -->
+                  <div *ngIf="item.tipoVenta === 'cantidad'" class="quantity-controls">
+                    <button
+                      class="qty-btn"
+                      (click)="decrementarCantidad(item.producto.id)"
+                      [disabled]="item.cantidad <= 1">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                    <input
+                      type="number"
+                      class="qty-input"
+                      [value]="formatoCantidadEntera(item.cantidad)"
+                      (change)="actualizarCantidad(item.producto.id, $any($event.target).value)"
+                      min="1"
+                      [max]="item.producto.stock"
+                      step="1">
+                    <button
+                      class="qty-btn"
+                      (click)="incrementarCantidad(item.producto.id)"
+                      [disabled]="item.cantidad >= item.producto.stock">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                  </div>
+
+                  <!-- Por pesos -->
+                  <div *ngIf="item.tipoVenta === 'pesos'" class="pesos-controls">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">$</span>
+                      <input
+                        type="number"
+                        class="form-control pesos-input"
+                        [value]="formatoMontoPesos(item.monto_pesos)"
+                        (change)="actualizarMontoPesos(item.producto.id, $any($event.target).value)"
+                        min="1"
+                        step="0.01"
+                        placeholder="50.00"
+                        inputmode="decimal">
+                    </div>
+                    <small class="pesos-equivalence">
+                      ≈ {{ (item.cantidad || 0).toFixed(3) }} {{ item.producto.unidad_venta }}(s)
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Precio -->
+              <div class="item-price">
+                <div class="price-current">${{ (+(item.subtotal || 0)).toFixed(2) }}</div>
+                <div class="price-unit">
+                  ${{ (+(item.producto.precio_final || item.producto.precio || 0)).toFixed(2) }}
+                  <span class="d-none d-md-inline">/ unidad</span>
+                </div>
+              </div>
+
+              <!-- Botón eliminar -->
+              <button
+                class="btn-delete-item"
+                (click)="eliminarProducto(item.producto.id)"
+                [disabled]="eliminandoProducto"
+                title="Eliminar producto">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen del pedido -->
+      <div class="col-lg-4">
+        <div class="summary-card sticky-top" style="top: 20px;">
+          <h3 class="summary-title d-flex align-items-center justify-content-between gap-2">
+            <span>Resumen del Pedido</span>
+            <span class="badge-tipo-cliente">{{ tipoClienteDisplay }}</span>
+          </h3>
+
+          <div class="summary-item">
+            <span>Subtotal ({{ itemsCarrito.length }} productos)</span>
+            <span>${{ subtotalSinDescuento.toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-item descuento" *ngIf="descuentoPorcentajeAplicable > 0">
+            <span>Descuento ({{ descuentoPorcentajeAplicable.toFixed(2) }}%)</span>
+            <span>-${{ descuentoMonto.toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-item">
+            <span>IVA (16%)</span>
+            <span>${{ iva.toFixed(2) }}</span>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="summary-total">
+            <span>Total</span>
+            <span>${{ total.toFixed(2) }}</span>
+          </div>
+
+          <div *ngIf="fueraDeHorarioAtencion" class="horario-cerrado-banner mt-3">
+            <div class="cerrado-icono">
+              <i class="fas fa-store-slash"></i>
+            </div>
+            <div class="cerrado-contenido">
+              <h4>Cerrado por horario de atención</h4>
+              <p>
+                {{ diaAtencionHoy }}: {{ horarioAtencionHoy }}
+              </p>
+            </div>
+          </div>
+
+          <ng-container *ngIf="!fueraDeHorarioAtencion">
+            <!-- Selector de método de pago -->
+            <div class="payment-method-selector mt-3">
+              <h4 class="payment-title">Método de Pago</h4>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" name="metodoPago" value="transferencia" [(ngModel)]="metodoPago">
+                  <span class="payment-label">
+                    <i class="fas fa-university"></i>
+                    Transferencia
+                  </span>
+                </label>
+
+                <label class="payment-option mercado-pago-option">
+                  <input type="radio" name="metodoPago" value="mercado_pago" [(ngModel)]="metodoPago">
+                  <span class="payment-label">
+                    <i class="fas fa-shopping-cart"></i>
+                    Mercado Pago
+                    <span class="badge-nuevo">Nuevo</span>
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <button
+              class="btn-checkout"
+              (click)="procederPago()"
+              [disabled]="!puedeProcederPago">
+              <i *ngIf="!procesandoPago" class="fas fa-lock me-2"></i>
+              <i *ngIf="procesandoPago" class="fas fa-spinner fa-spin me-2"></i>
+              <span *ngIf="metodoPago !== 'mercado_pago'">
+                {{ procesandoPago ? 'Procesando...' : 'Proceder al Pago' }}
+              </span>
+              <span *ngIf="metodoPago === 'mercado_pago'">
+                {{ procesandoPago ? 'Redirigiendo...' : 'Pagar con Mercado Pago' }}
+              </span>
+            </button>
+
+            <button class="btn-continue-shopping" (click)="continuarComprando()">
+              <i class="fas fa-arrow-left me-2"></i>
+              Continuar Comprando
+            </button>
+
+            <button
+              class="btn-clear-cart"
+              (click)="vaciarCarrito()"
+              [disabled]="vaciandoCarrito">
+              <i *ngIf="!vaciandoCarrito" class="fas fa-trash-alt me-2"></i>
+              <i *ngIf="vaciandoCarrito" class="fas fa-spinner fa-spin me-2"></i>
+              {{ vaciandoCarrito ? 'Vaciando...' : 'Vaciar Carrito' }}
+            </button>
+
+            <!-- Información adicional -->
+            <div class="info-boxes mt-3">
+              <div class="info-box">
+                <i class="fas fa-truck"></i>
+                <div>
+                  <strong>Envío gratis</strong>
+                  <p>En compras mayores a $500</p>
+                </div>
+              </div>
+
+              <div class="info-box">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                  <strong>Compra segura</strong>
+                  <p>Tus datos están protegidos</p>
+                </div>
+              </div>
+
+              <div class="info-box" *ngIf="metodoPago === 'mercado_pago'">
+                <i class="fas fa-credit-card" style="color: #00a8ff;"></i>
+                <div>
+                  <strong>Mercado Pago</strong>
+                  <p>Paga con tarjeta, efectivo o transferencia</p>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALES (mantener los mismos) -->
+<!-- Modal Confirmación de Compra -->
+<div class="modal-overlay" *ngIf="mostrarModalConfirmacion" (click)="cerrarModalConfirmacion()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-shopping-bag me-2"></i>Confirmar Compra</h3>
+      <button class="btn-close-modal" (click)="cerrarModalConfirmacion()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirmation-details">
+        <div class="detail-row">
+          <span><i class="fas fa-box me-2"></i>Productos:</span>
+          <strong>{{ itemsCarrito.length }} productos</strong>
+        </div>
+
+        <!-- Lista de productos en el carrito -->
+        <div class="products-summary mt-3">
+          <h5 style="color: #59514F; font-size: 0.9rem; margin-bottom: 10px;">
+            <i class="fas fa-list me-2"></i>Resumen de productos:
+          </h5>
+          <div class="product-item-summary" *ngFor="let item of itemsCarrito; let i = index">
+            <span class="product-name">{{ i + 1 }}. {{ item.producto.nombre }}</span>
+            <div class="product-details">
+              <span *ngIf="item.tipoVenta === 'cantidad'">
+                {{ formatoCantidadEntera(item.cantidad) }} {{ item.producto.unidad_venta }}(s)
+              </span>
+              <span *ngIf="item.tipoVenta === 'pesos'">
+                ${{ (+(item.monto_pesos || 0)).toFixed(2) }} (≈{{ (+(item.cantidad || 0)).toFixed(3) }} {{ item.producto.unidad_venta }}s)
+              </span>
+              <strong class="item-subtotal">${{ (+(item.subtotal || 0)).toFixed(2) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-row mt-3">
+          <span><i class="fas fa-credit-card me-2"></i>Método de pago:</span>
+          <strong>{{ getTextoMetodoPago() }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="descuentoPorcentajeAplicable > 0">
+          <span><i class="fas fa-percentage me-2"></i>Descuento aplicado:</span>
+          <strong>-{{ descuentoPorcentajeAplicable.toFixed(2) }}% (${{ descuentoMonto.toFixed(2) }})</strong>
+        </div>
+        <div class="detail-row total-row">
+          <span><i class="fas fa-dollar-sign me-2"></i>Total a pagar:</span>
+          <strong class="text-primary">${{ total.toFixed(2) }}</strong>
+        </div>
+      </div>
+      <p class="text-muted text-center mt-3">
+        <i class="fas fa-info-circle me-2"></i>
+        ¿Deseas confirmar esta compra?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalConfirmacion()">
+        <i class="fas fa-times me-2"></i>Cancelar
+      </button>
+      <button class="btn-confirm" (click)="confirmarCompra()">
+        <i class="fas fa-check me-2"></i>Confirmar Compra
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Eliminar Producto -->
+<div class="modal-overlay" *ngIf="mostrarModalEliminarProducto" (click)="cerrarModalEliminarProducto()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-trash me-2"></i>Eliminar Producto</h3>
+      <button class="btn-close-modal" (click)="cerrarModalEliminarProducto()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-center">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #f39c12;"></i>
+      </p>
+      <p class="text-center mb-0">¿Estás seguro de eliminar este producto del carrito?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalEliminarProducto()" [disabled]="eliminandoProducto">
+        Cancelar
+      </button>
+      <button class="btn-danger" (click)="confirmarEliminarProducto()" [disabled]="eliminandoProducto">
+        <i *ngIf="!eliminandoProducto" class="fas fa-trash me-2"></i>
+        <i *ngIf="eliminandoProducto" class="fas fa-spinner fa-spin me-2"></i>
+        {{ eliminandoProducto ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Eliminar Seleccionados -->
+<div class="modal-overlay" *ngIf="mostrarModalEliminarSeleccionados" (click)="cerrarModalEliminarSeleccionados()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-trash me-2"></i>Eliminar Productos</h3>
+      <button class="btn-close-modal" (click)="cerrarModalEliminarSeleccionados()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-center">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #f39c12;"></i>
+      </p>
+      <p class="text-center mb-0">
+        ¿Estás seguro de eliminar {{ itemsSeleccionados.size }} producto(s) del carrito?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalEliminarSeleccionados()" [disabled]="eliminandoProducto">
+        Cancelar
+      </button>
+      <button class="btn-danger" (click)="confirmarEliminarSeleccionados()" [disabled]="eliminandoProducto">
+        <i *ngIf="!eliminandoProducto" class="fas fa-trash me-2"></i>
+        <i *ngIf="eliminandoProducto" class="fas fa-spinner fa-spin me-2"></i>
+        {{ eliminandoProducto ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Vaciar Carrito -->
+<div class="modal-overlay" *ngIf="mostrarModalVaciarCarrito" (click)="cerrarModalVaciarCarrito()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-trash-alt me-2"></i>Vaciar Carrito</h3>
+      <button class="btn-close-modal" (click)="cerrarModalVaciarCarrito()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-center">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #dc3545;"></i>
+      </p>
+      <p class="text-center mb-0">
+        ¿Estás seguro de vaciar <strong>TODO</strong> el carrito?
+      </p>
+      <p class="text-center text-muted small mt-2">Esta acción no se puede deshacer</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cerrarModalVaciarCarrito()" [disabled]="vaciandoCarrito">
+        Cancelar
+      </button>
+      <button class="btn-danger" (click)="confirmarVaciarCarrito()" [disabled]="vaciandoCarrito">
+        <i *ngIf="!vaciandoCarrito" class="fas fa-trash-alt me-2"></i>
+        <i *ngIf="vaciandoCarrito" class="fas fa-spinner fa-spin me-2"></i>
+        {{ vaciandoCarrito ? 'Vaciando...' : 'Vaciar Todo' }}
+      </button>
+    </div>
+  </div>
+</div>

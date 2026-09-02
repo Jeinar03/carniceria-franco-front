@@ -1,0 +1,86 @@
+<!-- Hero Start -->
+<div class="container-fluid bg-primary p-5 bg-hero mb-5">
+  <div class="row py-5">
+    <div class="col-12 text-center">
+      <h1 class="display-2 text-uppercase text-white mb-md-4">
+        Todos los videos
+      </h1>
+      <a href="" class="btn btn-primary py-md-3 px-md-5 me-3">Home</a>
+      <a href="" class="btn btn-light py-md-3 px-md-5">Detail</a>
+    </div>
+  </div>
+</div>
+<!-- Hero End -->
+<ng-template #loader1>
+  <div class="text-center" style="margin-top: 10%">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Cargando Rutinas...</p>
+  </div>
+</ng-template>
+<!-- Blog Start -->
+
+<div class="container-fluid p-5">
+  <div class="mt-1">
+    <div class="input-group">
+      <input
+        type="text"
+        class="form-control p-3"
+        placeholder="Buscar videos por nombre"
+        [(ngModel)]="searchText"
+        (input)="filterVideos()"
+      />
+      <!-- Menú desplegable de grupos musculares -->
+      <select
+        class="form-select"
+        [(ngModel)]="selectedGroup"
+        (change)="filterVideos()"
+      >
+        <option value="">Filtros</option>
+        <option *ngFor="let grupo of GM" [value]="grupo.id">
+          {{ grupo.nombre }}
+        </option>
+      </select>
+      <button class="btn btn-primary px-4">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </div>
+  <div class="row g-5 mt-3" (window:scroll)="onScroll()">
+    <div class="col-lg-3" *ngFor="let rutina of filteredVideos">
+      <div class="blog-item">
+        <div class="position-relative overflow-hidden rounded-top">
+          <img
+          class="img-fluid"
+          [src]="getMiniaturaSrc(rutina.miniatura)"
+          alt="Miniatura"
+        />
+
+        </div>
+        <div class="bg-dark d-flex align-items-center rounded-bottom p-3">
+          <a
+            class="h5 text-uppercase text-light"
+            [href]="'/pages/grupos-musculares/video/' + rutina.id"
+          >
+            {{ rutina.nombre }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional: loader visual abajo -->
+    <div class="text-center" *ngIf="loadingVIDEOS">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Cargando más videos...</p>
+    </div>
+  </div>
+</div>
+<ng-template #loader2>
+  <div class="text-center" style="margin-top: 5%">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Cargando Videos</p>
+  </div>
+</ng-template>
