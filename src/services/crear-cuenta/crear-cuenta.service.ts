@@ -20,10 +20,14 @@ export class CrearCuentaService {
   }
 
   handleCrearCuentaResponse(response: any) {
-    // Maneja la respuesta después de crear la cuenta
-    // Puedes agregar acciones adicionales aquí, como redirigir al usuario a la página de inicio de sesión
-   // this.router.navigate(['/login']);
-   console.log('bien')
+    // El registro ya devuelve un token Sanctum (auto-login). Se guarda por si
+    // el flujo deja de re-loguear más adelante; si el componente vuelve a llamar
+    // a login, ese token simplemente lo reemplaza.
+    const token = response?.data?.token;
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('isLoggedIn', 'true');
+    }
   }
 
   handleError(error: any) {

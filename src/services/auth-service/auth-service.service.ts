@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpBackend, HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
@@ -18,7 +20,16 @@ export class AuthService {
   showSuccess() {
     this.toastr.info('Completado', 'Sesion Borrada');
   }
-  constructor(private router: Router, private toastr: ToastrService) {
+  // Cliente HTTP que NO pasa por los interceptores (evita recursión al revocar
+  // el token en el logout, y la dependencia circular Interceptor → AuthService).
+  private http: HttpClient;
+
+  constructor(
+    private router: Router,
+    private toastr: ToastrService,
+    httpBackend: HttpBackend
+  ) {
+    this.http = new HttpClient(httpBackend);
     // Comprobar si el usuario está logueado al iniciar la aplicación
     this.checkLoginStatus();
     this.checkInactivity();
@@ -44,6 +55,16 @@ export class AuthService {
     }
   }
   logout(): void {
+    // Revocar el token en el servidor (best-effort; no bloquea el cierre local).
+    const token = localStorage.getItem('token');
+    if (token) {
+      this.http
+        .post(`${environment.apiUrl}/clientes/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .subscribe({ next: () => {}, error: () => {} });
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('clienteEmail');
     localStorage.removeItem('isLoggedIn');

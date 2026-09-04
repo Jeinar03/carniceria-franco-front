@@ -6,7 +6,8 @@ import { HeaderComponent } from './public/header/header.component';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app.routing.module';
 import { FooterComponent } from './public/footer/footer.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { AuthInterceptor } from '../interceptors/auth.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { LoginComponent } from './public/login/login.component';
 import { CreateAccountComponent } from './public/pages/create-account/create-account.component';
@@ -33,7 +34,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     ReactiveFormsModule
 
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
