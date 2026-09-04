@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MisRutinasGuard } from 'src/guards/mis-rutinas/mis-rutinas.guard';
+import { AuthGuard } from 'src/guards/auth/auth.guard';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { SeguimientoComponent } from './seguimiento/seguimiento.component';
 import { ProductosComponent } from './productos/productos.component';
@@ -23,12 +23,12 @@ const routes: Routes = [
   {
     path: 'profile',
     component: UserProfileComponent,
-    canActivate: [MisRutinasGuard],
+    canActivate: [AuthGuard],
   },
   {
     path: 'seguimiento',
     component: SeguimientoComponent,
-    canActivate: [MisRutinasGuard],
+    canActivate: [AuthGuard],
   },
 ];
 
