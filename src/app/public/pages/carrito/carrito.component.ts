@@ -114,12 +114,9 @@ export class CarritoComponent implements OnInit, OnDestroy {
     return subtotalConDescuento > 0 ? subtotalConDescuento : 0;
   }
 
-  get iva(): number {
-    return Number(this.subtotal) * 0.16;
-  }
-
   get total(): number {
-    return Number(this.subtotal) + Number(this.iva);
+    // Carne fresca sin procesar: IVA tasa 0%, no se cobra impuesto.
+    return Number(this.subtotal);
   }
 
   get totalSeleccionados(): number {

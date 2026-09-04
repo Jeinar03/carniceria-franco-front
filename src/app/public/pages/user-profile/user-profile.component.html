@@ -395,8 +395,8 @@
                   <span class="total-label">Descuento:</span>
                   <span class="total-value descuento">-${{ formatMoney(compra.descuento) }}</span>
                 </div>
-                <div class="total-item">
-                  <span class="total-label">IVA:</span>
+                <div class="total-item" *ngIf="toNumber(compra.impuestos) > 0">
+                  <span class="total-label">Impuestos:</span>
                   <span class="total-value">${{ formatMoney(compra.impuestos) }}</span>
                 </div>
                 <div class="total-item total-final">
@@ -524,8 +524,8 @@
                 <span>Descuento:</span>
                 <span class="descuento">-${{ formatMoney(compraSeleccionada.descuento) }}</span>
               </div>
-              <div class="resumen-item">
-                <span>IVA (16%):</span>
+              <div class="resumen-item" *ngIf="toNumber(compraSeleccionada.impuestos) > 0">
+                <span>Impuestos:</span>
                 <span>${{ formatMoney(compraSeleccionada.impuestos) }}</span>
               </div>
               <div class="resumen-divider"></div>
