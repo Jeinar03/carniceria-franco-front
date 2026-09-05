@@ -70,9 +70,30 @@ export class CreateAccountComponent {
         error => {
           this.crearCuentaService.handleError(error);
           this.loading = false;
-          this.toastr.error('Error al crear cuenta', 'Error');
+          this.toastr.error(this.obtenerMensajeError(error), 'Error');
         }
       );
+  }
+
+  /**
+   * El backend manda el detalle de validacion en error.error.data (ej. correo
+   * duplicado). Si no viene en ese formato, usa el mensaje general o uno generico.
+   */
+  private obtenerMensajeError(error: any): string {
+    const erroresValidacion = error?.error?.data;
+
+    if (erroresValidacion?.correo?.length) {
+      return erroresValidacion.correo[0];
+    }
+
+    if (erroresValidacion && typeof erroresValidacion === 'object') {
+      const primerCampo = Object.values(erroresValidacion)[0];
+      if (Array.isArray(primerCampo) && primerCampo.length) {
+        return primerCampo[0];
+      }
+    }
+
+    return error?.error?.message || 'Error al crear cuenta';
   }
 
 }
