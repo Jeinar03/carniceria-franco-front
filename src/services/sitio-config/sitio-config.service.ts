@@ -59,7 +59,7 @@ export class SitioConfigService {
   private obtenerFallback(): SitioConfiguracion {
     return {
       id: 1,
-      nombre: 'Carnicería Franco',
+      nombre: 'Carnicería Franko',
       logo: null,
       direccion: 'Av. Melchor Ocampo 1780, Emiliano Zapata, Lázaro Cárdenas, Mich.',
       correo: 'contacto@ejemplo.com',

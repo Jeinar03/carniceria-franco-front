@@ -241,19 +241,19 @@ export class HomeComponent implements OnInit {
   }
 
   private configurarSeoHome(): void {
-    const title = 'Carniceria Franco | Carnes Premium y Entrega Rapida';
-    const description = 'Compra carne de res, cerdo, pollo y cortes premium en Carniceria Franco. Productos frescos, calidad garantizada y entrega rapida.';
+    const title = 'Carniceria Franko | Carnes Premium y Entrega Rapida';
+    const description = 'Compra carne de res, cerdo, pollo y cortes premium en Carniceria Franko. Productos frescos, calidad garantizada y entrega rapida.';
     const canonicalUrl = 'https://tienda.carniceriafrancoadmin.shop/';
     const imageUrl = 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=1200';
 
     this.titleService.setTitle(title);
 
     this.metaService.updateTag({ name: 'description', content: description });
-    this.metaService.updateTag({ name: 'keywords', content: 'carniceria, carnes premium, carne fresca, carne de res, cortes finos, carniceria franco' });
+    this.metaService.updateTag({ name: 'keywords', content: 'carniceria, carnes premium, carne fresca, carne de res, cortes finos, carniceria franko' });
     this.metaService.updateTag({ name: 'robots', content: 'index, follow' });
 
     this.metaService.updateTag({ property: 'og:type', content: 'website' });
-    this.metaService.updateTag({ property: 'og:site_name', content: 'Carniceria Franco' });
+    this.metaService.updateTag({ property: 'og:site_name', content: 'Carniceria Franko' });
     this.metaService.updateTag({ property: 'og:title', content: title });
     this.metaService.updateTag({ property: 'og:description', content: description });
     this.metaService.updateTag({ property: 'og:url', content: canonicalUrl });
