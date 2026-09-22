@@ -6,6 +6,7 @@ import { SeguimientoComponent } from './seguimiento/seguimiento.component';
 import { ProductosComponent } from './productos/productos.component';
 import { CategoriasComponent } from './categorias/categorias.component';
 import { CarritoComponent } from './carrito/carrito.component';
+import { PaymentCallbackComponent } from './payment-callback/payment-callback.component';
 
 const routes: Routes = [
   {
@@ -19,6 +20,12 @@ const routes: Routes = [
   {
     path: 'carrito',
     component: CarritoComponent,
+  },
+  {
+    // A esta ruta regresa Mercado Pago después de pagar (back_urls de la preferencia).
+    path: 'payment-callback',
+    component: PaymentCallbackComponent,
+    canActivate: [AuthGuard],
   },
   {
     path: 'profile',

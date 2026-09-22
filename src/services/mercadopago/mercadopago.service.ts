@@ -27,13 +27,20 @@ export interface PreferenceResponse {
   };
 }
 
-export interface PaymentCallbackData {
-  payment_id?: string;
-  status?: string;
-  merchant_order_id?: string;
-  preference_id?: string;
-  collection_status?: string;
-  payment_type?: string;
+export interface ConfirmPaymentResponse {
+  success: boolean;
+  status: number;
+  message: string;
+  data: {
+    venta_id: number;
+    folio: string | null;
+    /** Estado real de la venta en el servidor. */
+    estatus: 'pendiente' | 'completada' | 'cancelada';
+    total: string;
+    /** Estado del pago según Mercado Pago (approved, pending, in_process, rejected...). */
+    pago_status: string;
+    pago_status_detail: string | null;
+  };
 }
 
 @Injectable({
@@ -66,9 +73,12 @@ export class MercadoPagoService {
   }
 
   /**
-   * Manejar el callback de éxito/fallo de Mercado Pago
+   * Confirmar un pago al regresar de Mercado Pago. El servidor lo verifica contra
+   * la API de Mercado Pago (no confía en lo que diga la URL) y devuelve el estado real.
    */
-  handlePaymentCallback(callbackData: PaymentCallbackData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/mercadopago/callback`, callbackData);
+  confirmPayment(paymentId: string): Observable<ConfirmPaymentResponse> {
+    return this.http.post<ConfirmPaymentResponse>(`${this.apiUrl}/mercadopago/confirm-payment`, {
+      payment_id: paymentId
+    });
   }
 }

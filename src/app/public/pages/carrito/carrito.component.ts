@@ -365,7 +365,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error al crear preferencia de Mercado Pago:', error);
         this.procesandoPago = false;
-        this.toastr.error('No se pudo conectar con Mercado Pago', 'Error');
+        this.toastr.error(error?.error?.message || 'No se pudo conectar con Mercado Pago', 'Error');
       }
     });
   }

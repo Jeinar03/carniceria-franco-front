@@ -8,6 +8,7 @@ import { SeguimientoComponent } from './seguimiento/seguimiento.component';
 import { ProductosComponent } from './productos/productos.component';
 import { CategoriasComponent } from './categorias/categorias.component';
 import { CarritoComponent } from './carrito/carrito.component';
+import { PaymentCallbackComponent } from './payment-callback/payment-callback.component';
 
 @NgModule({
   declarations: [
@@ -16,6 +17,7 @@ import { CarritoComponent } from './carrito/carrito.component';
     ProductosComponent,
     CategoriasComponent,
     CarritoComponent,
+    PaymentCallbackComponent,
   ],
   imports: [
     CommonModule,
