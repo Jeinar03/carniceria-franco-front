@@ -339,7 +339,6 @@ export class CarritoComponent implements OnInit, OnDestroy {
         return producto;
       }),
       metodo_pago: 'mercado_pago',
-      descuento: this.descuentoPorcentajeAplicable,
       notas: this.notasCompra || undefined
     };
 
@@ -381,7 +380,6 @@ export class CarritoComponent implements OnInit, OnDestroy {
     const ventaRequest: CrearVentaRequest = {
       customer_id: customerId,
       metodo_pago: this.metodoPago as 'efectivo' | 'tarjeta' | 'transferencia' | 'credito',
-      descuento: this.descuentoPorcentajeAplicable,
       notas: this.notasCompra || undefined,
       productos: this.itemsCarrito.map(item => {
         const producto: any = {
