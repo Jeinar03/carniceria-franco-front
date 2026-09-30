@@ -54,7 +54,7 @@ export class UserProfileComponent implements OnInit {
   preguntasEncuesta: PreguntaSatisfaccion[] = [];
   respuestasEncuesta: Record<number, number | null> = {};
   comentariosEncuesta: Record<number, string> = {};
-  escalaEncuesta = { min: 1, max: 10 };
+  escalaEncuesta: { min: number; max: number; etiqueta_min?: string; etiqueta_max?: string } = { min: 1, max: 5 };
   encuestasRespondidas: Set<number> = new Set();
 
   get encuestaCompleta(): boolean {
@@ -214,7 +214,7 @@ export class UserProfileComponent implements OnInit {
     this.preguntasEncuesta = [];
     this.respuestasEncuesta = {};
     this.comentariosEncuesta = {};
-    this.escalaEncuesta = { min: 1, max: 10 };
+    this.escalaEncuesta = { min: 1, max: 5 };
     this.cargandoEncuesta = true;
     this.guardandoEncuesta = false;
     this.mostrandoModalEncuesta = true;
@@ -249,7 +249,7 @@ export class UserProfileComponent implements OnInit {
           return;
         }
 
-        this.escalaEncuesta = response.data?.escala || { min: 1, max: 10 };
+        this.escalaEncuesta = response.data?.escala || { min: 1, max: 5 };
         this.preguntasEncuesta = [...preguntas].sort((a, b) => a.orden - b.orden);
         this.preguntasEncuesta.forEach((pregunta) => {
           this.respuestasEncuesta[pregunta.id] = null;

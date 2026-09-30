@@ -247,10 +247,6 @@
 
             <div class="benefits-list">
               <div class="benefit-item">
-                <i class="fas fa-truck"></i>
-                <span>Envío gratis en compras +$500</span>
-              </div>
-              <div class="benefit-item">
                 <i class="fas fa-star"></i>
                 <span>Productos premium seleccionados</span>
               </div>
@@ -639,6 +635,10 @@
                     (click)="seleccionarRespuestaEncuesta(pregunta.id, valor)">
                     {{ valor }}
                   </button>
+                </div>
+                <div class="encuesta-escala-etiquetas" *ngIf="escalaEncuesta.etiqueta_min || escalaEncuesta.etiqueta_max">
+                  <span>{{ escalaEncuesta.min }} = {{ escalaEncuesta.etiqueta_min }}</span>
+                  <span>{{ escalaEncuesta.max }} = {{ escalaEncuesta.etiqueta_max }}</span>
                 </div>
 
                 <textarea
