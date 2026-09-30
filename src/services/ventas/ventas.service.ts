@@ -226,6 +226,8 @@ export interface PreguntasSatisfaccionResponse {
     escala: {
       min: number;
       max: number;
+      etiqueta_min?: string;
+      etiqueta_max?: string;
     };
     ya_respondio: boolean;
     preguntas_respondidas: any[];
