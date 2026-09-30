@@ -238,7 +238,11 @@ export class HeaderComponent implements OnInit {
     if (imagen.startsWith('http')) {
       return imagen;
     }
-    return `${environment.apiUrl.replace('/api/v1', '')}/${imagen}`;
+    const base = environment.apiUrl.replace('/api/v1', '');
+    const ruta = imagen.replace(/\\/g, '');
+
+    // Las fotos de productos se guardan como "productos/archivo.jpg" y se sirven desde /storage.
+    return ruta.startsWith('storage/') ? `${base}/${ruta}` : `${base}/storage/${ruta}`;
   }
 
   verCarritoCompleto(): void {

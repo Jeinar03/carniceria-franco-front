@@ -140,7 +140,11 @@ export class CarritoComponent implements OnInit, OnDestroy {
       return `${environment.apiUrl.replace('/api/v1', '')}${imagen.replace(/\\/g, '')}`;
     }
 
-    return `${environment.apiUrl.replace('/api/v1', '')}/${imagen}`;
+    const base = environment.apiUrl.replace('/api/v1', '');
+    const ruta = imagen.replace(/\\/g, '');
+
+    // Las fotos de productos se guardan como "productos/archivo.jpg" y se sirven desde /storage.
+    return ruta.startsWith('storage/') ? `${base}/${ruta}` : `${base}/storage/${ruta}`;
   }
 
   actualizarCantidad(productoId: number, cantidad: number): void {
