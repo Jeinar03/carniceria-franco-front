@@ -9,6 +9,7 @@ import { ProductosComponent } from './productos/productos.component';
 import { CategoriasComponent } from './categorias/categorias.component';
 import { CarritoComponent } from './carrito/carrito.component';
 import { PaymentCallbackComponent } from './payment-callback/payment-callback.component';
+import { DatosBancariosComponent } from './datos-bancarios/datos-bancarios.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { PaymentCallbackComponent } from './payment-callback/payment-callback.co
     CategoriasComponent,
     CarritoComponent,
     PaymentCallbackComponent,
+    DatosBancariosComponent,
   ],
   imports: [
     CommonModule,
