@@ -400,6 +400,9 @@
                   <span class="total-value">${{ formatMoney(compra.total) }}</span>
                 </div>
               </div>
+              <app-datos-bancarios
+                *ngIf="esTransferenciaPendiente(compra)"
+                [folio]="compra.folio"></app-datos-bancarios>
               <div class="compra-actions">
                 <button
                   class="btn-subir-evidencia"
@@ -558,6 +561,8 @@
               <span><strong>Folio:</strong> {{ compraEvidenciaSeleccionada.folio }}</span>
               <span><strong>Total:</strong> ${{ formatMoney(compraEvidenciaSeleccionada.total) }}</span>
             </div>
+
+            <app-datos-bancarios *ngIf="compraEvidenciaSeleccionada" [folio]="compraEvidenciaSeleccionada.folio"></app-datos-bancarios>
 
             <label for="evidenciaTransferencia" class="dropzone-evidencia">
               <i class="fas fa-cloud-upload-alt"></i>

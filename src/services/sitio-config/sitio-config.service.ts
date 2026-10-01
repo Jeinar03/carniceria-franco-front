@@ -23,6 +23,10 @@ export interface SitioConfiguracion {
   facebook_url: string | null;
   instagram_url: string | null;
   whatsapp: string | null;
+  banco?: string | null;
+  titular_cuenta?: string | null;
+  numero_cuenta?: string | null;
+  clabe?: string | null;
   horarios: HorariosAtencion;
   activo: boolean;
   created_at?: string;

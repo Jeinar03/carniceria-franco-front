@@ -227,6 +227,8 @@
                   </span>
                 </label>
               </div>
+
+              <app-datos-bancarios *ngIf="metodoPago === 'transferencia'"></app-datos-bancarios>
             </div>
 
             <button

@@ -1,0 +1,59 @@
+.datos-bancarios {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.datos-bancarios-titulo {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.datos-bancarios-lista {
+  margin: 0;
+}
+
+.dato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 4px 0;
+}
+
+.dato dt {
+  font-weight: 500;
+  min-width: 150px;
+  margin: 0;
+}
+
+.dato dd {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  word-break: break-all;
+}
+
+.valor {
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+.btn-copiar {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.datos-bancarios-nota {
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+}

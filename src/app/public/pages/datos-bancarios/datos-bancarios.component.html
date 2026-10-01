@@ -1,0 +1,45 @@
+<div class="datos-bancarios" *ngIf="datos">
+  <h5 class="datos-bancarios-titulo">
+    <i class="fas fa-university me-2"></i>
+    Datos para tu transferencia
+  </h5>
+
+  <dl class="datos-bancarios-lista">
+    <div class="dato" *ngIf="datos.banco">
+      <dt>Banco</dt>
+      <dd>{{ datos.banco }}</dd>
+    </div>
+
+    <div class="dato" *ngIf="datos.titular">
+      <dt>Titular</dt>
+      <dd>{{ datos.titular }}</dd>
+    </div>
+
+    <div class="dato" *ngIf="datos.cuenta">
+      <dt>Número de cuenta</dt>
+      <dd>
+        <span class="valor">{{ datos.cuenta }}</span>
+        <button type="button" class="btn-copiar" (click)="copiar(datos.cuenta, 'cuenta')">
+          {{ copiado === 'cuenta' ? 'Copiado' : 'Copiar' }}
+        </button>
+      </dd>
+    </div>
+
+    <div class="dato" *ngIf="datos.clabe">
+      <dt>CLABE interbancaria</dt>
+      <dd>
+        <span class="valor">{{ datos.clabe }}</span>
+        <button type="button" class="btn-copiar" (click)="copiar(datos.clabe, 'clabe')">
+          {{ copiado === 'clabe' ? 'Copiado' : 'Copiar' }}
+        </button>
+      </dd>
+    </div>
+  </dl>
+
+  <p class="datos-bancarios-nota" *ngIf="folio">
+    Pon tu folio <strong>{{ folio }}</strong> como concepto de la transferencia.
+  </p>
+  <p class="datos-bancarios-nota" *ngIf="!folio">
+    Al confirmar tu pedido te daremos tu folio para que lo pongas como concepto de la transferencia.
+  </p>
+</div>
