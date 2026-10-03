@@ -205,7 +205,7 @@
             </div>
           </div>
 
-          <ng-container *ngIf="!fueraDeHorarioAtencion">
+          <ng-container *ngIf="horarioCargado && !fueraDeHorarioAtencion">
             <!-- Selector de método de pago -->
             <div class="payment-method-selector mt-3">
               <h4 class="payment-title">Método de Pago</h4>

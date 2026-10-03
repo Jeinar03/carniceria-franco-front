@@ -28,6 +28,10 @@ export interface SitioConfiguracion {
   numero_cuenta?: string | null;
   clabe?: string | null;
   horarios: HorariosAtencion;
+  /** false = la tienda deja comprar a cualquier hora (modo pruebas). Si no viene, se limita. */
+  limitar_horario?: boolean;
+  /** Zona horaria en la que se evalúa el horario (no la del dispositivo del cliente). */
+  zona_horaria?: string;
   activo: boolean;
   created_at?: string;
   updated_at?: string;
