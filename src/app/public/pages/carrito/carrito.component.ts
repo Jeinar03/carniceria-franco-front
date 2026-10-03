@@ -25,9 +25,13 @@ export class CarritoComponent implements OnInit, OnDestroy {
   clienteTipoCliente: string = '';
   clienteDescuentoPreferencial: number = 0;
   estaAbiertoAtencion: boolean = true;
+  // Hasta que llega el horario del servidor no se muestran los métodos de pago (evita el parpadeo).
+  horarioCargado: boolean = false;
   horarioAtencionHoy: string = 'No disponible';
   diaAtencionHoy: string = 'hoy';
   private horariosAtencion: HorariosAtencion = {};
+  private limitarHorario: boolean = true;
+  private zonaHoraria: string = 'America/Mexico_City';
   private evaluacionHorarioIntervaloId: ReturnType<typeof setInterval> | null = null;
 
   // Modales
@@ -70,7 +74,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   get puedeProcederPago(): boolean {
-    return !this.procesandoPago && !!this.metodoPago && !this.fueraDeHorarioAtencion;
+    return !this.procesandoPago && !!this.metodoPago && this.horarioCargado && !this.fueraDeHorarioAtencion;
   }
 
   get tipoClienteDisplay(): string {
@@ -521,7 +525,10 @@ export class CarritoComponent implements OnInit, OnDestroy {
   private cargarHorarioAtencion(): void {
     this.sitioConfigService.obtenerConfiguracion().pipe(take(1)).subscribe((config) => {
       this.horariosAtencion = config?.horarios || {};
+      this.limitarHorario = config?.limitar_horario !== false;
+      this.zonaHoraria = config?.zona_horaria || this.zonaHoraria;
       this.evaluarHorarioActual(this.horariosAtencion);
+      this.horarioCargado = true;
 
       if (!this.evaluacionHorarioIntervaloId) {
         this.evaluacionHorarioIntervaloId = setInterval(() => {
@@ -546,7 +553,16 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   private evaluarHorarioActual(horarios: HorariosAtencion): void {
-    const ahora = new Date();
+    // Día y hora en la zona de la tienda, no en la del dispositivo del cliente.
+    const partes = new Intl.DateTimeFormat('en-US', {
+      timeZone: this.zonaHoraria,
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(new Date());
+    const parte = (tipo: string) => partes.find((p) => p.type === tipo)?.value || '';
+    const indiceDia = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parte('weekday'));
     const diasOrdenados = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
     const etiquetas: Record<string, string> = {
       lunes: 'Lunes',
@@ -558,11 +574,17 @@ export class CarritoComponent implements OnInit, OnDestroy {
       domingo: 'Domingo'
     };
 
-    const diaClave = diasOrdenados[ahora.getDay()];
+    const diaClave = diasOrdenados[indiceDia];
     const horarioDelDia = this.formatearHorario(horarios?.[diaClave]);
 
     this.diaAtencionHoy = etiquetas[diaClave] || 'Hoy';
     this.horarioAtencionHoy = horarioDelDia;
+
+    // Interruptor del admin apagado: se puede comprar a cualquier hora (el horario solo se muestra).
+    if (!this.limitarHorario) {
+      this.estaAbiertoAtencion = true;
+      return;
+    }
 
     const rango = this.parsearHorario(horarioDelDia);
     if (!rango) {
@@ -570,7 +592,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const minutosActuales = (ahora.getHours() * 60) + ahora.getMinutes();
+    const minutosActuales = (Number(parte('hour')) * 60) + Number(parte('minute'));
     this.estaAbiertoAtencion = minutosActuales >= rango.inicio && minutosActuales <= rango.fin;
   }
 
