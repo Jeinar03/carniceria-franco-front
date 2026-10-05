@@ -22,6 +22,8 @@ export class CarritoComponent implements OnInit, OnDestroy {
   procesandoPago: boolean = false;
   metodoPago: 'efectivo' | 'tarjeta' | 'transferencia' | 'credito' | 'mercado_pago' | null = null;
   notasCompra: string = '';
+  // Forma de entrega: mandadito a domicilio (servicio externo) o recoger en la carnicería.
+  tipoEntrega: 'mandadito' | 'recoger' = 'mandadito';
   clienteTipoCliente: string = '';
   clienteDescuentoPreferencial: number = 0;
   estaAbiertoAtencion: boolean = true;
@@ -347,7 +349,8 @@ export class CarritoComponent implements OnInit, OnDestroy {
         return producto;
       }),
       metodo_pago: 'mercado_pago',
-      notas: this.notasCompra || undefined
+      notas: this.notasCompra || undefined,
+      tipo_entrega: this.tipoEntrega
     };
 
     console.log('Enviando datos a Mercado Pago:', preferenceData); // Debug log
@@ -389,6 +392,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       customer_id: customerId,
       metodo_pago: this.metodoPago as 'efectivo' | 'tarjeta' | 'transferencia' | 'credito',
       notas: this.notasCompra || undefined,
+      tipo_entrega: this.tipoEntrega,
       productos: this.itemsCarrito.map(item => {
         const producto: any = {
           product_id: Number(item.producto.id),
@@ -511,6 +515,10 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   // Obtener el texto del método de pago
+  getTextoEntrega(): string {
+    return this.tipoEntrega === 'recoger' ? '🏪 Recoger en la carnicería' : '🛵 Mandadito a domicilio';
+  }
+
   getTextoMetodoPago(): string {
     switch(this.metodoPago) {
       case 'efectivo': return '💵 Efectivo';
