@@ -206,6 +206,31 @@
           </div>
 
           <ng-container *ngIf="horarioCargado && !fueraDeHorarioAtencion">
+            <!-- Selector de forma de entrega -->
+            <div class="payment-method-selector mt-3">
+              <h4 class="payment-title">Forma de entrega</h4>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" name="tipoEntrega" value="mandadito" [(ngModel)]="tipoEntrega">
+                  <span class="payment-label">
+                    <i class="fas fa-motorcycle"></i>
+                    Mandadito a domicilio
+                  </span>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="tipoEntrega" value="recoger" [(ngModel)]="tipoEntrega">
+                  <span class="payment-label">
+                    <i class="fas fa-store"></i>
+                    Recoger en la carnicería
+                  </span>
+                </label>
+              </div>
+              <small class="text-muted d-block mt-2" *ngIf="tipoEntrega === 'mandadito'">
+                El mandadito es un servicio externo: tú arreglas su pago directo con él.
+              </small>
+            </div>
+
             <!-- Selector de método de pago -->
             <div class="payment-method-selector mt-3">
               <h4 class="payment-title">Método de Pago</h4>
@@ -264,8 +289,8 @@
               <div class="info-box">
                 <i class="fas fa-truck"></i>
                 <div>
-                  <strong>Envíos por mandadito</strong>
-                  <p>Entrega a domicilio</p>
+                  <strong>{{ tipoEntrega === 'recoger' ? 'Recoge en la carnicería' : 'Envíos por mandadito' }}</strong>
+                  <p>{{ tipoEntrega === 'recoger' ? 'Te avisamos cuando esté listo' : 'Entrega a domicilio' }}</p>
                 </div>
               </div>
 
@@ -329,6 +354,10 @@
         </div>
 
         <div class="detail-row mt-3">
+          <span><i class="fas fa-box me-2"></i>Forma de entrega:</span>
+          <strong>{{ getTextoEntrega() }}</strong>
+        </div>
+        <div class="detail-row">
           <span><i class="fas fa-credit-card me-2"></i>Método de pago:</span>
           <strong>{{ getTextoMetodoPago() }}</strong>
         </div>

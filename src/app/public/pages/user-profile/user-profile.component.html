@@ -492,6 +492,12 @@
                 </span>
               </div>
               <div class="info-item">
+                <span class="info-label">Forma de entrega:</span>
+                <span class="info-value">
+                  {{ compraSeleccionada.tipo_entrega === 'recoger' ? 'Recoger en la carnicería' : 'Mandadito a domicilio' }}
+                </span>
+              </div>
+              <div class="info-item">
                 <span class="info-label">Método de Pago:</span>
                 <span class="info-value">
                   <i class="fas me-2" [ngClass]="getMetodoPagoIcon(compraSeleccionada.metodo_pago)"></i>

@@ -59,6 +59,7 @@ export interface Venta {
   impuestos: number;
   total: number;
   metodo_pago: string;
+  tipo_entrega?: 'mandadito' | 'recoger';
   estatus: string;
   notas: string | null;
   created_at: string;
@@ -72,6 +73,7 @@ export interface CrearVentaRequest {
   metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'credito' | 'mercado_pago';
   descuento?: number;
   notas?: string;
+  tipo_entrega?: 'mandadito' | 'recoger';
   productos: {
     product_id: number;
     cantidad?: number;
