@@ -247,6 +247,10 @@
 
             <div class="benefits-list">
               <div class="benefit-item">
+                <i class="fas fa-truck"></i>
+                <span>Envíos por mandadito</span>
+              </div>
+              <div class="benefit-item">
                 <i class="fas fa-star"></i>
                 <span>Productos premium seleccionados</span>
               </div>
@@ -485,6 +489,12 @@
                 <span class="info-label">Estatus:</span>
                 <span class="info-value" [ngClass]="getEstatusClass(compraSeleccionada.estatus)">
                   {{ compraSeleccionada.estatus | titlecase }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Forma de entrega:</span>
+                <span class="info-value">
+                  {{ compraSeleccionada.tipo_entrega === 'recoger' ? 'Recoger en la carnicería' : 'Mandadito a domicilio' }}
                 </span>
               </div>
               <div class="info-item">

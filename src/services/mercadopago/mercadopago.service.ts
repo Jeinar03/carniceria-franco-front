@@ -13,6 +13,7 @@ export interface PreferenceData {
   metodo_pago: string;
   descuento?: number;
   notas?: string;
+  tipo_entrega?: 'mandadito' | 'recoger';
 }
 
 export interface PreferenceResponse {
