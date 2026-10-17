@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FooterComponent } from './footer.component';
-import { SitioConfigService } from '../../../services/sitio-config/sitio-config.service';
+import { MENSAJE_WHATSAPP_POR_OMISION, mensajeWhatsapp, SitioConfigService, SitioConfiguracion } from '../../../services/sitio-config/sitio-config.service';
 
 describe('FooterComponent', () => {
   let component: FooterComponent;
@@ -32,5 +32,13 @@ describe('FooterComponent numero de WhatsApp', () => {
     expect(component.limpiarNumero('527531093826')).toBe('7531093826');
     expect(component.limpiarNumero('+52 753 109 3826')).toBe('7531093826');
     expect(component.limpiarNumero('5217531093826')).toBe('7531093826');
+  });
+});
+
+describe('mensajeWhatsapp', () => {
+  it('usa el mensaje del panel y, si esta vacio, el de omision', () => {
+    expect(mensajeWhatsapp({ mensaje_whatsapp: ' Hola, quiero arrachera ' } as SitioConfiguracion)).toBe('Hola, quiero arrachera');
+    expect(mensajeWhatsapp({ mensaje_whatsapp: '   ' } as SitioConfiguracion)).toBe(MENSAJE_WHATSAPP_POR_OMISION);
+    expect(mensajeWhatsapp({ mensaje_whatsapp: null } as SitioConfiguracion)).toBe(MENSAJE_WHATSAPP_POR_OMISION);
   });
 });

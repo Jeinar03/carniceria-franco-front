@@ -13,6 +13,13 @@ export interface HorarioDia {
   cierre: string;
 }
 
+export const MENSAJE_WHATSAPP_POR_OMISION = 'Hola, quiero hacer un pedido o pedir información.';
+
+/** Mensaje de los botones de WhatsApp: el capturado en el panel o, si no hay, el de omisión. */
+export function mensajeWhatsapp(config: SitioConfiguracion): string {
+  return config.mensaje_whatsapp?.trim() || MENSAJE_WHATSAPP_POR_OMISION;
+}
+
 export interface SitioConfiguracion {
   id: number;
   nombre: string;
@@ -23,6 +30,8 @@ export interface SitioConfiguracion {
   facebook_url: string | null;
   instagram_url: string | null;
   whatsapp: string | null;
+  /** Mensaje que ya aparece escrito al abrir WhatsApp. Vacío = MENSAJE_WHATSAPP_POR_OMISION. */
+  mensaje_whatsapp?: string | null;
   banco?: string | null;
   titular_cuenta?: string | null;
   numero_cuenta?: string | null;
