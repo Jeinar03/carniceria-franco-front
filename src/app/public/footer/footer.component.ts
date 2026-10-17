@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { HorarioDia, HorariosAtencion, SitioConfigService, SitioConfiguracion } from '../../../services/sitio-config/sitio-config.service';
+import { HorarioDia, HorariosAtencion, mensajeWhatsapp, SitioConfigService, SitioConfiguracion } from '../../../services/sitio-config/sitio-config.service';
 
 @Component({
   selector: 'app-footer',
@@ -19,7 +19,7 @@ export class FooterComponent implements OnInit {
     this.configuracion$ = this.sitioConfigService.obtenerConfiguracion().pipe(
       map((config) => {
         const whatsapp = this.limpiarNumero(config.whatsapp || config.telefono);
-        this.whatsappLink = `https://wa.me/52${whatsapp}?text=${encodeURIComponent('Hola, quiero hacer un pedido o pedir información.')}`;
+        this.whatsappLink = `https://wa.me/52${whatsapp}?text=${encodeURIComponent(mensajeWhatsapp(config))}`;
         this.telefonoLink = `tel:+52${whatsapp}`;
         return config;
       })
