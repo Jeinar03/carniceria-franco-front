@@ -25,8 +25,10 @@ export class ContactComponent implements OnInit {
     );
   }
 
+  // Deja solo los 10 digitos del numero. Si lo capturaron con 52, +52 o 521
+  // se quita, porque el enlace ya le agrega el 52.
   limpiarNumero(numero: string): string {
-    return (numero || '').replace(/\D/g, '');
+    return (numero || '').replace(/\D/g, '').slice(-10);
   }
 
   obtenerDiasOrdenados(horarios: HorariosAtencion): Array<{ dia: string; horario: string }> {
