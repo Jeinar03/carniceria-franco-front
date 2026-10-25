@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 
 import { HomeRoutingModule } from './home-routing.module';
 import { HomeComponent } from './home.component';
+import { ParaTiComponent } from './para-ti/para-ti.component';
 
 
 @NgModule({
   declarations: [
-    HomeComponent
+    HomeComponent,
+    ParaTiComponent
   ],
   imports: [
     CommonModule,

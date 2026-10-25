@@ -113,6 +113,27 @@
                   <input type="text" formControlName="direccion" class="form-control-modern" id="direccion" placeholder="Calle y número">
                 </div>
 
+                <!-- Referencias -->
+                <div class="col-md-6">
+                  <label for="referencias" class="form-label">
+                    <i class="fas fa-info-circle"></i>
+                    Referencias
+                  </label>
+                  <input type="text" formControlName="referencias" maxlength="255" class="form-control-modern" id="referencias" placeholder="Casa azul, portón negro">
+                </div>
+
+                <!-- Ubicación en Google Maps -->
+                <div class="col-md-6">
+                  <label for="ubicacion_url" class="form-label">
+                    <i class="fas fa-location-arrow"></i>
+                    Link de Google Maps (opcional)
+                  </label>
+                  <input type="url" formControlName="ubicacion_url" maxlength="500" class="form-control-modern" id="ubicacion_url" placeholder="https://maps.app.goo.gl/...">
+                  <small class="text-danger" *ngIf="myForm.get('ubicacion_url')?.hasError('linkMaps')">
+                    Pega el link de Google Maps (en Maps toca tu ubicación, Compartir y Copiar link).
+                  </small>
+                </div>
+
                 <!-- Ciudad -->
                 <div class="col-md-4">
                   <label for="ciudad" class="form-label">
@@ -495,6 +516,13 @@
                 <span class="info-label">Forma de entrega:</span>
                 <span class="info-value">
                   {{ compraSeleccionada.tipo_entrega === 'recoger' ? 'Recoger en la carnicería' : 'Mandadito a domicilio' }}
+                </span>
+              </div>
+              <div class="info-item" *ngIf="compraSeleccionada.tipo_entrega !== 'recoger' && compraSeleccionada.direccion_entrega">
+                <span class="info-label">Entregar en:</span>
+                <span class="info-value">
+                  {{ compraSeleccionada.direccion_entrega }}
+                  <small class="d-block" *ngIf="compraSeleccionada.referencias_entrega">{{ compraSeleccionada.referencias_entrega }}</small>
                 </span>
               </div>
               <div class="info-item">

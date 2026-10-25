@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { DatosEntregaMandadito } from 'src/services/ventas/ventas.service';
 
-export interface PreferenceData {
+export interface PreferenceData extends DatosEntregaMandadito {
   customer_id: number;
   productos: {
     product_id: number;

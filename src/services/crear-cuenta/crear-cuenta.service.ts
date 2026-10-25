@@ -1,6 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+
+/** Datos que pide el registro. Los de entrega son opcionales: se pueden dar despues, al comprar. */
+export interface DatosRegistro {
+  nombre: string;
+  apellido: string;
+  apellido2?: string;
+  correo: string;
+  password: string;
+  telefono: string;
+  direccion?: string;
+  referencias?: string;
+  ubicacion_url?: string;
+  ciudad?: string;
+  estado?: string;
+  codigo_postal?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -8,13 +25,11 @@ export class CrearCuentaService {
 
   constructor(private http: HttpClient) { }
 
-  crearCuenta(nombre: string, apellido: string, correo: string, password: string) {
-    const formData = {
-      nombre,
-      apellido,
-      correo,
-      password
-    };
+  crearCuenta(datos: DatosRegistro) {
+    // Los campos opcionales vacios no se mandan: el servidor los guarda como nulos.
+    const formData = Object.fromEntries(
+      Object.entries(datos).filter(([, valor]) => valor !== undefined && valor !== null && String(valor).trim() !== '')
+    );
 
     return this.http.post<any>(`${environment.apiUrl}/clientes/registro`, formData);
   }

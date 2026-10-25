@@ -226,9 +226,70 @@
                   </span>
                 </label>
               </div>
-              <small class="text-muted d-block mt-2" *ngIf="tipoEntrega === 'mandadito'">
-                El mandadito es un servicio externo: tú arreglas su pago directo con él.
-              </small>
+            </div>
+
+            <!-- Mandadito: aviso del costo y a donde se lleva el pedido -->
+            <div class="entrega-bloque mt-3" *ngIf="tipoEntrega === 'mandadito'">
+              <div class="aviso-mandadito" role="note">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                  <strong>El envío es por mandadito y tiene un costo aparte.</strong>
+                  <p>Lo pagas directo al mandadito al recibir tu pedido. No está incluido en el total de tu compra.</p>
+                </div>
+              </div>
+
+              <h4 class="payment-title mt-3">¿A dónde te lo llevamos?</h4>
+
+              <label class="payment-option mb-2" *ngIf="tieneDireccionGuardada">
+                <input type="radio" name="origenDireccion" [value]="true" [(ngModel)]="usarDireccionGuardada">
+                <span class="payment-label direccion-guardada">
+                  <i class="fas fa-home"></i>
+                  <span>
+                    Mi dirección guardada
+                    <small class="d-block text-muted">{{ direccionGuardada.direccion }}</small>
+                    <small class="d-block text-muted" *ngIf="direccionGuardada.referencias">{{ direccionGuardada.referencias }}</small>
+                  </span>
+                </span>
+              </label>
+
+              <label class="payment-option mb-2" *ngIf="tieneDireccionGuardada">
+                <input type="radio" name="origenDireccion" [value]="false" [(ngModel)]="usarDireccionGuardada">
+                <span class="payment-label">
+                  <i class="fas fa-map-marker-alt"></i>
+                  Enviar a otra dirección
+                </span>
+              </label>
+
+              <div class="otra-direccion" *ngIf="!(usarDireccionGuardada && tieneDireccionGuardada)">
+                <input type="text" class="form-control mb-2" name="otraDireccion" maxlength="255"
+                       placeholder="Calle, número y colonia" [(ngModel)]="otraDireccion.direccion">
+                <input type="text" class="form-control mb-2" name="otraReferencias" maxlength="255"
+                       placeholder="Referencias (casa azul, portón negro)" [(ngModel)]="otraDireccion.referencias">
+                <input type="url" class="form-control" name="otraUbicacion" maxlength="500"
+                       placeholder="Link de Google Maps (opcional)" [(ngModel)]="otraDireccion.ubicacion_url"
+                       [class.is-invalid]="linkOtraDireccionInvalido">
+                <small class="text-danger d-block mt-1" *ngIf="linkOtraDireccionInvalido">
+                  El link debe ser de Google Maps.
+                </small>
+                <small class="text-muted d-block mt-1">
+                  Para dar tu ubicación exacta: en Google Maps toca tu ubicación, Compartir y Copiar link; luego pégalo aquí.
+                </small>
+                <label class="guardar-direccion mt-2">
+                  <input type="checkbox" name="guardarDireccion" [(ngModel)]="guardarComoMiDireccion">
+                  Guardar como mi dirección
+                </label>
+              </div>
+            </div>
+
+            <!-- Recoger: ubicación de la carnicería -->
+            <div class="entrega-bloque recoger-bloque mt-3" *ngIf="tipoEntrega === 'recoger'">
+              <h4 class="payment-title">Recoge tu pedido aquí</h4>
+              <p class="mb-1" *ngIf="puntoRecoger.direccion"><i class="fas fa-store me-2"></i>{{ puntoRecoger.direccion }}</p>
+              <p class="mb-1 text-muted" *ngIf="!puntoRecoger.direccion">Te avisaremos por correo cuando esté listo.</p>
+              <p class="mb-2 text-muted"><i class="fas fa-clock me-2"></i>{{ diaAtencionHoy }}: {{ horarioAtencionHoy }}</p>
+              <a *ngIf="puntoRecoger.enlace" class="btn-mapa" [href]="puntoRecoger.enlace" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-map-marker-alt me-2"></i>Abrir en Google Maps
+              </a>
             </div>
 
             <!-- Selector de método de pago -->
@@ -255,6 +316,10 @@
 
               <app-datos-bancarios *ngIf="metodoPago === 'transferencia'"></app-datos-bancarios>
             </div>
+
+            <small class="text-danger d-block mb-2" *ngIf="!datosEntregaCompletos">
+              Indica a dónde te llevamos el pedido para continuar.
+            </small>
 
             <button
               class="btn-checkout"
@@ -357,6 +422,17 @@
           <span><i class="fas fa-box me-2"></i>Forma de entrega:</span>
           <strong>{{ getTextoEntrega() }}</strong>
         </div>
+        <div class="detail-row" *ngIf="tipoEntrega === 'mandadito'">
+          <span><i class="fas fa-map-marker-alt me-2"></i>Entregar en:</span>
+          <strong>
+            {{ direccionEntrega.direccion }}
+            <small class="d-block fw-normal" *ngIf="direccionEntrega.referencias">{{ direccionEntrega.referencias }}</small>
+          </strong>
+        </div>
+        <div class="detail-row" *ngIf="tipoEntrega === 'recoger' && puntoRecoger.direccion">
+          <span><i class="fas fa-store me-2"></i>Recoges en:</span>
+          <strong>{{ puntoRecoger.direccion }}</strong>
+        </div>
         <div class="detail-row">
           <span><i class="fas fa-credit-card me-2"></i>Método de pago:</span>
           <strong>{{ getTextoMetodoPago() }}</strong>
@@ -366,10 +442,23 @@
           <strong>-{{ descuentoPorcentajeAplicable.toFixed(2) }}% (${{ descuentoMonto.toFixed(2) }})</strong>
         </div>
         <div class="detail-row total-row">
-          <span><i class="fas fa-dollar-sign me-2"></i>Total a pagar:</span>
+          <span><i class="fas fa-dollar-sign me-2"></i>Total a pagar{{ tipoEntrega === 'mandadito' ? ' (sin mandadito)' : '' }}:</span>
           <strong class="text-primary">${{ total.toFixed(2) }}</strong>
         </div>
       </div>
+
+      <div class="aviso-mandadito mt-3" *ngIf="tipoEntrega === 'mandadito'" role="note">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+          <strong>El mandadito tiene un costo aparte.</strong>
+          <p>No está incluido en este total. Lo pagas directo al mandadito al recibir tu pedido.</p>
+          <label class="aceptar-aviso">
+            <input type="checkbox" name="avisoMandadito" [(ngModel)]="avisoMandaditoAceptado">
+            Entiendo que el mandadito tiene costo aparte y lo pago yo.
+          </label>
+        </div>
+      </div>
+
       <p class="text-muted text-center mt-3">
         <i class="fas fa-info-circle me-2"></i>
         ¿Deseas confirmar esta compra?
@@ -379,7 +468,8 @@
       <button class="btn-cancel" (click)="cerrarModalConfirmacion()">
         <i class="fas fa-times me-2"></i>Cancelar
       </button>
-      <button class="btn-confirm" (click)="confirmarCompra()">
+      <button class="btn-confirm" (click)="confirmarCompra()"
+              [disabled]="tipoEntrega === 'mandadito' && !avisoMandaditoAceptado">
         <i class="fas fa-check me-2"></i>Confirmar Compra
       </button>
     </div>
