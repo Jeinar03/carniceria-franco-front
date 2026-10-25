@@ -57,6 +57,25 @@
             </div>
 
             <div class="form-group">
+              <label for="apellido2" class="form-label">
+                <i class="fas fa-user-tag"></i>
+                Segundo apellido <span class="opcional">(opcional)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="apellido2"
+                  name="apellido2"
+                  class="form-control-modern"
+                  placeholder="Tu segundo apellido"
+                  [(ngModel)]="apellido2"
+                  autocomplete="additional-name"
+                />
+                <div class="input-border"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
               <label for="correo" class="form-label">
                 <i class="fas fa-envelope"></i>
                 Correo Electronico
@@ -73,6 +92,87 @@
                   autocomplete="email"
                 />
                 <div class="input-border"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="telefono" class="form-label">
+                <i class="fas fa-phone"></i>
+                Teléfono
+              </label>
+              <div class="input-wrapper">
+                <input
+                  type="tel"
+                  id="telefono"
+                  name="telefono"
+                  class="form-control-modern"
+                  placeholder="10 dígitos"
+                  [(ngModel)]="telefono"
+                  inputmode="numeric"
+                  maxlength="10"
+                  pattern="[0-9]{10}"
+                  required
+                  autocomplete="tel-national"
+                />
+                <div class="input-border"></div>
+              </div>
+              <small class="campo-ayuda">Lo usa el mandadito para localizarte al entregar tu pedido.</small>
+            </div>
+
+            <div class="seccion-envio">
+              <h3 class="seccion-titulo"><i class="fas fa-map-marker-alt"></i> Dirección para tus envíos <span class="opcional">(opcional)</span></h3>
+              <p class="campo-ayuda">Si la dejas vacía te la pediremos al hacer tu primer pedido.</p>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="text" id="direccion" name="direccion" class="form-control-modern"
+                         placeholder="Calle, número y colonia" [(ngModel)]="direccion" maxlength="255"
+                         autocomplete="street-address" />
+                  <div class="input-border"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="text" id="referencias" name="referencias" class="form-control-modern"
+                         placeholder="Referencias (casa azul, portón negro)" [(ngModel)]="referencias" maxlength="255" />
+                  <div class="input-border"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="text" id="ciudad" name="ciudad" class="form-control-modern"
+                         placeholder="Ciudad" [(ngModel)]="ciudad" autocomplete="address-level2" />
+                  <div class="input-border"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="text" id="estado" name="estado" class="form-control-modern"
+                         placeholder="Estado" [(ngModel)]="estado" autocomplete="address-level1" />
+                  <div class="input-border"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="text" id="codigo_postal" name="codigo_postal" class="form-control-modern"
+                         placeholder="Código postal" [(ngModel)]="codigoPostal" inputmode="numeric"
+                         maxlength="5" pattern="[0-9]{5}" autocomplete="postal-code" />
+                  <div class="input-border"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  <input type="url" id="ubicacion_url" name="ubicacion_url" class="form-control-modern"
+                         placeholder="Link de Google Maps (opcional)" [(ngModel)]="ubicacionUrl" maxlength="500" />
+                  <div class="input-border"></div>
+                </div>
+                <small class="campo-ayuda">En Google Maps toca tu ubicación, Compartir y Copiar link.</small>
+                <small class="campo-error" *ngIf="linkInvalido">El link debe ser de Google Maps.</small>
               </div>
             </div>
 

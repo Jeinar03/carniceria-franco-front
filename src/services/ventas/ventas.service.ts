@@ -60,6 +60,9 @@ export interface Venta {
   total: number;
   metodo_pago: string;
   tipo_entrega?: 'mandadito' | 'recoger';
+  direccion_entrega?: string | null;
+  referencias_entrega?: string | null;
+  ubicacion_url?: string | null;
   estatus: string;
   notas: string | null;
   created_at: string;
@@ -68,7 +71,16 @@ export interface Venta {
   customer?: CustomerVenta;
 }
 
-export interface CrearVentaRequest {
+/** A donde se lleva un pedido por mandadito y la aceptacion del aviso de que se paga aparte. */
+export interface DatosEntregaMandadito {
+  acepta_aviso_mandadito?: boolean;
+  direccion_entrega?: string;
+  referencias_entrega?: string;
+  ubicacion_url?: string;
+  guardar_como_mi_direccion?: boolean;
+}
+
+export interface CrearVentaRequest extends DatosEntregaMandadito {
   customer_id: number;
   metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia' | 'credito' | 'mercado_pago';
   descuento?: number;

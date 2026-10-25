@@ -25,6 +25,10 @@ export interface SitioConfiguracion {
   nombre: string;
   logo: string | null;
   direccion: string;
+  /** Link de Google Maps de la carniceria, capturado en el panel. */
+  ubicacion_url?: string | null;
+  /** Link para llegar: el capturado o una busqueda en Maps con la direccion (lo arma el servidor). */
+  enlace_mapa?: string | null;
   correo: string;
   telefono: string;
   facebook_url: string | null;

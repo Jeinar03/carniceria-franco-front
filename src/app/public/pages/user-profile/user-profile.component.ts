@@ -9,7 +9,8 @@ import { environment } from 'src/environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import {catchError, of} from "rxjs";
 import { CarritoService } from 'src/services/carrito/carrito.service';
-import { Producto } from 'src/services/productos/productos.service';
+import { aProductoParaCarrito, normalizarCarritoRecomendado, urlImagenProducto } from 'src/services/ventas/producto-recomendado.helper';
+import { linkMapsValidator } from 'src/services/utils/ubicacion-maps';
 
 @Component({
   selector: 'app-user-profile',
@@ -155,25 +156,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   getImagenProducto(imagen: string | null | undefined): string {
-    if (!imagen) {
-      return 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400';
-    }
-
-    // Si ya es una URL completa, limpiar las barras invertidas
-    if (imagen.startsWith('http')) {
-      return imagen.replace(/\\/g, '');
-    }
-
-    // Si empieza con '/', construir la URL completa
-    if (imagen.startsWith('/')) {
-      return `${environment.apiUrl.replace('/api/v1', '')}${imagen.replace(/\\/g, '')}`;
-    }
-
-    const base = environment.apiUrl.replace('/api/v1', '');
-    const ruta = imagen.replace(/\\/g, '');
-
-    // Las fotos de productos se guardan como "productos/archivo.jpg" y se sirven desde /storage.
-    return ruta.startsWith('storage/') ? `${base}/${ruta}` : `${base}/storage/${ruta}`;
+    return urlImagenProducto(imagen);
   }
 
   getEstatusClass(estatus: string): string {
@@ -435,49 +418,7 @@ export class UserProfileComponent implements OnInit {
     return this.toNumber(value).toFixed(2);
   }
 
-  // Métodos para Recomendaciones
-  private normalizarProductoRecomendado(producto: any): ProductoRecomendado {
-    const precio = Number(producto?.precio || 0);
-    const precioOferta = producto?.precio_oferta != null ? Number(producto.precio_oferta) : undefined;
-    const cantidadRecomendada = Number(
-      producto?.cantidad_recomendada ?? producto?.cantidad_sugerida ?? 1
-    );
-
-    return {
-      id: Number(producto?.id ?? producto?.product_id ?? 0),
-      nombre: producto?.nombre || '',
-      codigo: producto?.codigo || '',
-      precio,
-      descripcion: producto?.descripcion || producto?.motivo || '',
-      unidad_venta: producto?.unidad_venta || 'unidad',
-      precio_oferta: precioOferta,
-      en_oferta: Number(producto?.en_oferta || (precioOferta !== undefined ? 1 : 0)),
-      imagen: producto?.imagen || null,
-      stock: Number(producto?.stock ?? 100),
-      cantidad_recomendada: cantidadRecomendada,
-      subtotal: Number(producto?.subtotal ?? cantidadRecomendada * (precioOferta ?? precio)),
-      categoria_id: Number(producto?.categoria_id || 0),
-      categoria_nombre: producto?.categoria_nombre || producto?.categoria || ''
-    };
-  }
-
-  private normalizarCarritoRecomendado(carrito: any): CarritoRecomendado {
-    const productos = (carrito?.productos || []).map((producto: any) =>
-      this.normalizarProductoRecomendado(producto)
-    );
-
-    return {
-      id: Number(carrito?.id || 0),
-      nombre: carrito?.nombre || 'Recomendado',
-      descripcion: carrito?.descripcion || '',
-      productos,
-      total_estimado: Number(carrito?.total_estimado || 0),
-      ahorro_estimado: Number(carrito?.ahorro_estimado || 0),
-      icono: carrito?.icono,
-      color: carrito?.color
-    };
-  }
-
+  // Métodos para Recomendaciones (la conversión de datos vive en producto-recomendado.helper)
   loadRecomendaciones() {
     const customerId = this.authService.getUserId();
     if (!customerId) {
@@ -498,7 +439,7 @@ export class UserProfileComponent implements OnInit {
       .subscribe(response => {
         if (response && response.success) {
           this.recomendaciones = (response.data.recomendaciones || []).map(carrito =>
-            this.normalizarCarritoRecomendado(carrito)
+            normalizarCarritoRecomendado(carrito)
           );
           this.datosRecomendaciones = response.data;
         } else {
@@ -539,29 +480,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     // Convertir ProductoRecomendado a Producto para el servicio de carrito
-    const productoParaCarrito: Producto = {
-      id: producto.id,
-      codigo: producto.codigo || '',
-      nombre: producto.nombre,
-      descripcion: producto.descripcion || '',
-      precio: Number(producto.precio || 0),
-      precio_oferta: producto.precio_oferta ? Number(producto.precio_oferta) : null,
-      precio_final: producto.precio_oferta ? Number(producto.precio_oferta) : Number(producto.precio || 0),
-      stock: producto.stock || 100,
-      stock_minimo: 0,
-      unidad_venta: producto.unidad_venta || 'unidad',
-      category_id: producto.categoria_id || 0,
-      imagen: producto.imagen || null,
-      imagen_url: null,
-      en_oferta: Number(producto.en_oferta) || 0,
-      activo: 1,
-      destacado: 0,
-      refrigerado: 0,
-      fecha_vencimiento: null,
-      tiene_stock: true,
-      created_at: '',
-      updated_at: ''
-    };
+    const productoParaCarrito = aProductoParaCarrito(producto);
 
     // Agregar al carrito con la cantidad recomendada
     const cantidadAgregar = Number(producto.cantidad_recomendada || 1);
@@ -588,29 +507,7 @@ export class UserProfileComponent implements OnInit {
         return;
       }
 
-      const productoParaCarrito: Producto = {
-        id: producto.id,
-        codigo: producto.codigo || '',
-        nombre: producto.nombre,
-        descripcion: producto.descripcion || '',
-        precio: Number(producto.precio || 0),
-        precio_oferta: producto.precio_oferta ? Number(producto.precio_oferta) : null,
-        precio_final: producto.precio_oferta ? Number(producto.precio_oferta) : Number(producto.precio || 0),
-        stock: producto.stock || 100,
-        stock_minimo: 0,
-        unidad_venta: producto.unidad_venta || 'unidad',
-        category_id: producto.categoria_id || 0,
-        imagen: producto.imagen || null,
-        imagen_url: null,
-        en_oferta: Number(producto.en_oferta) || 0,
-        activo: 1,
-        destacado: 0,
-        refrigerado: 0,
-        fecha_vencimiento: null,
-        tiene_stock: true,
-        created_at: '',
-        updated_at: ''
-      };
+      const productoParaCarrito = aProductoParaCarrito(producto);
 
       const cantidadAgregar = Number(producto.cantidad_recomendada || 1);
       this.carritoService.agregarProducto(productoParaCarrito, cantidadAgregar);
@@ -675,6 +572,8 @@ export class UserProfileComponent implements OnInit {
       correo: [{ value: '', disabled: true }],
       telefono: ['', [Validators.pattern(/^[0-9]{10}$/)]],
       direccion: [''],
+      referencias: [''],
+      ubicacion_url: ['', [linkMapsValidator]],
       ciudad: [''],
       estado: [''],
       codigo_postal: ['', [Validators.pattern(/^[0-9]{5}$/)]],
@@ -798,6 +697,8 @@ getData(){
       'apellido2',
       'telefono',
       'direccion',
+      'referencias',
+      'ubicacion_url',
       'ciudad',
       'estado',
       'codigo_postal',

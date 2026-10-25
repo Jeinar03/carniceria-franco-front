@@ -1,0 +1,42 @@
+<section class="para-ti" *ngIf="carritos.length > 0" aria-label="Recomendaciones para ti">
+  <div class="para-ti-header">
+    <div>
+      <p class="para-ti-chip"><i class="fas fa-magic"></i> Hecho a tu medida</p>
+      <h2 class="para-ti-titulo">Para ti<span *ngIf="nombre">, {{ nombre }}</span></h2>
+      <p class="para-ti-subtitulo">Armamos estos pedidos con lo que más compras.</p>
+    </div>
+    <button type="button" class="para-ti-ver-todas" (click)="verTodas()" *ngIf="hayMas">
+      Ver todas <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="para-ti-grid">
+    <article class="para-ti-card" *ngFor="let carrito of carritos; trackBy: trackByCarrito">
+      <header class="para-ti-card-header">
+        <h3>{{ carrito.nombre }}</h3>
+        <p *ngIf="carrito.descripcion">{{ carrito.descripcion }}</p>
+      </header>
+
+      <ul class="para-ti-productos">
+        <li *ngFor="let producto of productosVisibles(carrito)">
+          <img [src]="imagen(producto.imagen)" [alt]="producto.nombre" loading="lazy">
+          <span class="para-ti-producto-nombre">{{ producto.nombre }}</span>
+          <span class="para-ti-producto-cantidad">× {{ producto.cantidad_recomendada }}</span>
+        </li>
+        <li class="para-ti-mas" *ngIf="productosOcultos(carrito) > 0">y {{ productosOcultos(carrito) }} más</li>
+      </ul>
+
+      <footer class="para-ti-card-footer">
+        <div class="para-ti-total">
+          <strong>${{ carrito.total_estimado | number: '1.2-2' }}</strong>
+          <small class="para-ti-ahorro" *ngIf="carrito.ahorro_estimado > 0">
+            Ahorras ${{ carrito.ahorro_estimado | number: '1.2-2' }}
+          </small>
+        </div>
+        <button type="button" class="para-ti-agregar" (click)="agregarTodo(carrito)">
+          <i class="fas fa-cart-plus"></i> Agregar todo
+        </button>
+      </footer>
+    </article>
+  </div>
+</section>
