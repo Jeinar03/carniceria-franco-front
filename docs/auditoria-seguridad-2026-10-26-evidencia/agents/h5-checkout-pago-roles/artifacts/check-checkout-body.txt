@@ -1,0 +1,7 @@
+check: cuerpo de checkout derivado de localStorage (arnes Node 22 que copia carrito.service.ts:102-127, carrito.component.ts:338-350,396-408,469-490, auth-service.service.ts:78-81)
+comando: run-1/bin/sandbox.sh <scratch> sh -c 'node /mnt/harness-checkout.js'  (sin red, env -i PATH=/opt/node22/bin:/usr/bin:/bin HOME=/mnt TMPDIR=/mnt, cpu 20s, mem 2GB, nproc 64, fsize 5MB, reloj 30s)
+node v22.22.0, rc=0, datos ficticios
+---
+caso1 valido=true body={"customer_id":2,"metodo_pago":"transferencia","tipo_entrega":"mandadito","productos":[{"product_id":10,"cantidad":100000,"monto_pesos":1}]}
+caso2 valido=true body={"customer_id":2,"metodo_pago":"credito","tipo_entrega":"mandadito","productos":[{"product_id":11,"cantidad":0.001}]}
+caso3 valido=true body={"customer_id":2,"productos":[{"product_id":12,"cantidad":0.5,"monto_pesos":100},{"product_id":13,"cantidad":500,"monto_pesos":100}],"metodo_pago":"mercado_pago","tipo_entrega":"mandadito"}

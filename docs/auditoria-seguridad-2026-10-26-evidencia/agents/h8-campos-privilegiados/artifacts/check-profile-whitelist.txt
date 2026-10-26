@@ -1,0 +1,19 @@
+comando: sandbox.sh <scratch> node /mnt/harness.js (Node 22, sin red, env vacio)
+payload UI con campos privilegiados alterados: {"nombre":"Dummy2"}
+cuerpo registro UI: {"nombre":"D","apellido":"U","correo":"d@example.test","password":"x"}
+Nota: ningun codigo del front rechaza un PUT/POST directo con tipo_cliente/descuento_preferencial/saldo_cuenta; la decision queda en el backend (no visible).
+
+--- harness.js ---
+// Reproduce exacto de user-profile.component.ts:780-826 (construirPayloadPerfil / obtenerDatosEditablesPerfil / normalizarValorPerfil)
+function normalizarValorPerfil(v){ if(v===null||v===undefined) return ''; if(typeof v==='string') return v.trim(); return String(v); }
+function obtenerDatosEditablesPerfil(raw){ const c=['nombre','apellido','apellido2','telefono','direccion','ciudad','estado','codigo_postal','pais','rfc']; const d={}; c.forEach(k=>{d[k]=raw[k]??null}); return d; }
+function construirPayloadPerfil(raw, orig){ const a=obtenerDatosEditablesPerfil(raw); const p={}; Object.keys(a).forEach(k=>{ if(normalizarValorPerfil(a[k])!==normalizarValorPerfil(orig[k])) p[k]=a[k]; }); return p; }
+const base={nombre:'Dummy',apellido:'Uno',apellido2:'',correo:'dummy@example.test',telefono:'5550000000',direccion:'',ciudad:'',estado:'',codigo_postal:'',pais:'México',rfc:'',tipo_cliente:'minorista',saldo_cuenta:'0.00',total_compras:'0.00',numero_compras:0};
+const orig=obtenerDatosEditablesPerfil(base);
+// Caso: controles disabled re-habilitados/alterados via DOM o devtools (getRawValue los incluye)
+const tampered={...base,nombre:'Dummy2',correo:'otro@example.test',tipo_cliente:'mayorista',saldo_cuenta:'99999',descuento_preferencial:50,total_compras:'1',numero_compras:9};
+console.log('payload UI con campos privilegiados alterados:', JSON.stringify(construirPayloadPerfil(tampered,orig)));
+// Cuerpo que el navegador manda en registro (crear-cuenta.service.ts:12-17)
+const reg=((nombre,apellido,correo,password)=>({nombre,apellido,correo,password}))('D','U','d@example.test','x');
+console.log('cuerpo registro UI:', JSON.stringify(reg));
+console.log('Nota: ningun codigo del front rechaza un PUT/POST directo con tipo_cliente/descuento_preferencial/saldo_cuenta; la decision queda en el backend (no visible).');

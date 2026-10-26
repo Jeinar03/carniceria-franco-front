@@ -1,0 +1,105 @@
+# check-stale-customer-id
+# comando: /root/security-audit-skill/carniceria-franco-front/run-1/bin/sandbox.sh <scratch> node /mnt/harness-stale.cjs
+# limites: sin red, env -i (PATH,HOME=/mnt,TMPDIR=/mnt), objetivo ro, cpu 20s, as 2GB, nproc 64, fsize 5MB, timeout 30s
+# exit code: 0
+
+## salida
+OK    src/services/customers/customer-service.service.ts :: public customer=localStorage.getItem('clienteId');
+OK    src/services/customers/customer-service.service.ts :: customer_id: this.customer,
+OK    src/services/customers/customer-service.service.ts :: /usuarios/store-images/${this.customer}/cliente
+OK    src/services/customers/customer-service.service.ts :: /usuarios/borrar/${this.customer}/imagenes/${imageId}
+OK    src/services/customers/customer-service.service.ts :: providedIn: 'root'
+OK    src/services/auth-service/auth-service.service.ts :: localStorage.removeItem('clienteId');
+OK    src/services/auth-service/auth-service.service.ts :: this.router.navigate(['/']);
+OK    src/services/auth-service/auth-service.service.ts :: const userId = localStorage.getItem('clienteId');
+OK    src/services/login/login.service.ts :: localStorage.setItem('clienteId', response.data.cliente.id.toString());
+OK    src/services/login/login.service.ts :: this.router.navigate(['/']);
+sin-reload src/services/auth-service/auth-service.service.ts
+sin-reload src/services/login/login.service.ts
+sin-reload src/app/public/login/login.component.ts
+sin-reload src/app/public/header/header.component.ts
+A (101) logueado; CustomerService.customer = 101
+B (202) logueado; AuthService.getUserId() = 202 ; CustomerService.customer = 101
+["GET","http://api.local/api/v1/usuarios/store-images/101/cliente"]
+["POST","http://api.local/api/v1/usuarios/store-images",{"customer_id":"101","images":[{"base64":"AAAA","peso":"80","comentarios":"foto de B"}]}]
+["DELETE","http://api.local/api/v1/usuarios/borrar/101/imagenes/5"]
+
+## harness-stale.cjs
+// Arnes local (sin Angular): reproduce linea por linea la logica citada de CustomerService,
+// AuthService.logout/getUserId y LoginService.handleLoginResponse, y primero verifica que esas
+// lineas existen textualmente en el codigo objetivo (solo lectura).
+'use strict';
+const fs = require('fs');
+const T = '/home/user/carniceria-franco-front/';
+const read = (p) => fs.readFileSync(T + p, 'utf8');
+
+// --- 1. Fidelidad: las lineas reproducidas existen tal cual en el objetivo ---
+const must = [
+  ['src/services/customers/customer-service.service.ts', "public customer=localStorage.getItem('clienteId');"],
+  ['src/services/customers/customer-service.service.ts', 'customer_id: this.customer,'],
+  ['src/services/customers/customer-service.service.ts', '/usuarios/store-images/${this.customer}/cliente'],
+  ['src/services/customers/customer-service.service.ts', '/usuarios/borrar/${this.customer}/imagenes/${imageId}'],
+  ['src/services/customers/customer-service.service.ts', "providedIn: 'root'"],
+  ['src/services/auth-service/auth-service.service.ts', "localStorage.removeItem('clienteId');"],
+  ['src/services/auth-service/auth-service.service.ts', "this.router.navigate(['/']);"],
+  ['src/services/auth-service/auth-service.service.ts', "const userId = localStorage.getItem('clienteId');"],
+  ['src/services/login/login.service.ts', "localStorage.setItem('clienteId', response.data.cliente.id.toString());"],
+  ['src/services/login/login.service.ts', "this.router.navigate(['/']);"],
+];
+for (const [f, s] of must) {
+  const ok = read(f).includes(s);
+  console.log((ok ? 'OK   ' : 'FALTA') + ' ' + f + ' :: ' + s);
+  if (!ok) process.exit(2);
+}
+// Ningun reload/location en el flujo de login/logout (SPA sin recarga):
+for (const f of ['src/services/auth-service/auth-service.service.ts', 'src/services/login/login.service.ts', 'src/app/public/login/login.component.ts', 'src/app/public/header/header.component.ts']) {
+  const r = /location\.(reload|href|assign|replace)/.test(read(f));
+  console.log((r ? 'RELOAD' : 'sin-reload') + ' ' + f);
+}
+
+// --- 2. Reproduccion ---
+const store = new Map();
+const localStorage = {
+  getItem: (k) => (store.has(k) ? store.get(k) : null),
+  setItem: (k, v) => store.set(k, String(v)),
+  removeItem: (k) => store.delete(k),
+};
+const calls = [];
+const http = {
+  get(url) { calls.push(['GET', url]); },
+  post(url, body) { calls.push(['POST', url, body]); },
+  delete(url) { calls.push(['DELETE', url]); },
+};
+const environment = { apiUrl: 'http://api.local/api/v1' };
+
+class CustomerService { // customer-service.service.ts:11-41
+  constructor(http) { this.customer = localStorage.getItem('clienteId'); this.http = http; }
+  uploadCustomerImages(images) {
+    const url = `${environment.apiUrl}/usuarios/store-images`;
+    const payload = { customer_id: this.customer, images: images };
+    return this.http.post(url, payload);
+  }
+  getImagenes() { return this.http.get(`${environment.apiUrl}/usuarios/store-images/${this.customer}/cliente`); }
+  deleteImage(imageId) { return this.http.delete(`${environment.apiUrl}/usuarios/borrar/${this.customer}/imagenes/${imageId}`); }
+}
+const auth = { // auth-service.service.ts:57-80
+  logout() {
+    ['token', 'clienteEmail', 'isLoggedIn', 'clienteNombre', 'clienteApellidoPaterno', 'clienteId'].forEach((k) => localStorage.removeItem(k));
+  },
+  getUserId() { const userId = localStorage.getItem('clienteId'); return userId ? parseInt(userId, 10) : null; },
+};
+function handleLoginResponse(response) { // login.service.ts:16-29
+  localStorage.setItem('token', response.data.token);
+  localStorage.setItem('clienteId', response.data.cliente.id.toString());
+}
+
+handleLoginResponse({ data: { token: 'tokA', cliente: { id: 101 } } });
+const singleton = new CustomerService(http); // primera visita de A a Seguimiento/Perfil
+console.log('A (101) logueado; CustomerService.customer =', singleton.customer);
+auth.logout();
+handleLoginResponse({ data: { token: 'tokB', cliente: { id: 202 } } });
+console.log('B (202) logueado; AuthService.getUserId() =', auth.getUserId(), '; CustomerService.customer =', singleton.customer);
+singleton.getImagenes();
+singleton.uploadCustomerImages([{ base64: 'AAAA', peso: '80', comentarios: 'foto de B' }]);
+singleton.deleteImage(5);
+for (const c of calls) console.log(JSON.stringify(c));

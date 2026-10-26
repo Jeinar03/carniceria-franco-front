@@ -1,0 +1,70 @@
+# Comando: run-1/bin/sandbox.sh <scratch> node /mnt/harness.js (sin red, env -i PATH/HOME/TMPDIR, objetivo ro, cpu 20s, mem 2GB, 64 procs, fsize 5MB, reloj 30s)
+# Node v22.22.0. Datos dummy (ids 101/202, TOKEN-A/TOKEN-B). HTTP = stubs que solo registran la URL; apiUrl dummy 127.0.0.1:9.
+# El arnes extrae y ejecuta el texto real de AuthService.logout, LoginService.handleLoginResponse, el inicializador 'public customer=localStorage.getItem(clienteId)', getImagenes y uploadCustomerImages.
+## Salida
+== Paso 1: login de A (dummy id 101) ==
+== Paso 2: A abre /pages/seguimiento -> se crea el singleton CustomerService ==
+CustomerService.customer = 101
+== Paso 3: A cierra sesion (texto real de AuthService.logout) ==
+Claves que siguen en localStorage tras logout: {"clienteTelefono":"5550001111","clienteTipoCliente":"mayorista","clienteDescuentoPreferencial":"15","clienteSaldo":"1234.50","carrito_franco":"[{\"producto\":{\"id\":7,\"nombre\":\"Arrachera\"},\"cantidad\":2}]","profileIsComplete":"si"}
+== Paso 4: B inicia sesion en la misma pestana (sin recarga; dummy id 202) ==
+clienteId en storage = 202 | CustomerService.customer (singleton) = 101
+Peticiones emitidas:
+   POST | http://127.0.0.1:9/api/v1/clientes/logout | [object Object]
+   GET | http://127.0.0.1:9/api/v1/usuarios/store-images/101/cliente | Bearer TOKEN-B
+   POST | http://127.0.0.1:9/api/v1/usuarios/store-images | {"customer_id":"101","images":[{"base64":"AAAA","peso":"80","comentarios":"foto de B"}]} | Bearer TOKEN-B
+## Fuente del arnes (harness.js)
+// Arnes minimo: ejecuta el TEXTO REAL de los metodos del repo (solo se quitan anotaciones de tipo)
+// con un localStorage simulado y datos dummy. Sin red: las llamadas HTTP son stubs.
+const fs = require('fs');
+const R = '/home/user/carniceria-franco-front/';
+const read = p => fs.readFileSync(R + p, 'utf8');
+function method(src, sig) {
+  const i = src.indexOf(sig); if (i < 0) throw new Error('no ' + sig);
+  let j = src.indexOf('{', i), d = 0, k = j;
+  for (; k < src.length; k++) { if (src[k] === '{') d++; else if (src[k] === '}') { d--; if (!d) break; } }
+  return src.slice(j, k + 1);
+}
+const store = new Map();
+global.localStorage = { getItem: k => store.has(k) ? store.get(k) : null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
+const environment = { apiUrl: 'http://127.0.0.1:9/api/v1' };
+const calls = [];
+const auth = read('src/services/auth-service/auth-service.service.ts');
+const login = read('src/services/login/login.service.ts');
+const cust = read('src/services/customers/customer-service.service.ts');
+const logoutBody = method(auth, 'logout(): void');
+const loginBody = method(login, 'handleLoginResponse(response: any)');
+const initMatch = cust.match(/public customer\s*=\s*(localStorage\.getItem\('clienteId'\));/);
+const strip = s => s.replace(/<any>/g, '');
+const getImgBody = strip(method(cust, 'getImagenes(): Observable<any>'));
+const uploadBody = strip(method(cust, '}[]): Observable<any>'));
+const authSvc = {
+  http: { post: (u, b, o) => { calls.push(['POST', u, o && o.headers]); return { subscribe() {} }; } },
+  showSuccess() {}, router: { navigate() {} }, setLoggedIn() {},
+  logout: new Function('environment', 'return function()' + logoutBody)(environment),
+};
+const loginSvc = { authService: authSvc, router: { navigate() {} },
+  handleLoginResponse: new Function('return function(response)' + loginBody)() };
+class CustomerService { constructor() { this.customer = eval(initMatch[1]);
+  this.http = { get: (u) => { calls.push(['GET', u, 'Bearer ' + localStorage.getItem('token')]); }, post: (u, p) => { calls.push(['POST', u, JSON.stringify(p), 'Bearer ' + localStorage.getItem('token')]); } }; } }
+CustomerService.prototype.getImagenes = new Function('environment', 'return function()' + getImgBody)(environment);
+const HttpHeaders = function () {};
+CustomerService.prototype.uploadCustomerImages = new Function('environment', 'HttpHeaders', 'return function(images)' + uploadBody)(environment, HttpHeaders);
+
+const resp = (id, tok, n, tel, saldo, tipo, desc) => ({ data: { token: tok, cliente: { id, nombre: n, correo: n + '@example.test', apellido: 'X', telefono: tel, tipo_cliente: tipo, descuento_preferencial: desc, saldo_cuenta: saldo } } });
+console.log('== Paso 1: login de A (dummy id 101) ==');
+loginSvc.handleLoginResponse(resp(101, 'TOKEN-A', 'alicia', '5550001111', '1234.50', 'mayorista', '15'));
+localStorage.setItem('carrito_franco', JSON.stringify([{ producto: { id: 7, nombre: 'Arrachera' }, cantidad: 2 }]));
+localStorage.setItem('profileIsComplete', 'si');
+console.log('== Paso 2: A abre /pages/seguimiento -> se crea el singleton CustomerService ==');
+const cs = new CustomerService();
+console.log('CustomerService.customer =', cs.customer);
+console.log('== Paso 3: A cierra sesion (texto real de AuthService.logout) ==');
+authSvc.logout();
+console.log('Claves que siguen en localStorage tras logout:', JSON.stringify(Object.fromEntries(store)));
+console.log('== Paso 4: B inicia sesion en la misma pestana (sin recarga; dummy id 202) ==');
+loginSvc.handleLoginResponse(resp(202, 'TOKEN-B', 'beto', '', '0', 'menudeo', '0'));
+console.log('clienteId en storage =', localStorage.getItem('clienteId'), '| CustomerService.customer (singleton) =', cs.customer);
+cs.getImagenes();
+cs.uploadCustomerImages([{ base64: 'AAAA', peso: '80', comentarios: 'foto de B' }]);
+console.log('Peticiones emitidas:'); for (const c of calls) console.log('  ', c.join(' | '));

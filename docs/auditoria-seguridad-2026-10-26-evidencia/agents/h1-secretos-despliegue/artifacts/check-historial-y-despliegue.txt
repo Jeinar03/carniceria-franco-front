@@ -1,0 +1,35 @@
+== refs ==
+refs/heads/claude/upbeat-hypatia-nqvfi7
+refs/heads/main
+refs/remotes/origin/claude/upbeat-hypatia-nqvfi7
+refs/remotes/origin/main
+== commits (todas las refs) ==
+29
+== objetos inalcanzables ==
+0
+== rutas sensibles alguna vez versionadas ==
+(ninguna)
+== lineas con patrones de secreto en todo el historial (excluye package-lock, .agents, .claude) ==
+== URLs de firebase con token de descarga en el historial ==
+firebasestorage.googleapis.com/v0/b/infinitytech-15a41.appspot.com/o/IMAGENES%20PAGINA%2FImagenes%20de%20Banner%2FBanner%203.jpg?alt=media&token=
+firebasestorage.googleapis.com/v0/b/infinitytech-15a41.appspot.com/o/IMAGENES%20PAGINA%2FPRUEBA%20WEBP%2FNo-image-available.webp?alt=media&token=
+firebasestorage.googleapis.com/v0/b/infinitytech-15a41.appspot.com/o/No-image-available.png?alt=media&token=
+firebasestorage.googleapis.com/v0/b/infinitytech-15a41.appspot.com/o/Rutinas.png?alt=media&token=
+== hosts de backend en historial ==
+https://carniceriafrancoadmin.shop
+https://carniceriafrancobackend-app-eb4751846d28.herokuapp.com
+https://infinity-api-app-05bb275c7cec.herokuapp.com
+== cabeceras de encuadre/CSP en config de despliegue (HEAD) ==
+/home/user/carniceria-franco-front/src/.htaccess:13:<IfModule mod_headers.c>
+== server.js appPath vs angular outputPath ==
+server.js sirve: /app/dist/onvert-theme
+angular outputPath: dist/convert-theme
+== scripts externos en index.html y atributo integrity ==
+23:    <link
+32:    <link
+37:    <link
+41:    <link
+48:    <link
+87:    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+88:    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+0

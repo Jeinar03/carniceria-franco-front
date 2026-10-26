@@ -1,0 +1,16 @@
+{
+  "run_id": "carniceria-franco-front-run-1",
+  "repo": "Jeinar03/carniceria-franco-front",
+  "target": "/home/user/carniceria-franco-front",
+  "source_ref": {"commit": "18d6596", "branch": "main (origin/main, identico a claude/upbeat-hypatia-nqvfi7)", "dirty": false, "note": "Archivos de la skill (.agents/, .claude/, skills-lock.json) excluidos via .git/info/exclude; no forman parte del objetivo. Los 5 commits locales de la rama produccion de Einar no estan en este ref."},
+  "profile": "standard",
+  "scope_paths": ["src/", "server.js", "vercel.json", "proxy.conf.json", "angular.json", "package.json", "package-lock.json", "Procfile", "src/.htaccess", "historial git"],
+  "budget": null,
+  "execution_policy": "sandboxed-source-and-local-only",
+  "sandbox": "bin/sandbox.sh: unshare -n -m, / y target ro, /root tmpfs ro, scratch rw en /mnt, env -i allowlist (PATH,HOME,TMPDIR), prlimit cpu=20s as=2GB nproc=64 fsize=5MB, timeout 30s. No hay node_modules: no se puede compilar ni correr la app Angular; solo arneses minimos en Node.",
+  "promotion": "bin/promote.py (python3 -I, O_NOFOLLOW, descriptores de directorio, fstat regular nlink==1, limites por archivo 64KB y acumulado 256KB, O_EXCL en destino)",
+  "selected_companions": ["CLIENT-SIDE.md", "WEB-PROTOCOL-AND-AUTH.md", "SUPPLY-CHAIN-AND-RELEASE.md", "CLOUD-AND-DEPLOYMENT.md"],
+  "prior_runs": [],
+  "shared_file_owner": "parent",
+  "run_status": "in_progress"
+}

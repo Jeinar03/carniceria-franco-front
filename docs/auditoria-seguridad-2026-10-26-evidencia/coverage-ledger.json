@@ -1,0 +1,2655 @@
+[
+  {
+    "coverage_id": "deploy%23legacy-heroku-backend::backend%23legacy-api-parallel-path::deploy-backend::CLOUD-AND-DEPLOYMENT.md%23Edge%2Fruntime%20boundary%20mismatch",
+    "canonical_refs": {
+      "surface": "deploy#legacy-heroku-backend",
+      "boundary": "backend#legacy-api-parallel-path",
+      "subsystem": "deploy-backend",
+      "attack_class": "CLOUD-AND-DEPLOYMENT.md#Edge/runtime boundary mismatch"
+    },
+    "surface": "Backend historico en Heroku (carniceriafrancobackend-app-eb4751846d28.herokuapp.com) citado en el historial de environment.prod.ts",
+    "boundary": "API vieja posiblemente viva vs API actual",
+    "subsystem": "Despliegue del backend",
+    "attack_class": "Edge/runtime boundary mismatch",
+    "starting_paths": [
+      "src/environments/environment.prod.ts"
+    ],
+    "ordinary_attack_class_block": null,
+    "selected_companion_blocks": [],
+    "excluded_blocks": [],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 2,
+    "status": "out_of_scope",
+    "agent_id": null,
+    "reviewed_paths": [],
+    "local_checks": [],
+    "result_fingerprints": [],
+    "unresolved": [
+      "Fuera del codigo de este repo: solo el dueno del backend puede verificar si ese despliegue sigue vivo; reportado por h1 y no aceptado como unidad por critic-ola1 al quedar fuera de la frontera source/local."
+    ]
+  },
+  {
+    "coverage_id": "git-history%23all-refs::git-history%23removed-content::git-history::ATTACK-CLASSES.md%23Wildcard",
+    "canonical_refs": {
+      "surface": "git-history#all-refs",
+      "boundary": "git-history#removed-content",
+      "subsystem": "git-history",
+      "attack_class": "ATTACK-CLASSES.md#Wildcard"
+    },
+    "surface": "Historial git (secretos borrados o reemplazados)",
+    "boundary": "Contenido retirado del arbol pero aun publico en el historial",
+    "subsystem": "Historial del repositorio",
+    "attack_class": "Wildcard",
+    "starting_paths": [
+      ".git"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Wildcard",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h1-secretos-despliegue",
+    "reviewed_paths": [
+      ".git",
+      ".gitignore",
+      "Procfile",
+      "proxy.conf.json",
+      "server.js",
+      "src/assets/lib/flaticon/backup.txt",
+      "src/assets/lib/waypoints/links.php",
+      "src/environments/environment.prod.ts",
+      "src/environments/environment.ts",
+      "vercel.json"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          ".git",
+          ".gitignore"
+        ],
+        "invariant": "Ningun secreto (llave privada, token de API, credencial, .env, cuenta de servicio) fue versionado y luego retirado en cualquier ref o en objetos inalcanzables del historial",
+        "method": "local",
+        "result": "4 refs (main, claude/upbeat-hypatia-nqvfi7 y sus remotos), 29 commits, 0 objetos inalcanzables. Ninguna ruta tipo .env/.pem/.key/credentials/serviceAccount jamas versionada. Cero coincidencias de patrones de secreto (llaves privadas, AKIA, AIza, ghp_, sk_live, APP_USR-/TEST- de Mercado Pago, client_secret, access_token, api_key, password literal) en todos los diffs del historial (excluyendo package-lock y la skill). Solo aparecen 4 URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41, imagenes de placeholder/banner del tema de gimnasio retirado) y hosts de backend historicos.",
+        "artifact": "agents/h1-secretos-despliegue/artifacts/check-historial-y-despliegue.txt"
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/environments/environment.prod.ts",
+          "src/environments/environment.ts",
+          "vercel.json",
+          "server.js",
+          "Procfile",
+          "proxy.conf.json"
+        ],
+        "invariant": "El contenido retirado (commit 0da6c25 y limpiezas F1-F3) no revierte controles de seguridad ni deja credenciales",
+        "method": "source",
+        "result": "0da6c25 solo cambia apiUrl de https://carniceriafrancobackend-app-eb4751846d28.herokuapp.com/api/v1 a https://carniceriafrancoadmin.shop/api/v1 y production false->true; no habia llave. Las limpiezas F1-F3 (8e43210, a1071a4, 3c6a0b0) borran componentes de gimnasio (incluido un [innerHTML] y bypassSecurityTrustResourceUrl ya no presentes en el arbol) y renombran el guard; no se eliminaron interceptores ni comprobaciones de autorizacion del lado cliente. Las ramas main y claude/* apuntan al mismo contenido.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/assets/lib/waypoints/links.php",
+          "src/assets/lib/flaticon/backup.txt"
+        ],
+        "invariant": "Archivos raros incluidos en el build (assets) no contienen codigo ejecutable peligroso ni secretos",
+        "method": "source",
+        "result": "links.php solo define un arreglo PHP con la ruta de waypoints (sin salida ni entrada); backup.txt es base64 de una coleccion de iconos de Flaticon (nombres de iconos). Ambos se copian a dist/assets pero son inocuos.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h1",
+    "x_hardening": [
+      "Ninguno de los tres despliegues (src/.htaccess, server.js, vercel.json) envia X-Frame-Options/CSP frame-ancestors, CSP, X-Content-Type-Options ni Referrer-Policy. Hoy no hay accion sensible enmarcable porque la sesion vive solo en localStorage y los navegadores modernos particionan el almacenamiento de iframes de terceros, pero en navegadores sin particion (p. ej. Chrome anterior a 115) un iframe tendria el token. Agregar en .htaccess: Header always set X-Frame-Options \"DENY\" y Content-Security-Policy \"frame-ancestors 'none'\" (y equivalentes en server.js/vercel.json si se usan).",
+      "src/index.html carga jQuery 3.4.1 y bootstrap 5.0.0 desde CDNs sin integrity ni crossorigin; agregar SRI (sha384) y crossorigin=\"anonymous\", o servirlos desde el bundle (bootstrap ^5.2.2 ya esta en package.json). jQuery 3.4.1 esta afectado por CVE-2020-11022/11023 (htmlPrefilter); main.js no pasa HTML externo a jQuery, pero conviene actualizar a 3.5+.",
+      "vercel.json reescribe /api/v1/* hacia infinity-api-app-05bb275c7cec.herokuapp.com, una API de otro proyecto (InfinityTech) que la SPA no usa; si existe un proyecto Vercel activo con este repo, ese origen expone bajo el dominio de la tienda las respuestas de una app ajena. Eliminar el rewrite o apuntarlo al backend real.",
+      "server.js sirve dist/onvert-theme mientras angular.json genera dist/convert-theme: el modo Express/Heroku (Procfile) esta roto. Corregir la ruta o retirar server.js/Procfile y las dependencias express, cors e http-proxy-middleware no usadas.",
+      "El historial conserva URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41) del tema de gimnasio retirado; son tokens de lectura de objetos publicos (placeholders/banner), sin autoridad adicional. Revocarlos en la consola de Firebase solo si esos objetos no deben ser publicos.",
+      "src/assets/lib/waypoints/links.php se copia a dist/assets y Apache en Hostinger lo ejecutaria; es inocuo (solo define un arreglo), pero conviene borrarlo junto con flaticon/backup.txt.",
+      "angular.json conserva cli.analytics con un UUID; no es secreto, pero se puede quitar."
+    ]
+  },
+  {
+    "coverage_id": "src%2F.htaccess%23headers::src%2F.htaccess%23frame-and-csp::deploy::CLIENT-SIDE.md%23Clickjacking",
+    "canonical_refs": {
+      "surface": "src/.htaccess#headers",
+      "boundary": "src/.htaccess#frame-and-csp",
+      "subsystem": "deploy",
+      "attack_class": "CLIENT-SIDE.md#Clickjacking"
+    },
+    "surface": "Cabeceras de respuesta del documento (Apache, Express)",
+    "boundary": "Encuadre por otro origen y politica de contenido",
+    "subsystem": "Configuracion de despliegue",
+    "attack_class": "Clickjacking",
+    "starting_paths": [
+      "src/.htaccess",
+      "server.js",
+      "vercel.json",
+      "src/index.html"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#Clickjacking"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h1-secretos-despliegue",
+    "reviewed_paths": [
+      "server.js",
+      "src/.htaccess",
+      "src/app/public/contact/contact.component.ts",
+      "src/index.html",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "vercel.json"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/.htaccess",
+          "server.js",
+          "vercel.json",
+          "src/index.html"
+        ],
+        "invariant": "Los tres modos de despliegue emiten X-Frame-Options o CSP frame-ancestors para el documento de la tienda",
+        "method": "local",
+        "result": "Ninguno lo hace: .htaccess solo define rewrite SPA y Cache-Control no-cache para index.html; server.js es express.static + sendFile sin cabeceras; vercel.json solo tiene un rewrite; index.html no tiene meta CSP (que tampoco soportaria frame-ancestors). Falta de cabecera confirmada.",
+        "artifact": "agents/h1-secretos-despliegue/artifacts/check-historial-y-despliegue.txt"
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/interceptors/auth.interceptor.ts",
+          "src/services/auth-service/auth-service.service.ts",
+          "src/app/public/contact/contact.component.ts"
+        ],
+        "invariant": "Existe una accion sensible que cambie estado y pueda completarse con la sesion de la victima dentro de un iframe de otro sitio",
+        "method": "source",
+        "result": "La unica credencial es el token Sanctum en localStorage, adjuntado como Bearer por AuthInterceptor solo a URLs que empiezan con environment.apiUrl; no hay cookies, withCredentials ni document.cookie en src. En navegadores con particion de almacenamiento de terceros (Chrome 115+, Firefox TCP, Safari) un iframe de la tienda incrustado en otro sitio tiene localStorage particionado y por tanto no tiene sesion: checkout, borrado de fotos y edicion de perfil exigen token y no se completan. Las acciones sin autenticacion (registro, enlace de WhatsApp) no son sensibles. No hay accion sensible enmarcable en el estado normal; la falta de cabeceras queda como endurecimiento.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h1",
+    "x_hardening": [
+      "Ninguno de los tres despliegues (src/.htaccess, server.js, vercel.json) envia X-Frame-Options/CSP frame-ancestors, CSP, X-Content-Type-Options ni Referrer-Policy. Hoy no hay accion sensible enmarcable porque la sesion vive solo en localStorage y los navegadores modernos particionan el almacenamiento de iframes de terceros, pero en navegadores sin particion (p. ej. Chrome anterior a 115) un iframe tendria el token. Agregar en .htaccess: Header always set X-Frame-Options \"DENY\" y Content-Security-Policy \"frame-ancestors 'none'\" (y equivalentes en server.js/vercel.json si se usan).",
+      "src/index.html carga jQuery 3.4.1 y bootstrap 5.0.0 desde CDNs sin integrity ni crossorigin; agregar SRI (sha384) y crossorigin=\"anonymous\", o servirlos desde el bundle (bootstrap ^5.2.2 ya esta en package.json). jQuery 3.4.1 esta afectado por CVE-2020-11022/11023 (htmlPrefilter); main.js no pasa HTML externo a jQuery, pero conviene actualizar a 3.5+.",
+      "vercel.json reescribe /api/v1/* hacia infinity-api-app-05bb275c7cec.herokuapp.com, una API de otro proyecto (InfinityTech) que la SPA no usa; si existe un proyecto Vercel activo con este repo, ese origen expone bajo el dominio de la tienda las respuestas de una app ajena. Eliminar el rewrite o apuntarlo al backend real.",
+      "server.js sirve dist/onvert-theme mientras angular.json genera dist/convert-theme: el modo Express/Heroku (Procfile) esta roto. Corregir la ruta o retirar server.js/Procfile y las dependencias express, cors e http-proxy-middleware no usadas.",
+      "El historial conserva URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41) del tema de gimnasio retirado; son tokens de lectura de objetos publicos (placeholders/banner), sin autoridad adicional. Revocarlos en la consola de Firebase solo si esos objetos no deben ser publicos.",
+      "src/assets/lib/waypoints/links.php se copia a dist/assets y Apache en Hostinger lo ejecutaria; es inocuo (solo define un arreglo), pero conviene borrarlo junto con flaticon/backup.txt.",
+      "angular.json conserva cli.analytics con un UUID; no es secreto, pero se puede quitar."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fapp.component.ts%23ngOnInit::backend%23historial-guardar-accion::src%2Fservices%2Flogs::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+    "canonical_refs": {
+      "surface": "src/app/app.component.ts#ngOnInit",
+      "boundary": "backend#historial-guardar-accion",
+      "subsystem": "src/services/logs",
+      "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage"
+    },
+    "surface": "Bitacora global de navegacion: AppComponent.ngOnInit registra cada NavigationEnd con urlAfterRedirects completa (incluye query params arbitrarios y los de Mercado Pago: payment_id, preference_id, external_reference, merchant_order_id) via LogService.setLog hacia POST /historial/guardar-accion, tambien para visitantes anonimos con usuario '20' o el clienteId de localStorage",
+    "boundary": "Escritura en la bitacora/auditoria del backend (atribucion del usuario y contenido controlado por el cliente) y su lectura en el panel admin",
+    "subsystem": "src/app (componente raiz) y src/services/logs",
+    "attack_class": "Feature abuse and data leakage",
+    "starting_paths": [
+      "src/app/app.component.ts",
+      "src/services/logs/log-service.service.ts",
+      "src/app/public/login/login.component.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h7-bitacora-texto-admin",
+    "reviewed_paths": [
+      "src/app/app.component.ts",
+      "src/app/app.routing.module.ts",
+      "src/app/public/login/login.component.ts",
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/guards/auth/auth.guard.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/logs/log-service.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h7-bitacora-texto-admin",
+        "reviewed_paths": [
+          "src/app/app.component.ts",
+          "src/services/logs/log-service.service.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "La atribucion de cada entrada de bitacora debe salir del token autenticado, no de un campo 'usuario' del cuerpo, y el endpoint no debe aceptar escrituras anonimas con identidad elegida por el cliente",
+        "method": "source",
+        "result": "LogService.setLog (log-service.service.ts:18-33) arma {accion, contenido, usuario} con usuario = localStorage.clienteId o el literal '20' cuando no hay sesion, y AppComponent.ngOnInit (app.component.ts:16-22) lo llama en cada NavigationEnd tambien para visitantes sin token (el interceptor solo agrega Bearer si existe token, auth.interceptor.ts:23-28). El diseno del cliente presupone que POST /historial/guardar-accion acepta peticiones anonimas y toma 'usuario' del cuerpo; si el backend lo hace, cualquiera puede crear entradas con accion/contenido arbitrarios atribuidas a cualquier cliente. La verificacion depende del controlador Laravel, no visible.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h7-bitacora-texto-admin",
+        "reviewed_paths": [
+          "src/app/app.component.ts",
+          "src/app/app.routing.module.ts",
+          "src/app/public/pages/pages-routing.module.ts",
+          "src/guards/auth/auth.guard.ts",
+          "src/app/public/pages/payment-callback/payment-callback.component.ts"
+        ],
+        "invariant": "La URL registrada no debe llevar a la bitacora datos que el operador no deba ver ni marcado ejecutable desde la navegacion normal",
+        "method": "source",
+        "result": "urlAfterRedirects es la URL re-serializada por el DefaultUrlSerializer de Angular (query y segmentos con encodeURIComponent, por lo que < > \" quedan codificados); no hay ruta comodin '**' (app.routing.module.ts:6-31), asi que URLs no reconocidas terminan en NavigationError y no se registran. /pages/payment-callback esta tras AuthGuard (pages-routing.module.ts:24-29): sin token se redirige a /login y la query se pierde; con token se registra payment_id, preference_id, external_reference y merchant_order_id del propio cliente hacia la bitacora del mismo comercio. Esos identificadores no son credenciales y el operador ya es el titular de la cuenta de Mercado Pago, por lo que no hay cruce de frontera: queda como hardening.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h7-bitacora-texto-admin",
+        "reviewed_paths": [
+          "src/app/public/login/login.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/services/login/login.service.ts",
+          "src/services/auth-service/auth-service.service.ts"
+        ],
+        "invariant": "Los demas llamadores de setLog y el ciclo de vida de clienteId no deben atribuir acciones al cliente equivocado",
+        "method": "source",
+        "result": "login.component.ts:43-46 registra 'Inicio Sesion' despues de handleLoginResponse, que ya guarda clienteId (login.service.ts:36); seguimiento.component.ts:32-41 usa el mismo setLog. AuthService.logout borra clienteId (auth-service.service.ts:73), asi que tras cerrar sesion las visitas vuelven a '20' y no se atribuyen al cliente anterior. Sin variante adicional fuera del root cause del candidato.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/logs/log-service.service.ts:LogService.setLog:client-asserted-usuario-anonymous-audit-write"
+    ],
+    "unresolved": [],
+    "x_group": "h7",
+    "x_critic_reason": "src/app/app.component.ts:15-22 llama setLog('VISITA', 'Ruta visitada: ' + event.urlAfterRedirects) en cada navegacion y no aparece en reviewed_paths de ninguna unidad. log-service.service.ts:20-27 envia usuario = clienteId de localStorage o '20' sin sesion, por lo que el endpoint /historial/guardar-accion debe aceptar escrituras anonimas para que la app funcione. Esto es un punto de entrada anonimo y aun sin mapear hacia la bitacora: permite falsificar el usuario, inundar la bitacora, meter contenido elegido por el atacante (cualquier query param en un enlace manipulado o una llamada directa) que el panel admin mostrara, y dejar en la bitacora los identificadores de pago de la URL de regreso. Las unidades de clienteId y de login solo vieron el campo usuario como hardening; nadie reviso la llamada global, el contenido de la URL ni el acceso anonimo. Debe cerrarse con un candidato needs_validation, con el bloqueo exacto en el backend.",
+    "x_hardening": [
+      "AppComponent registra urlAfterRedirects completa, incluida la query del regreso de Mercado Pago (payment_id, preference_id, external_reference, merchant_order_id) y cualquier query param arbitrario de un enlace; conviene registrar solo la ruta sin query (router.parseUrl(...).root o url.split('?')[0]) para reducir datos y ruido en la bitacora. No es hallazgo: los datos son del propio cliente y van al mismo comercio que ya es titular de la cuenta de pagos.",
+      "La bitacora se envia en cada navegacion sin limitacion en el cliente; un limite de tasa por IP/token en /historial/guardar-accion evitaria inundar la bitacora con entradas anonimas (depende del backend).",
+      "notasCompra se envia en los cuerpos de venta pero no tiene control en la plantilla del carrito; si no se usa, retirarlo o definir longitud maxima en el backend."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/logs/log-service.service.ts:LogService.setLog:client-asserted-usuario-anonymous-audit-write",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%23customer-free-text::backend%23admin-panel-render::src%2Fapp%2Fpublic%2Fpages::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "src/app/public#customer-free-text",
+      "boundary": "backend#admin-panel-render",
+      "subsystem": "src/app/public/pages",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "Texto libre del cliente que se guarda en el backend: notas de venta (crearVenta/createPreference), campos de perfil (nombre, apellido, direccion, ciudad, rfc), nombre y apellido del registro, comentarios y peso de las fotos de seguimiento, nombre de archivo de la evidencia de transferencia y respuestas de la encuesta",
+    "boundary": "Render en el panel admin Laravel de datos escritos por un principal de menor confianza (cliente o anonimo hacia operador)",
+    "subsystem": "Formularios del cliente hacia el backend",
+    "attack_class": "Injection",
+    "starting_paths": [
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/app/public/pages/create-account/create-account.component.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h7-bitacora-texto-admin",
+    "reviewed_paths": [
+      "src/app/public/pages/carrito/carrito.component.html",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/create-account/create-account.component.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.html",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/logs/log-service.service.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h7-bitacora-texto-admin",
+        "reviewed_paths": [
+          "src/app/public/pages/create-account/create-account.component.ts",
+          "src/services/crear-cuenta/crear-cuenta.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html",
+          "src/services/customers/customer-service.service.ts"
+        ],
+        "invariant": "Texto libre del cliente (registro y perfil) debe tratarse como dato no confiable al renderizarse en el panel admin",
+        "method": "source",
+        "result": "El registro anonimo manda nombre/apellido sin restriccion de caracteres (create-account.component.ts:36-43, crear-cuenta.service.ts:11-19). El perfil manda nombre, apellido, apellido2, direccion, ciudad, estado, pais y rfc (user-profile.component.ts:793-812) con solo Validators.required en nombre/apellido y patrones en telefono/CP (user-profile.component.ts:672-680) via PUT /usuarios/update/{id} (customer-service.service.ts:18-19). El front no es frontera; el escape depende del render del panel admin Laravel, no visible.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h7-bitacora-texto-admin",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/pages/carrito/carrito.component.html",
+          "src/services/ventas/ventas.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.html",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/services/logs/log-service.service.ts"
+        ],
+        "invariant": "Notas de venta, comentarios/peso de fotos, comentarios de encuesta, nombre de archivo de evidencia y contenido de bitacora no deben poder ejecutar script en el origen del panel admin",
+        "method": "source",
+        "result": "Los cuerpos de crearVenta y createPreference incluyen 'notas' (carrito.component.ts:352,394; ventas.service.ts:262-263; mercadopago.service.ts:58-59) aunque notasCompra no tiene control en la plantilla, lo que indica que la API acepta el campo y un cliente puede mandarlo directo. Fotos: peso y comentarios libres (seguimiento.component.ts:204-211,245-258; customer-service.service.ts:21-33). Encuesta: comentario por pregunta (user-profile.component.ts:302-317; ventas.service.ts:360-366). Evidencia: multipart con nombre de archivo del cliente (ventas.service.ts:342-347). Bitacora: contenido libre via setLog (log-service.service.ts:24-33). En la SPA estos valores se muestran por interpolacion Angular (seguimiento.component.html:88,110), segura; el panel admin no esta en el repo, por lo que el resultado es needs_validation.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/app/public:customer-free-text:admin-panel-stored-xss"
+    ],
+    "unresolved": [],
+    "x_group": "h7",
+    "x_critic_reason": "La unidad de DOM-based XSS solo reviso el render dentro de esta SPA (de la API hacia las plantillas Angular). Nadie cubrio la direccion contraria: texto controlado por el cliente que el operador lee en otro origen (panel admin). Los caminos de origen estan en el repo (notas en los cuerpos de carrito.component.ts:336-354,391-409; lista blanca de perfil en user-profile.component.ts:788-812; comentarios en seguimiento y customer-service.service.ts:21-33). La unidad de subidas solo marco el Content-Type de la evidencia. Es una frontera entre principales con un camino concreto en este repo, asi que debe dar un candidato needs_validation con el bloqueo en el render del panel admin, que no es visible.",
+    "x_hardening": [
+      "AppComponent registra urlAfterRedirects completa, incluida la query del regreso de Mercado Pago (payment_id, preference_id, external_reference, merchant_order_id) y cualquier query param arbitrario de un enlace; conviene registrar solo la ruta sin query (router.parseUrl(...).root o url.split('?')[0]) para reducir datos y ruido en la bitacora. No es hallazgo: los datos son del propio cliente y van al mismo comercio que ya es titular de la cuenta de pagos.",
+      "La bitacora se envia en cada navegacion sin limitacion en el cliente; un limite de tasa por IP/token en /historial/guardar-accion evitaria inundar la bitacora con entradas anonimas (depende del backend).",
+      "notasCompra se envia en los cuerpos de venta pero no tiene control en la plantilla del carrito; si no se usa, retirarlo o definir longitud maxima en el backend."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/app/public:customer-free-text:admin-panel-stored-xss",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Flogin%23form::src%2Fservices%2Fcrear-cuenta%2Fcrear-cuenta.service.ts%23crearCuenta::src%2Fapp%2Fpublic%2Flogin::ATTACK-CLASSES.md%23Feature%20abuse%20and%20data%20leakage",
+    "canonical_refs": {
+      "surface": "src/app/public/login#form",
+      "boundary": "src/services/crear-cuenta/crear-cuenta.service.ts#crearCuenta",
+      "subsystem": "src/app/public/login",
+      "attack_class": "ATTACK-CLASSES.md#Feature abuse and data leakage"
+    },
+    "surface": "Formularios de login y registro",
+    "boundary": "Alta de cuenta y autenticacion",
+    "subsystem": "Login y registro",
+    "attack_class": "Feature abuse and data leakage",
+    "starting_paths": [
+      "src/app/public/login",
+      "src/app/public/pages/create-account",
+      "src/services/login",
+      "src/services/crear-cuenta"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Feature abuse and data leakage",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#Password reset and broader recovery"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h3-sesion-tokens",
+    "reviewed_paths": [
+      "src/app/public/login/login.component.ts",
+      "src/app/public/pages/create-account/create-account.component.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/logs/log-service.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/app/public/login/login.component.ts",
+          "src/services/login/login.service.ts"
+        ],
+        "invariant": "El login no debe distinguir entre correo inexistente y contrasena incorrecta ni filtrar credenciales en logs o URLs",
+        "method": "source",
+        "result": "El login envia correo/password en el cuerpo POST a /clientes/login (login.service.ts:20-29); ante cualquier error muestra el mensaje generico 'Credenciales incorrectas' y solo hace console.error del objeto de error, no de la contrasena. No hay oraculo de enumeracion visible en el front; la diferencia de status/tiempos del backend no es visible.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/app/public/pages/create-account/create-account.component.ts",
+          "src/services/crear-cuenta/crear-cuenta.service.ts"
+        ],
+        "invariant": "El registro no debe permitir crear cuentas con datos de otros principales ni filtrar datos de cuentas ajenas",
+        "method": "source",
+        "result": "El registro manda solo nombre, apellido, correo y password a /clientes/registro (crear-cuenta.service.ts:12-20); no envia rol, tipo_cliente, descuento ni saldo controlables desde el formulario. obtenerMensajeError (create-account.component.ts) muestra el error de validacion del backend (p. ej. correo duplicado), lo cual solo revela existencia de cuenta, que segun el bloque de recuperacion no es por si mismo un hallazgo. No existe flujo de recuperacion/reset de contrasena ni cambio de correo en este repo.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/logs/log-service.service.ts",
+          "src/app/public/login/login.component.ts"
+        ],
+        "invariant": "El registro de auditoria de inicio de sesion debe atribuirse al principal autenticado, no a un id elegido por el cliente",
+        "method": "source",
+        "result": "setLog envia usuario = localStorage clienteId o el literal '20' por defecto (log-service.service.ts:20-27). Si el backend lo confia, el historial se atribuye a un id controlado por el cliente; la decision depende del backend y del dueno del unit de clienteId-from-localStorage, por eso se registra como hardening y no como candidato de este unit.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h3",
+    "x_hardening": [
+      "log-service.service.ts:20 envia usuario = localStorage clienteId o el literal '20' al registrar acciones; el backend deberia atribuir el historial al usuario del token y no a ese campo (lo decide el unit de clienteId-from-localStorage del backend).",
+      "crear-cuenta.service.ts guarda el token del registro y luego el componente hace login y lo sobreescribe sin revocarlo; handleLoginResponse tampoco revoca un token previo. Conviene que el registro no emita token si el front vuelve a loguear, o reutilizar ese token.",
+      "No hay listener de 'storage' ni BroadcastChannel: una pestana vieja sigue mostrando los datos de A en memoria despues de un logout o de un login de B en otra pestana. Conviene escuchar 'storage' sobre 'token' y 'clienteId' para reiniciar el estado o recargar.",
+      "La inactividad de 10 min es solo del cliente (setTimeout y lastActivityTime compartido); la expiracion real del token Sanctum debe configurarse en el backend. Ademas, si el pago en Mercado Pago tarda mas de 10 min, al volver checkInactivity cierra la sesion y AuthGuard manda a /login sin conservar los query params de payment-callback (afecta disponibilidad de la confirmacion, no seguridad).",
+      "AuthGuard solo comprueba que exista el token: es correcto como control de UX siempre que el backend autorice cada endpoint."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Fpages%2Fcarrito%2Fcarrito.component.ts%23checkout::backend%23ventas-precios::src%2Fapp%2Fpublic%2Fpages%2Fcarrito::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "src/app/public/pages/carrito/carrito.component.ts#checkout",
+      "boundary": "backend#ventas-precios",
+      "subsystem": "src/app/public/pages/carrito",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "Checkout: crearVenta y createPreference",
+    "boundary": "Precio, cantidad, descuento y cliente decididos por el servidor",
+    "subsystem": "Carrito y checkout",
+    "attack_class": "Business logic",
+    "starting_paths": [
+      "src/app/public/pages/carrito",
+      "src/services/carrito",
+      "src/services/ventas",
+      "src/services/mercadopago",
+      "src/services/productos"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "blocked",
+        "agent_id": "h4-logica-negocio",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.html",
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/services/carrito/carrito.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/services/productos/productos.service.ts",
+          "src/services/ventas/ventas.service.ts"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/app/public/pages/carrito/carrito.component.ts",
+              "src/services/ventas/ventas.service.ts",
+              "src/services/mercadopago/mercadopago.service.ts"
+            ],
+            "invariant": "El cliente no envia precio, subtotal ni descuento; el servidor debe calcular el monto a partir del catalogo y del cliente del token",
+            "method": "source",
+            "result": "Los cuerpos de crearVenta (carrito.component.ts:391-409) y createPreference (carrito.component.ts:336-354) llevan solo customer_id (AuthService.getUserId desde localStorage clienteId), product_id, cantidad, monto_pesos (solo tipoVenta 'pesos'), metodo_pago, notas y tipo_entrega. Desde 922d086 ya no se manda descuento; el porcentaje mayorista (clienteDescuentoPreferencial de localStorage, carrito.component.ts:549-561) solo se usa para mostrar. Las interfaces CrearVentaRequest (ventas.service.ts:74) y PreferenceData (mercadopago.service.ts:14) aun declaran descuento opcional. Desde el front no hay control que el servidor necesite; la decision de precio, descuento y cliente es del backend, no visible.",
+            "artifact": null
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/services/carrito/carrito.service.ts",
+              "src/services/productos/productos.service.ts",
+              "src/app/public/pages/carrito/carrito.component.html",
+              "src/app/public/pages/carrito/carrito.component.ts"
+            ],
+            "invariant": "Cantidad, monto_pesos, metodo de pago y horario de atencion validados por el servidor y no solo por la UI",
+            "method": "source",
+            "result": "cantidad y monto_pesos salen del carrito en localStorage 'carrito_franco' (carrito.service.ts:27-47), editable por el propio usuario; para 'pesos' la cantidad se deriva del precio cacheado (carrito.service.ts:108-124), por lo que el servidor recibe cantidad y monto_pesos potencialmente inconsistentes. validarDatosCarrito (carrito.component.ts:469-490) y la puerta de horario (puedeProcederPago, carrito.component.ts:78-80, 563-605) son solo de UI. La UI ofrece solo transferencia y mercado_pago (carrito.component.html:239,247), pero el tipo de metodo_pago admite efectivo/tarjeta/credito (ventas.service.ts:73). Ninguna de estas validaciones es frontera; su aplicacion en el servidor no es visible.",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [],
+        "unresolved": [
+          "Backend no disponible: si POST /ventas y POST /mercadopago/create-preference toman precios y descuento mayorista de la base de datos e ignoran el campo descuento heredado (aun declarado en ventas.service.ts:74 y mercadopago.service.ts:14)",
+          "Backend no disponible: si el customer_id del cuerpo se ignora o se compara con el usuario del token Sanctum (si no, un cliente podria crear ventas o preferencias a nombre de otro, incluido el descuento preferencial de un mayorista)",
+          "Backend no disponible: si se rechazan cantidad <= 0, fraccionaria para unidades enteras, y si con monto_pesos se recalcula la cantidad desde el precio del servidor en vez de confiar en la cantidad enviada",
+          "Backend no disponible: si metodo_pago 'credito'/'efectivo'/'tarjeta' (no ofrecidos en la UI) se rechazan o se limitan a clientes autorizados, y si se aplica el horario de atencion (limitar_horario) del lado servidor"
+        ],
+        "reassignment_reason": "critic-ola1: la unidad quedo blocked con hipotesis concretas hacia el backend que tienen camino fuente en este repo; debe producir candidatos needs_validation con bloqueo exacto en lugar de solo unresolved"
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h5-checkout-pago-roles",
+    "reviewed_paths": [
+      "src/app/public/pages/carrito/carrito.component.html",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/carrito/carrito.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/productos/productos.service.ts",
+      "src/services/sitio-config/sitio-config.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/pages/carrito/carrito.component.html",
+          "src/services/carrito/carrito.service.ts",
+          "src/services/ventas/ventas.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/services/auth-service/auth-service.service.ts",
+          "src/services/login/login.service.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "El precio, la cantidad, el descuento y el cliente de una venta los decide el servidor, no el cuerpo armado en el navegador",
+        "method": "source",
+        "result": "El cuerpo de POST /ventas y create-preference lleva customer_id de localStorage, cantidad calculada con precio cacheado y monto_pesos; el contrato aun declara 'descuento' (que segun 922d086 el backend restaba como pesos) y metodo_pago admite 'credito'/'efectivo'/'tarjeta' no ofrecidos en la UI; el horario solo se controla en el cliente. La decision final es del backend no visible: candidatos needs_validation.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/services/carrito/carrito.service.ts",
+          "src/services/auth-service/auth-service.service.ts"
+        ],
+        "invariant": "validarDatosCarrito no limita las cantidades ni la coherencia cantidad/monto_pesos que llegan al servidor",
+        "method": "local",
+        "result": "El arnes (Node 22 en sandbox sin red) muestra cuerpos aceptados por la validacion del cliente: cantidad 100000 con monto_pesos 1, cantidad 0.001 con metodo_pago 'credito', y 0.5 vs 500 para el mismo monto segun unidad; todos con customer_id arbitrario.",
+        "artifact": "agents/h5-checkout-pago-roles/artifacts/check-checkout-body.txt"
+      },
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/services/productos/productos.service.ts",
+          "src/services/sitio-config/sitio-config.service.ts"
+        ],
+        "invariant": "Los datos de precio que usa el carrito vienen de la API y no se reescriben en el navegador salvo desde localStorage",
+        "method": "source",
+        "result": "Producto.precio/precio_oferta/precio_final llegan de getProducto y se copian a carrito_franco; no se revalidan al pagar, por lo que el servidor debe ignorarlos (no se envian precios, solo product_id).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.realizarCompraTradicional:client-derived-checkout-body",
+      "src/services/ventas/ventas.service.ts:CrearVentaRequest.descuento:legacy-client-discount-field",
+      "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.procederPago:client-only-payment-method-and-schedule-gate"
+    ],
+    "unresolved": [],
+    "x_group": "h5",
+    "x_hardening": [
+      "src/services/ventas/ventas.service.ts:74 y src/services/mercadopago/mercadopago.service.ts:14 siguen declarando 'descuento'; quitarlo de las interfaces y en el backend marcarlo como 'prohibited' en la validacion.",
+      "Metodos de servicio sin uso en src/app (crearProducto, actualizarProducto, crearCategoria, actualizarCategoria, getAllCategorias, obtenerTodasVentas, cancelarVenta, checkPaymentStatus, getVentaByPreference) publican rutas de administracion en el bundle de clientes; conviene retirarlos del front.",
+      "src/app/public/pages/carrito/carrito.component.ts:312-315, 356 y 411 escriben en consola el carrito, el total y el cuerpo de la venta/preferencia con customer_id; quitar los console.log de depuracion.",
+      "localStorage.venta_pendiente_mp (carrito.component.ts:362-366) se escribe y no se usa para nada; si se mantiene, enviarlo a confirm-payment como vinculacion adicional o eliminarlo.",
+      "El total mostrado en el carrito usa clienteDescuentoPreferencial/clienteTipoCliente de localStorage (carrito.component.ts:549-561): solo visual, pero puede diferir del total cobrado; mostrar el total calculado por el servidor antes de confirmar."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.realizarCompraTradicional:client-derived-checkout-body",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/ventas/ventas.service.ts:CrearVentaRequest.descuento:legacy-client-discount-field",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.procederPago:client-only-payment-method-and-schedule-gate",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Fpages%2Fcarrito%2Fcarrito.component.ts%23pending-sales::backend%23pending-sale-lifecycle::src%2Fapp%2Fpublic%2Fpages%2Fcarrito::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "src/app/public/pages/carrito/carrito.component.ts#pending-sales",
+      "boundary": "backend#pending-sale-lifecycle",
+      "subsystem": "src/app/public/pages/carrito",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "Ciclo de vida de ventas pendientes. POST /mercadopago/create-preference crea una venta pendiente (venta_pendiente_id) antes de pagar, y POST /ventas con metodo transferencia crea una venta 'pendiente' que espera evidencia. El front nunca cancela la venta cuando se abandona el pago, ni en el estado 'cancelled' del callback, ni pone limite a cuantas se crean",
+    "boundary": "Reserva o descuento de stock, expiracion y cancelacion de ventas pendientes en el servidor frente a un cliente registrado que crea muchas sin pagar",
+    "subsystem": "Checkout y callback de pago (src/app/public/pages/carrito, src/app/public/pages/payment-callback, src/services/ventas, src/services/mercadopago)",
+    "attack_class": "Business logic",
+    "starting_paths": [
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/ventas/ventas.service.ts",
+      "src/app/public/pages/user-profile/user-profile.component.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Retention and queued-work overrun"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "candidate",
+    "agent_id": "h9-catalogo-pendientes",
+    "reviewed_paths": [
+      "src/app/public/home/home.component.ts",
+      "src/app/public/pages/carrito/carrito.component.html",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h9-catalogo-pendientes",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/pages/carrito/carrito.component.html",
+          "src/services/ventas/ventas.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/services/crear-cuenta/crear-cuenta.service.ts"
+        ],
+        "invariant": "La creacion de ventas pendientes (transferencia via POST /ventas y Mercado Pago via POST /mercadopago/create-preference) debe tener limite por cliente y no debe reservar/descontar stock indefinidamente sin pago",
+        "method": "source",
+        "result": "El cliente (registro abierto en POST /clientes/registro) puede crear ventas pendientes sin limite: los unicos frenos son validarDatosCarrito (carrito.component.ts:469-490, solo cantidad/subtotal > 0) y el horario de atencion (carrito.component.ts:274-278), ambos solo en la UI. El comentario de cancelarVenta (ventas.service.ts:299-302, 'devuelve stock') indica que crear una venta descuenta stock; si eso aplica tambien a ventas 'pendiente', un cliente puede agotar el inventario visible. El bloqueo decisivo esta en el backend no disponible.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h9-catalogo-pendientes",
+        "reviewed_paths": [
+          "src/app/public/pages/payment-callback/payment-callback.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/services/ventas/ventas.service.ts",
+          "src/app/public/home/home.component.ts"
+        ],
+        "invariant": "Una venta pendiente abandonada (MP cancelado o transferencia sin evidencia) debe expirar o cancelarse y liberar el stock",
+        "method": "source",
+        "result": "El front nunca cancela: en payment-callback.component.ts:196-198 y 245-247 el estado 'cancelled' solo muestra un toast, y venta_pendiente_mp queda en localStorage sin usarse; cancelarVenta (ventas.service.ts:301-302) no tiene llamadores en src/; la transferencia queda 'pendiente' esperando evidencia (user-profile.component.ts:199-203) sin flujo de cancelacion. El efecto de un stock agotado es visible para otros clientes: home.component.ts:146-151 y 238-241 bloquean agregar productos con stock <= 0. Expiracion/liberacion depende del backend.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.confirmarCompra:unbounded-pending-sales-stock-hold",
+      "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.procederPago:client-only-payment-method-and-schedule-gate"
+    ],
+    "unresolved": [],
+    "x_group": "h9",
+    "x_critic_reason": "carrito.component.ts:336-369 crea la preferencia y recibe venta_pendiente_id antes de redirigir a Mercado Pago. payment-callback.component.ts:196-198 y 252-254 solo muestran 'cancelled' sin cancelar ni liberar nada. La venta por transferencia queda 'pendiente' (user-profile.component.ts:199-203) y cancelarVenta (ventas.service.ts:301-302) no tiene llamadores. El unico control de cuantas compras se hacen esta en la UI (validarDatosCarrito y horario). La unidad de payment-callback dejo explicitamente este modo de ciclo de vida en unresolved ('si la venta pendiente ... expira o libera stock cuando el cliente abandona el pago'), sin candidato ni unidad que lo atienda. Las unidades de checkout cubren el precio y la cantidad de una sola venta, no la acumulacion de pendientes que podrian bloquear stock a otros clientes. Debe cerrarse con un candidato needs_validation, con el bloqueo exacto en el manejo de stock y expiracion de ventas pendientes del backend, o descartarse con razon basada en el codigo.",
+    "x_hardening": [
+      "El front deberia llamar a la cancelacion de la venta pendiente propia cuando el callback de Mercado Pago llega sin pago, y mostrar al cliente una opcion de cancelar transferencias pendientes; aun asi la expiracion debe imponerla el servidor.",
+      "venta_pendiente_mp se guarda en localStorage (carrito.component.ts:362-366) y nunca se lee; solo se borra en aprobado/pendiente, por lo que queda como dato obsoleto tras un pago abandonado.",
+      "Catalogo: la UI no restringe order_by/order_dir/per_page (productos.service.ts:100-121 reenvia cualquier clave); no es un fallo del front porque Angular codifica los parametros, pero la lista blanca y el tope deben estar en el backend."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.confirmarCompra:unbounded-pending-sales-stock-hold",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.procederPago:client-only-payment-method-and-schedule-gate",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Fpages%2Fcarrito%2Fcarrito.component.ts%23window.location.href::src%2Fapp%23navigation-targets::src%2Fapp%2Fpublic::CLIENT-SIDE.md%23Client-side%20navigation%20confusion",
+    "canonical_refs": {
+      "surface": "src/app/public/pages/carrito/carrito.component.ts#window.location.href",
+      "boundary": "src/app#navigation-targets",
+      "subsystem": "src/app/public",
+      "attack_class": "CLIENT-SIDE.md#Client-side navigation confusion"
+    },
+    "surface": "Navegacion a URLs devueltas por la API y enlaces [href]",
+    "boundary": "Destinos de navegacion confiables",
+    "subsystem": "Componentes publicos",
+    "attack_class": "Client-side navigation confusion",
+    "starting_paths": [
+      "src/app/public/pages/carrito",
+      "src/app/public/header",
+      "src/app/public/footer",
+      "src/app/public/contact",
+      "src/app/public/pages/payment-callback",
+      "src/app/public/pages/user-profile"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#Client-side navigation confusion",
+      "CLIENT-SIDE.md#Window and opener state disclosure"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h2-render-navegacion",
+    "reviewed_paths": [
+      "src/app/public/contact/contact.component.html",
+      "src/app/public/contact/contact.component.ts",
+      "src/app/public/footer/footer.component.html",
+      "src/app/public/footer/footer.component.ts",
+      "src/app/public/header/header.component.html",
+      "src/app/public/header/header.component.ts",
+      "src/app/public/home/home.component.ts",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/categorias/categorias.component.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/app/public/pages/productos/productos.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/notificacion-service/notificaciones.service.ts",
+      "src/services/sitio-config/sitio-config.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/services/mercadopago/mercadopago.service.ts"
+        ],
+        "invariant": "Un principal de menor confianza no puede controlar el destino de window.location.href en el checkout de Mercado Pago (carrito.component.ts:369).",
+        "method": "source",
+        "result": "El destino es response.data.init_point de la respuesta POST {apiUrl}/mercadopago/create-preference; el cuerpo enviado solo lleva customer_id, productos (product_id, cantidad, monto_pesos), metodo_pago, notas y tipo_entrega, ninguno de los cuales define la URL. Ningun query param, localStorage, window.name ni postMessage llega a ese sink. Solo el backend (o quien controle la API) decide el destino; no hay principal de menor confianza con control. Falta una lista blanca de esquema/host (hardening), pero no hay hallazgo.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/public/footer/footer.component.ts",
+          "src/app/public/footer/footer.component.html",
+          "src/app/public/contact/contact.component.ts",
+          "src/app/public/contact/contact.component.html",
+          "src/services/sitio-config/sitio-config.service.ts"
+        ],
+        "invariant": "Los [href] construidos con sitio/config no pueden convertirse en destinos ejecutables (javascript:, data:) ni ser controlados por un cliente.",
+        "method": "source",
+        "result": "whatsappLink y telefonoLink se construyen con prefijos fijos https://wa.me/52 y tel:+52 mas limpiarNumero(), que elimina todo lo que no sea digito y toma los ultimos 10 (footer.component.ts:31-33, contact.component.ts:20-22): no hay control de esquema posible. facebook_url e instagram_url se enlazan directo en [href] (footer.component.html:15,18) pero provienen de la configuracion del sitio que solo edita el admin en el backend, y Angular sanitiza URLs en [href] (javascript: se reescribe a unsafe:). Todos los target=_blank llevan rel=noopener noreferrer; no hay window.open en src/app.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/public/header/header.component.html",
+          "src/app/public/header/header.component.ts",
+          "src/services/notificacion-service/notificaciones.service.ts",
+          "src/app/public/pages/payment-callback/payment-callback.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/productos/productos.component.ts",
+          "src/app/public/pages/categorias/categorias.component.ts",
+          "src/app/public/home/home.component.ts"
+        ],
+        "invariant": "Ningun query param ni campo de alerta (link_url) controla navegacion o redirecciones del lado cliente.",
+        "method": "source",
+        "result": "AlertaSitio.link_url esta declarado en la interfaz (notificaciones.service.ts:11) pero no se usa en ninguna plantilla ni componente. Los query params (tab en user-profile:714-720, categoria en productos:42-46, payment_id/status en payment-callback:173-201) solo se comparan con literales, se convierten a numero o se validan con /^\\d+$/ y se interpolan; todas las navegaciones usan router.navigate con rutas literales. El canonical de home.component.ts:266-274 usa una constante. No hay redireccion abierta ni navegacion a javascript:.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h2",
+    "x_hardening": [
+      "carrito.component.ts:369 navega a response.data.init_point sin verificar esquema https: ni host de Mercado Pago (p. ej. www.mercadopago.com.mx / sandbox); agregar una lista blanca (new URL(init_point), protocol === 'https:' y hostname en la lista) como defensa en profundidad si la API o el rewrite de despliegue se ven comprometidos.",
+      "footer.component.html:15,18 enlaza facebook_url/instagram_url de la config del admin directo en [href] y depende solo de la sanitizacion de Angular; validar https: y dominio esperado al construir los enlaces.",
+      "src/index.html:87 carga jQuery 3.4.1 (afectada por CVE-2020-11022/11023 en htmlPrefilter) y src/assets/lib/owlcarousel es v2.2.1; hoy no hay sink HTML de jQuery alcanzable con datos externos, pero conviene actualizar a jQuery >= 3.5.0 o retirar jQuery/plugins del template si no se usan (main.js inicializa .testimonial-carousel y counter-up que no aparecen en las plantillas Angular revisadas).",
+      "AlertaSitio.link_url (notificaciones.service.ts:11) no se usa hoy; si se agrega un boton con ese enlace, validar esquema/host antes de enlazarlo y usar rel=noopener noreferrer."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Fpages%2Fpages-routing.module.ts%23canActivate::src%2Fguards%2Fauth%2Fauth.guard.ts%23AuthGuard::src%2Fguards::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "src/app/public/pages/pages-routing.module.ts#canActivate",
+      "boundary": "src/guards/auth/auth.guard.ts#AuthGuard",
+      "subsystem": "src/guards",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Rutas protegidas del cliente",
+    "boundary": "Guardia de rutas solo en el cliente",
+    "subsystem": "Ruteo",
+    "attack_class": "Access control",
+    "starting_paths": [
+      "src/guards/auth/auth.guard.ts",
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/app/app.routing.module.ts",
+      "src/app/public/header"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h3-sesion-tokens",
+    "reviewed_paths": [
+      "src/app/app.routing.module.ts",
+      "src/app/public/header/header.component.ts",
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/guards/auth/auth.guard.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/guards/auth/auth.guard.ts",
+          "src/app/public/pages/pages-routing.module.ts",
+          "src/app/app.routing.module.ts"
+        ],
+        "invariant": "El acceso a datos protegidos no debe depender solo del AuthGuard del cliente",
+        "method": "source",
+        "result": "AuthGuard solo verifica que exista 'token' en localStorage (auth.guard.ts:15-19) y protege payment-callback, profile y seguimiento (pages-routing.module.ts:28,33,38). Es control de UX: un token falso abre la vista pero toda lectura/escritura va a la API con ese bearer, y un 401 dispara logout en el interceptor (auth.interceptor.ts). Ningun dato protegido esta embebido en el bundle ni se sirve sin llamada a la API. La autorizacion efectiva vive en el backend (fuera de alcance; cubierta por los units de owner-check/role-check de otros cazadores).",
+        "artifact": null
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/app/public/pages/pages-routing.module.ts",
+          "src/app/app.routing.module.ts",
+          "src/app/public/header/header.component.ts"
+        ],
+        "invariant": "No debe existir una ruta paralela del front que exponga la misma operacion sensible con un control mas debil",
+        "method": "source",
+        "result": "Rutas sin guardia: home, productos, categorias, carrito, contact, login, registro; ninguna lee datos personales del servidor sin token. El carrito sin sesion obtiene customerId null via getUserId y no puede crear la venta. El header solo muestra nombre desde localStorage. No hay rutas de admin en este repo.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h3",
+    "x_hardening": [
+      "log-service.service.ts:20 envia usuario = localStorage clienteId o el literal '20' al registrar acciones; el backend deberia atribuir el historial al usuario del token y no a ese campo (lo decide el unit de clienteId-from-localStorage del backend).",
+      "crear-cuenta.service.ts guarda el token del registro y luego el componente hace login y lo sobreescribe sin revocarlo; handleLoginResponse tampoco revoca un token previo. Conviene que el registro no emita token si el front vuelve a loguear, o reutilizar ese token.",
+      "No hay listener de 'storage' ni BroadcastChannel: una pestana vieja sigue mostrando los datos de A en memoria despues de un logout o de un login de B en otra pestana. Conviene escuchar 'storage' sobre 'token' y 'clienteId' para reiniciar el estado o recargar.",
+      "La inactividad de 10 min es solo del cliente (setTimeout y lastActivityTime compartido); la expiracion real del token Sanctum debe configurarse en el backend. Ademas, si el pago en Mercado Pago tarda mas de 10 min, al volver checkInactivity cierra la sesion y AuthGuard manda a /login sin conservar los query params de payment-callback (afecta disponibilidad de la confirmacion, no seguridad).",
+      "AuthGuard solo comprueba que exista el token: es correcto como control de UX siempre que el backend autorice cada endpoint."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fapp%2Fpublic%2Fpages%2Fpayment-callback%2Fpayment-callback.component.ts%23queryParams::src%2Fservices%2Fmercadopago%2Fmercadopago.service.ts%23confirmPayment::src%2Fapp%2Fpublic%2Fpages%2Fpayment-callback::ATTACK-CLASSES.md%23Business%20logic",
+    "canonical_refs": {
+      "surface": "src/app/public/pages/payment-callback/payment-callback.component.ts#queryParams",
+      "boundary": "src/services/mercadopago/mercadopago.service.ts#confirmPayment",
+      "subsystem": "src/app/public/pages/payment-callback",
+      "attack_class": "ATTACK-CLASSES.md#Business logic"
+    },
+    "surface": "Regreso de Mercado Pago",
+    "boundary": "Estado de pago confirmado por el servidor",
+    "subsystem": "Callback de pago",
+    "attack_class": "Business logic",
+    "starting_paths": [
+      "src/app/public/pages/payment-callback",
+      "src/services/mercadopago",
+      "src/app/public/pages/carrito",
+      "src/app/public/pages/datos-bancarios"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Business logic",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#OAuth/OIDC request and callback binding"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "blocked",
+        "agent_id": "h4-logica-negocio",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/pages/datos-bancarios/datos-bancarios.component.html",
+          "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts",
+          "src/app/public/pages/pages-routing.module.ts",
+          "src/app/public/pages/payment-callback/payment-callback.component.ts",
+          "src/services/mercadopago/mercadopago.service.ts"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/app/public/pages/payment-callback/payment-callback.component.ts",
+              "src/services/mercadopago/mercadopago.service.ts",
+              "src/app/public/pages/carrito/carrito.component.ts",
+              "src/app/public/pages/pages-routing.module.ts"
+            ],
+            "invariant": "El estado de pago mostrado y los efectos locales salen de la respuesta del servidor, no de los query params; el payment_id se vincula a la venta del cliente",
+            "method": "source",
+            "result": "handleMercadoPagoCallback (payment-callback.component.ts:183-211) ignora status de la URL: exige payment_id numerico (:196) y resuelve el estado con response.data.estatus/pago_status de POST /mercadopago/confirm-payment (:213-224). El unico efecto local es vaciar el carrito y borrar venta_pendiente_mp (:257-260), sin impacto de seguridad. La peticion confirmPayment (mercadopago.service.ts:80-84) envia solo payment_id; la referencia venta_pendiente_id/preference_id guardada en carrito.component.ts:362-366 nunca se envia, por lo que la vinculacion pago-venta-cliente depende por completo del servidor (external_reference de Mercado Pago y usuario del token). La ruta esta tras AuthGuard (pages-routing.module.ts:26-28), solo control de UX. No hay defecto visible en el front.",
+            "artifact": null
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts",
+              "src/app/public/pages/datos-bancarios/datos-bancarios.component.html"
+            ],
+            "invariant": "El flujo de transferencia no cambia estado de pago desde el cliente",
+            "method": "source",
+            "result": "DatosBancariosComponent solo lee banco/titular/cuenta/clabe de sitio/config y los muestra por interpolacion; no hay transicion de estado de venta en el front. La confirmacion de transferencias ocurre en el panel admin (fuera del repo).",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [],
+        "unresolved": [
+          "Backend no disponible: si confirm-payment consulta el pago a Mercado Pago y exige que external_reference/metadata apunte a una venta pendiente del cliente del token, y que transaction_amount y moneda coincidan con el total de esa venta",
+          "Backend no disponible: si confirm-payment es idempotente (un payment_id aprobado no puede completar una segunda venta ni re-disparar efectos de stock/estadisticas) y si responde folio/total de ventas de otros clientes cuando se le pasa un payment_id ajeno",
+          "Backend no disponible: si la venta pendiente creada por create-preference expira o libera stock cuando el cliente abandona el pago"
+        ],
+        "reassignment_reason": "critic-ola1: la unidad quedo blocked con hipotesis concretas hacia el backend que tienen camino fuente en este repo; debe producir candidatos needs_validation con bloqueo exacto en lugar de solo unresolved"
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h5-checkout-pago-roles",
+    "reviewed_paths": [
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts",
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/sitio-config/sitio-config.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/app/public/pages/payment-callback/payment-callback.component.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/pages/pages-routing.module.ts"
+        ],
+        "invariant": "El estado de pago lo confirma el servidor contra Mercado Pago y queda ligado a la venta pendiente, al cliente, al monto y a un solo uso",
+        "method": "source",
+        "result": "El front ya no confia en ?status (009e9f8) y solo muestra lo que devuelve confirm-payment; pero envia solo payment_id, sin referencia a la venta pendiente ni estado de sesion, y la ruta heredada /mercadopago/callback (42b106a) que recibia status solo se dejo de llamar desde el front. Vinculacion e idempotencia no visibles: candidatos needs_validation.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts",
+          "src/services/sitio-config/sitio-config.service.ts"
+        ],
+        "invariant": "Los datos bancarios de transferencia se muestran desde la configuracion publica y el pago por transferencia no se marca como pagado en el cliente",
+        "method": "source",
+        "result": "DatosBancariosComponent solo lee la configuracion del sitio; la transferencia crea la venta con POST /ventas y no hay transicion de pago en el cliente. Sin defecto propio en este camino.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/app/public/pages/payment-callback/payment-callback.component.ts:PaymentCallbackComponent.handleMercadoPagoCallback:payment-id-unbound-to-pending-sale",
+      "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.handlePaymentCallback:legacy-callback-endpoint-client-status"
+    ],
+    "unresolved": [
+      "Backend no disponible: si la venta pendiente creada por create-preference (carrito.component.ts:363 guarda venta_pendiente_id) expira o libera stock cuando el cliente abandona el pago; el front no cancela nada en el estado 'cancelled' (payment-callback.component.ts:197) y nunca usa venta_pendiente_mp."
+    ],
+    "x_group": "h5",
+    "x_hardening": [
+      "src/services/ventas/ventas.service.ts:74 y src/services/mercadopago/mercadopago.service.ts:14 siguen declarando 'descuento'; quitarlo de las interfaces y en el backend marcarlo como 'prohibited' en la validacion.",
+      "Metodos de servicio sin uso en src/app (crearProducto, actualizarProducto, crearCategoria, actualizarCategoria, getAllCategorias, obtenerTodasVentas, cancelarVenta, checkPaymentStatus, getVentaByPreference) publican rutas de administracion en el bundle de clientes; conviene retirarlos del front.",
+      "src/app/public/pages/carrito/carrito.component.ts:312-315, 356 y 411 escriben en consola el carrito, el total y el cuerpo de la venta/preferencia con customer_id; quitar los console.log de depuracion.",
+      "localStorage.venta_pendiente_mp (carrito.component.ts:362-366) se escribe y no se usa para nada; si se mantiene, enviarlo a confirm-payment como vinculacion adicional o eliminarlo.",
+      "El total mostrado en el carrito usa clienteDescuentoPreferencial/clienteTipoCliente de localStorage (carrito.component.ts:549-561): solo visual, pero puede diferir del total cobrado; mostrar el total calculado por el servidor antes de confirmar."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/app/public/pages/payment-callback/payment-callback.component.ts:PaymentCallbackComponent.handleMercadoPagoCallback:payment-id-unbound-to-pending-sale",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.handlePaymentCallback:legacy-callback-endpoint-client-status",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fassets%2Fjs%2Fmain.js%23jquery-plugins::src%2Findex.html%23global-scripts::src%2Fassets::CLIENT-SIDE.md%23Prototype%20pollution%20and%20gadget%20chain",
+    "canonical_refs": {
+      "surface": "src/assets/js/main.js#jquery-plugins",
+      "boundary": "src/index.html#global-scripts",
+      "subsystem": "src/assets",
+      "attack_class": "CLIENT-SIDE.md#Prototype pollution and gadget chain"
+    },
+    "surface": "jQuery y plugins heredados del template",
+    "boundary": "Scripts globales fuera de Angular",
+    "subsystem": "Recursos estaticos",
+    "attack_class": "Prototype pollution and gadget chain",
+    "starting_paths": [
+      "src/assets/js/main.js",
+      "src/assets/lib",
+      "src/index.html",
+      "src/app"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#Prototype pollution and gadget chain"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h2-render-navegacion",
+    "reviewed_paths": [
+      "angular.json",
+      "src/app/public/header/header.component.ts",
+      "src/assets/js/main.js",
+      "src/assets/lib/owlcarousel/owl.carousel.js",
+      "src/index.html",
+      "src/services/carrito/carrito.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/assets/js/main.js",
+          "src/index.html",
+          "src/assets/lib/owlcarousel/owl.carousel.js",
+          "angular.json"
+        ],
+        "invariant": "Ninguna clave controlada por atacante llega a una escritura recursiva (deep merge / $.extend(true) / asignacion por ruta) en los scripts globales de jQuery y plugins.",
+        "method": "source",
+        "result": "main.js solo registra manejadores hover/scroll/click e inicializa counterUp y owlCarousel con objetos literales estaticos; no lee location, storage ni datos de la API. owl.carousel.js (v2.2.1) solo usa $.extend superficial ({}, Defaults, options) en lineas 39, 511, 519, 1502, 1749, 1874, 1994, 2123, 2381 y 2583, con opciones estaticas. jQuery 3.4.1 (index.html:87) ya incluye la correccion de CVE-2019-11358 para $.extend(true). angular.json no agrega scripts globales. No hay escritura recursiva alcanzable con datos de atacante ni gadget.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/public/header/header.component.ts",
+          "src/services/carrito/carrito.service.ts"
+        ],
+        "invariant": "Los JSON.parse de localStorage dentro de la app Angular no alimentan una fusion recursiva que contamine Object.prototype.",
+        "method": "source",
+        "result": "Solo existen dos JSON.parse: header.component.ts:177 (ids de alertas leidas, se valida Array.isArray y se mapea a Number) y carrito.service.ts:30 (arreglo de items del carrito, usado como datos). No hay Object.assign profundo, __proto__, ni asignacion por clave dinamica en src/app o src/services. JSON.parse por si solo no contamina el prototipo. Sin gadget.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h2",
+    "x_hardening": [
+      "carrito.component.ts:369 navega a response.data.init_point sin verificar esquema https: ni host de Mercado Pago (p. ej. www.mercadopago.com.mx / sandbox); agregar una lista blanca (new URL(init_point), protocol === 'https:' y hostname en la lista) como defensa en profundidad si la API o el rewrite de despliegue se ven comprometidos.",
+      "footer.component.html:15,18 enlaza facebook_url/instagram_url de la config del admin directo en [href] y depende solo de la sanitizacion de Angular; validar https: y dominio esperado al construir los enlaces.",
+      "src/index.html:87 carga jQuery 3.4.1 (afectada por CVE-2020-11022/11023 en htmlPrefilter) y src/assets/lib/owlcarousel es v2.2.1; hoy no hay sink HTML de jQuery alcanzable con datos externos, pero conviene actualizar a jQuery >= 3.5.0 o retirar jQuery/plugins del template si no se usan (main.js inicializa .testimonial-carousel y counter-up que no aparecen en las plantillas Angular revisadas).",
+      "AlertaSitio.link_url (notificaciones.service.ts:11) no se usa hoy; si se agrega un boton con ese enlace, validar esquema/host antes de enlazarlo y usar rel=noopener noreferrer."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fenvironments%2Fenvironment.prod.ts%23environment::src%2Fenvironments%2Fenvironment.prod.ts%23apiUrl::src%2Fenvironments::ATTACK-CLASSES.md%23Cryptography%20and%20secrets",
+    "canonical_refs": {
+      "surface": "src/environments/environment.prod.ts#environment",
+      "boundary": "src/environments/environment.prod.ts#apiUrl",
+      "subsystem": "src/environments",
+      "attack_class": "ATTACK-CLASSES.md#Cryptography and secrets"
+    },
+    "surface": "Configuracion compilada en el bundle del navegador",
+    "boundary": "Navegador publico vs secretos del servidor",
+    "subsystem": "Configuracion de entorno",
+    "attack_class": "Cryptography and secrets",
+    "starting_paths": [
+      "src/environments/environment.prod.ts",
+      "src/environments/environment.ts",
+      "src/services",
+      "src/app",
+      "angular.json"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Cryptography and secrets",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#API-key exposure and unsafe transport"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h1-secretos-despliegue",
+    "reviewed_paths": [
+      "angular.json",
+      "src/app",
+      "src/environments/environment.prod.ts",
+      "src/environments/environment.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/main.ts",
+      "src/services"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/environments/environment.prod.ts",
+          "src/environments/environment.ts",
+          "angular.json",
+          "src/main.ts"
+        ],
+        "invariant": "La configuracion compilada en el bundle solo contiene identificadores publicos y la de produccion usa TLS y modo produccion",
+        "method": "source",
+        "result": "environment.prod.ts solo expone production: true y apiUrl https://carniceriafrancoadmin.shop/api/v1 (identificador publico, HTTPS). environment.ts (http://127.0.0.1:8000) solo se usa sin fileReplacements; angular.json tiene defaultConfiguration production con fileReplacements al prod. main.ts llama enableProdMode. La configuracion production no habilita sourceMap (default false del builder browser de Angular 14). No hay llave publica ni privada de Mercado Pago en el front: la preferencia se crea en el backend.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/services",
+          "src/app",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "No hay secretos codificados en servicios/componentes y el Bearer no se envia a origenes distintos del API",
+        "method": "source",
+        "result": "grep de password/secret/apikey/Bearer/BEGIN/APP_USR/TEST-/access_token/herokuapp en src: solo campos de formulario y la construccion del header Bearer. Todas las llamadas http usan environment.apiUrl (o this.apiUrl derivado); no hay llamadas relativas /api. El interceptor compara req.url.startsWith('https://carniceriafrancoadmin.shop/api/v1'), prefijo que fija host y ruta, por lo que el token no se adjunta a terceros. Los adminBaseUrl codificados (home, categorias, productos) solo forman URLs de imagen del mismo host. Los console.log de carrito.component.ts:356 y user-profile.component.ts:761 registran datos de la preferencia y del cliente propio, no secretos.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h1",
+    "x_hardening": [
+      "Ninguno de los tres despliegues (src/.htaccess, server.js, vercel.json) envia X-Frame-Options/CSP frame-ancestors, CSP, X-Content-Type-Options ni Referrer-Policy. Hoy no hay accion sensible enmarcable porque la sesion vive solo en localStorage y los navegadores modernos particionan el almacenamiento de iframes de terceros, pero en navegadores sin particion (p. ej. Chrome anterior a 115) un iframe tendria el token. Agregar en .htaccess: Header always set X-Frame-Options \"DENY\" y Content-Security-Policy \"frame-ancestors 'none'\" (y equivalentes en server.js/vercel.json si se usan).",
+      "src/index.html carga jQuery 3.4.1 y bootstrap 5.0.0 desde CDNs sin integrity ni crossorigin; agregar SRI (sha384) y crossorigin=\"anonymous\", o servirlos desde el bundle (bootstrap ^5.2.2 ya esta en package.json). jQuery 3.4.1 esta afectado por CVE-2020-11022/11023 (htmlPrefilter); main.js no pasa HTML externo a jQuery, pero conviene actualizar a 3.5+.",
+      "vercel.json reescribe /api/v1/* hacia infinity-api-app-05bb275c7cec.herokuapp.com, una API de otro proyecto (InfinityTech) que la SPA no usa; si existe un proyecto Vercel activo con este repo, ese origen expone bajo el dominio de la tienda las respuestas de una app ajena. Eliminar el rewrite o apuntarlo al backend real.",
+      "server.js sirve dist/onvert-theme mientras angular.json genera dist/convert-theme: el modo Express/Heroku (Procfile) esta roto. Corregir la ruta o retirar server.js/Procfile y las dependencias express, cors e http-proxy-middleware no usadas.",
+      "El historial conserva URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41) del tema de gimnasio retirado; son tokens de lectura de objetos publicos (placeholders/banner), sin autoridad adicional. Revocarlos en la consola de Firebase solo si esos objetos no deben ser publicos.",
+      "src/assets/lib/waypoints/links.php se copia a dist/assets y Apache en Hostinger lo ejecutaria; es inocuo (solo define un arreglo), pero conviene borrarlo junto con flaticon/backup.txt.",
+      "angular.json conserva cli.analytics con un UUID; no es secreto, pero se puede quitar."
+    ]
+  },
+  {
+    "coverage_id": "src%2Findex.html%23script::src%2Findex.html%23third-party-origin::src%2Findex.html::SUPPLY-CHAIN-AND-RELEASE.md%23Mutable%20and%20unbound%20build%20inputs",
+    "canonical_refs": {
+      "surface": "src/index.html#script",
+      "boundary": "src/index.html#third-party-origin",
+      "subsystem": "src/index.html",
+      "attack_class": "SUPPLY-CHAIN-AND-RELEASE.md#Mutable and unbound build inputs"
+    },
+    "surface": "Scripts y hojas de estilo de CDN de terceros",
+    "boundary": "Origen de la tienda vs CDNs de terceros",
+    "subsystem": "Documento raiz",
+    "attack_class": "Mutable and unbound build inputs",
+    "starting_paths": [
+      "src/index.html",
+      "src/assets/js/main.js",
+      "src/assets/lib",
+      "package.json",
+      "package-lock.json"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [
+      "SUPPLY-CHAIN-AND-RELEASE.md#Core discipline",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Universal moves",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Validation rules",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Mutable and unbound build inputs",
+      "SUPPLY-CHAIN-AND-RELEASE.md#Dependency source and namespace confusion"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h1-secretos-despliegue",
+    "reviewed_paths": [
+      "package-lock.json",
+      "package.json",
+      "src/assets/js/main.js",
+      "src/assets/lib",
+      "src/index.html"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "src/index.html"
+        ],
+        "invariant": "Los scripts y hojas de terceros cargados en el origen de la tienda estan fijados a una version inmutable y un actor de menor confianza no puede cambiar su contenido",
+        "method": "local",
+        "result": "index.html carga jquery-3.4.1.min.js de code.jquery.com y bootstrap@5.0.0 bundle de cdn.jsdelivr.net/npm, mas CSS de cdnjs font-awesome 6.5.0, bootstrap-icons@1.4.1 y Google Fonts; 0 atributos integrity. Todas las URLs fijan version exacta (versiones npm inmutables en jsdelivr; ruta versionada en code.jquery.com y cdnjs). No hay rango ni etiqueta mutable ni escritor de menor confianza identificable en el repo: solo el operador del CDN (tercero de confianza) podria cambiar el contenido. Falta de SRI queda como endurecimiento, no hallazgo.",
+        "artifact": "agents/h1-secretos-despliegue/artifacts/check-historial-y-despliegue.txt"
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "package.json",
+          "package-lock.json",
+          "src/assets/lib",
+          "src/assets/js/main.js"
+        ],
+        "invariant": "El lockfile no resuelve dependencias desde registros o URLs alternativos y no hay .npmrc que cambie la fuente",
+        "method": "source",
+        "result": "package-lock.json (lockfileVersion 2) resuelve todo desde registry.npmjs.org con 1888 entradas integrity; no hay .npmrc ni dependencias git/http. Las librerias locales de src/assets/lib (easing, waypoints, counterup, owlcarousel, flaticon) estan versionadas en el repo. main.js solo inicializa plugins de UI sin datos externos.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h1",
+    "x_hardening": [
+      "Ninguno de los tres despliegues (src/.htaccess, server.js, vercel.json) envia X-Frame-Options/CSP frame-ancestors, CSP, X-Content-Type-Options ni Referrer-Policy. Hoy no hay accion sensible enmarcable porque la sesion vive solo en localStorage y los navegadores modernos particionan el almacenamiento de iframes de terceros, pero en navegadores sin particion (p. ej. Chrome anterior a 115) un iframe tendria el token. Agregar en .htaccess: Header always set X-Frame-Options \"DENY\" y Content-Security-Policy \"frame-ancestors 'none'\" (y equivalentes en server.js/vercel.json si se usan).",
+      "src/index.html carga jQuery 3.4.1 y bootstrap 5.0.0 desde CDNs sin integrity ni crossorigin; agregar SRI (sha384) y crossorigin=\"anonymous\", o servirlos desde el bundle (bootstrap ^5.2.2 ya esta en package.json). jQuery 3.4.1 esta afectado por CVE-2020-11022/11023 (htmlPrefilter); main.js no pasa HTML externo a jQuery, pero conviene actualizar a 3.5+.",
+      "vercel.json reescribe /api/v1/* hacia infinity-api-app-05bb275c7cec.herokuapp.com, una API de otro proyecto (InfinityTech) que la SPA no usa; si existe un proyecto Vercel activo con este repo, ese origen expone bajo el dominio de la tienda las respuestas de una app ajena. Eliminar el rewrite o apuntarlo al backend real.",
+      "server.js sirve dist/onvert-theme mientras angular.json genera dist/convert-theme: el modo Express/Heroku (Procfile) esta roto. Corregir la ruta o retirar server.js/Procfile y las dependencias express, cors e http-proxy-middleware no usadas.",
+      "El historial conserva URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41) del tema de gimnasio retirado; son tokens de lectura de objetos publicos (placeholders/banner), sin autoridad adicional. Revocarlos en la consola de Firebase solo si esos objetos no deben ser publicos.",
+      "src/assets/lib/waypoints/links.php se copia a dist/assets y Apache en Hostinger lo ejecutaria; es inocuo (solo define un arreglo), pero conviene borrarlo junto con flaticon/backup.txt.",
+      "angular.json conserva cli.analytics con un UUID; no es secreto, pero se puede quitar."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%23admin-like-calls::backend%23role-check::src%2Fservices::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "src/services#admin-like-calls",
+      "boundary": "backend#role-check",
+      "subsystem": "src/services",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Llamadas de escritura/admin presentes en el bundle (crearProducto, actualizarCategoria, obtenerTodasVentas)",
+    "boundary": "Rol de administrador verificado por el servidor",
+    "subsystem": "Servicios HTTP",
+    "attack_class": "Access control",
+    "starting_paths": [
+      "src/services/productos",
+      "src/services/categorias",
+      "src/services/ventas",
+      "src/app"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "blocked",
+        "agent_id": "h4-logica-negocio",
+        "reviewed_paths": [
+          "src/app",
+          "src/interceptors/auth.interceptor.ts",
+          "src/services/categorias/categorias.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/services/productos/productos.service.ts",
+          "src/services/ventas/ventas.service.ts"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/services/productos/productos.service.ts",
+              "src/services/categorias/categorias.service.ts",
+              "src/services/ventas/ventas.service.ts",
+              "src/services/mercadopago/mercadopago.service.ts",
+              "src/app"
+            ],
+            "invariant": "Las operaciones de administracion no son alcanzables por el cliente salvo que el servidor verifique el rol",
+            "method": "source",
+            "result": "crearProducto/actualizarProducto (productos.service.ts:170-178), crearCategoria/actualizarCategoria (categorias.service.ts:69-77), obtenerTodasVentas (ventas.service.ts:308-330, comentado como endpoint de administrador), cancelarVenta (ventas.service.ts:301-303), checkPaymentStatus y getVentaByPreference (mercadopago.service.ts) no tienen llamadores en src/app (grep). Son codigo muerto que documenta rutas de la API; el front no ofrece estas acciones, por lo que la frontera es exclusivamente el control de rol del backend.",
+            "artifact": null
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/interceptors/auth.interceptor.ts"
+            ],
+            "invariant": "Que token llevaria una llamada directa a esas rutas",
+            "method": "source",
+            "result": "AuthInterceptor adjunta el bearer Sanctum del cliente a cualquier URL que empiece con environment.apiUrl (auth.interceptor.ts:23-27); un cliente autenticado puede invocar esas rutas con su token. Si el backend distingue rol/guard de cliente frente a admin no es visible.",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [],
+        "unresolved": [
+          "Backend no disponible: si POST/PUT /productos y /categorias exigen rol de administrador (o un guard distinto al de clientes) y rechazan tokens de cliente y peticiones anonimas",
+          "Backend no disponible: si GET /ventas (listado global) exige rol admin y no devuelve ventas y datos personales de todos los clientes a un cliente autenticado",
+          "Backend no disponible: si PUT /ventas/{id}/cancelar valida dueno y estado (no cancelar ventas completadas/pagadas ni ajenas, lo que devuelve stock y altera estadisticas), y si GET /mercadopago/payment-status/{id} y /venta-by-preference/{id} validan dueno"
+        ],
+        "reassignment_reason": "critic-ola1: la unidad quedo blocked con hipotesis concretas hacia el backend que tienen camino fuente en este repo; debe producir candidatos needs_validation con bloqueo exacto en lugar de solo unresolved"
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h5-checkout-pago-roles",
+    "reviewed_paths": [
+      "src/app",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/categorias/categorias.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/productos/productos.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h5-checkout-pago-roles",
+        "reviewed_paths": [
+          "src/services/productos/productos.service.ts",
+          "src/services/categorias/categorias.service.ts",
+          "src/services/ventas/ventas.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts",
+          "src/interceptors/auth.interceptor.ts",
+          "src/services/login/login.service.ts",
+          "src/app"
+        ],
+        "invariant": "Las operaciones de administracion y las de cambio de estado sobre ventas ajenas exigen rol o dueno verificado por el servidor",
+        "method": "source",
+        "result": "grep en src/app: crearProducto, actualizarProducto, crearCategoria, actualizarCategoria, getAllCategorias, obtenerTodasVentas, cancelarVenta, checkPaymentStatus y getVentaByPreference no se invocan desde ningun componente, pero estan en servicios del bundle bajo la misma apiUrl y el interceptor les adjunta el token de cliente. El front no modela roles; la proteccion depende del middleware del backend no visible: candidatos needs_validation.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/productos/productos.service.ts:ProductosService.crearProducto:admin-endpoints-on-customer-api",
+      "src/services/ventas/ventas.service.ts:VentasService.cancelarVenta:sale-cancel-owner-state-check",
+      "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.checkPaymentStatus:payment-lookup-owner-check"
+    ],
+    "unresolved": [],
+    "x_group": "h5",
+    "x_hardening": [
+      "src/services/ventas/ventas.service.ts:74 y src/services/mercadopago/mercadopago.service.ts:14 siguen declarando 'descuento'; quitarlo de las interfaces y en el backend marcarlo como 'prohibited' en la validacion.",
+      "Metodos de servicio sin uso en src/app (crearProducto, actualizarProducto, crearCategoria, actualizarCategoria, getAllCategorias, obtenerTodasVentas, cancelarVenta, checkPaymentStatus, getVentaByPreference) publican rutas de administracion en el bundle de clientes; conviene retirarlos del front.",
+      "src/app/public/pages/carrito/carrito.component.ts:312-315, 356 y 411 escriben en consola el carrito, el total y el cuerpo de la venta/preferencia con customer_id; quitar los console.log de depuracion.",
+      "localStorage.venta_pendiente_mp (carrito.component.ts:362-366) se escribe y no se usa para nada; si se mantiene, enviarlo a confirm-payment como vinculacion adicional o eliminarlo.",
+      "El total mostrado en el carrito usa clienteDescuentoPreferencial/clienteTipoCliente de localStorage (carrito.component.ts:549-561): solo visual, pero puede diferir del total cobrado; mostrar el total calculado por el servidor antes de confirmar."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/productos/productos.service.ts:ProductosService.crearProducto:admin-endpoints-on-customer-api",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.cancelarVenta:sale-cancel-owner-state-check",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.checkPaymentStatus:payment-lookup-owner-check",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%23api-responses::src%2Fapp%23angular-template-sanitization::src%2Fapp%2Fpublic::CLIENT-SIDE.md%23DOM-based%20XSS",
+    "canonical_refs": {
+      "surface": "src/services#api-responses",
+      "boundary": "src/app#angular-template-sanitization",
+      "subsystem": "src/app/public",
+      "attack_class": "CLIENT-SIDE.md#DOM-based XSS"
+    },
+    "surface": "Datos de la API renderizados (productos, categorias, alertas, config)",
+    "boundary": "Sanitizacion de plantillas Angular",
+    "subsystem": "Componentes publicos",
+    "attack_class": "DOM-based XSS",
+    "starting_paths": [
+      "src/app/public",
+      "src/services/notificacion-service",
+      "src/services/sitio-config",
+      "src/services/productos",
+      "src/services/categorias"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#DOM-based XSS",
+      "CLIENT-SIDE.md#DOM clobbering"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h2-render-navegacion",
+    "reviewed_paths": [
+      "src/app/app.module.ts",
+      "src/app/public/contact/contact.component.html",
+      "src/app/public/footer/footer.component.html",
+      "src/app/public/header/header.component.html",
+      "src/app/public/header/header.component.ts",
+      "src/app/public/home/home.component.html",
+      "src/app/public/home/home.component.ts",
+      "src/app/public/pages/carrito/carrito.component.html",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/categorias/categorias.component.html",
+      "src/app/public/pages/payment-callback/payment-callback.component.ts",
+      "src/app/public/pages/productos/productos.component.html",
+      "src/app/public/pages/seguimiento/seguimiento.component.html",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/assets/js/main.js",
+      "src/services/categorias/categorias.service.ts",
+      "src/services/notificacion-service/notificaciones.service.ts",
+      "src/services/productos/productos.service.ts",
+      "src/services/sitio-config/sitio-config.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/public/header/header.component.html",
+          "src/app/public/footer/footer.component.html",
+          "src/app/public/contact/contact.component.html",
+          "src/app/public/home/home.component.html",
+          "src/app/public/pages/productos/productos.component.html",
+          "src/app/public/pages/categorias/categorias.component.html",
+          "src/app/public/pages/carrito/carrito.component.html",
+          "src/app/public/pages/seguimiento/seguimiento.component.html",
+          "src/app/public/pages/user-profile/user-profile.component.html",
+          "src/app/public/pages/payment-callback/payment-callback.component.ts",
+          "src/services/notificacion-service/notificaciones.service.ts",
+          "src/services/sitio-config/sitio-config.service.ts",
+          "src/services/productos/productos.service.ts",
+          "src/services/categorias/categorias.service.ts"
+        ],
+        "invariant": "Los datos de la API (productos, categorias, alertas, config, ventas) y los query params solo llegan al DOM por interpolacion o enlaces de propiedad sanitizados por Angular, sin escape hatches.",
+        "method": "source",
+        "result": "grep en src/app no encuentra innerHTML, outerHTML, [innerHtml], srcdoc, bypassSecurityTrust*, DomSanitizer, document.write, eval, new Function, insertAdjacentHTML ni APIs HTML de jQuery. Los campos de API (titulo, descripcion, nombre, folio, payment_id, merchant_order_id) se renderizan con {{ }} (escapado por Angular). imagen_url, imagenes de productos/categorias y fotos de seguimiento van a [src] de <img>, contexto URL sanitizado por Angular y no ejecutable en img. Los [href] de config se sanitizan (javascript: -> unsafe:).",
+        "artifact": null
+      },
+      {
+        "agent_id": "h2-render-navegacion",
+        "reviewed_paths": [
+          "src/app/app.module.ts",
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/app/public/home/home.component.ts",
+          "src/app/public/header/header.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/assets/js/main.js"
+        ],
+        "invariant": "Mensajes del servidor en ngx-toastr y manipulacion DOM imperativa no interpretan HTML; no hay markup inyectado que permita DOM clobbering con efecto de seguridad.",
+        "method": "source",
+        "result": "ToastrModule.forRoot() se usa sin enableHtml (app.module.ts:33), asi que response.message, error.error.message y nombres de producto (carrito.component.ts:372,473; home.component.ts:148) se muestran como texto. La manipulacion DOM imperativa (document.getElementById de modales en header.component.ts:151 y seguimiento.component.ts:59,73,106; setAttribute de data-bs-theme y canonical con constantes) no consume datos de atacante. Como ningun dato externo puede introducir atributos id/name (todo pasa por interpolacion), no existe camino de markup para DOM clobbering.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h2",
+    "x_hardening": [
+      "carrito.component.ts:369 navega a response.data.init_point sin verificar esquema https: ni host de Mercado Pago (p. ej. www.mercadopago.com.mx / sandbox); agregar una lista blanca (new URL(init_point), protocol === 'https:' y hostname en la lista) como defensa en profundidad si la API o el rewrite de despliegue se ven comprometidos.",
+      "footer.component.html:15,18 enlaza facebook_url/instagram_url de la config del admin directo en [href] y depende solo de la sanitizacion de Angular; validar https: y dominio esperado al construir los enlaces.",
+      "src/index.html:87 carga jQuery 3.4.1 (afectada por CVE-2020-11022/11023 en htmlPrefilter) y src/assets/lib/owlcarousel es v2.2.1; hoy no hay sink HTML de jQuery alcanzable con datos externos, pero conviene actualizar a jQuery >= 3.5.0 o retirar jQuery/plugins del template si no se usan (main.js inicializa .testimonial-carousel y counter-up que no aparecen en las plantillas Angular revisadas).",
+      "AlertaSitio.link_url (notificaciones.service.ts:11) no se usa hoy; si se agrega un boton con ese enlace, validar esquema/host antes de enlazarlo y usar rel=noopener noreferrer."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%23clienteId-from-localStorage::backend%23owner-check::src%2Fservices::DATA-ISOLATION-AND-LIFECYCLE.md%23Missing%20tenant%20or%20owner%20enforcement",
+    "canonical_refs": {
+      "surface": "src/services#clienteId-from-localStorage",
+      "boundary": "backend#owner-check",
+      "subsystem": "src/services",
+      "attack_class": "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement"
+    },
+    "surface": "IDs de cliente tomados de localStorage en URLs y cuerpos",
+    "boundary": "Dueno del recurso verificado contra el token",
+    "subsystem": "Servicios HTTP",
+    "attack_class": "Missing tenant or owner enforcement",
+    "starting_paths": [
+      "src/services/ventas",
+      "src/services/customers",
+      "src/services/logs",
+      "src/services/login",
+      "src/app/public/pages/user-profile",
+      "src/app/public/pages/seguimiento",
+      "src/app/public/header"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Enumeration and aggregate oracles"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "candidate",
+        "agent_id": "h4-logica-negocio",
+        "reviewed_paths": [
+          "src/app/public/header/header.component.ts",
+          "src/app/public/login/login.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/interceptors/auth.interceptor.ts",
+          "src/services/auth-service/auth-service.service.ts",
+          "src/services/customers/customer-service.service.ts",
+          "src/services/login/login.service.ts",
+          "src/services/logs/log-service.service.ts",
+          "src/services/ventas/ventas.service.ts"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/services/ventas/ventas.service.ts",
+              "src/services/customers/customer-service.service.ts",
+              "src/services/logs/log-service.service.ts",
+              "src/services/login/login.service.ts",
+              "src/app/public/pages/user-profile/user-profile.component.ts",
+              "src/app/public/pages/seguimiento/seguimiento.component.ts",
+              "src/app/public/header/header.component.ts"
+            ],
+            "invariant": "Cada lectura/escritura de datos del cliente se liga al usuario del token y no a un id elegido por el navegador",
+            "method": "source",
+            "result": "Todos los selectores de dueno vienen de localStorage 'clienteId': /ventas/cliente/{id}, /estadisticas, /recientes, /recomendaciones (ventas.service.ts:269-337), /usuarios/update/{id} (customer-service.service.ts:19), /usuarios/customer-data?clienteId (login.service.ts:17), /getData?clienteId heredado sin llamadores (customer-service.service.ts:15), /indicadores/pedidos/{sale}/preguntas?customer_id y respuestas con customer_id (ventas.service.ts:352-371), /historial/guardar-accion con usuario = clienteId o '20' por defecto (log-service.service.ts:20-27). user-profile limita los campos editables a una lista blanca (user-profile.component.ts:788-812). La verificacion de dueno es del backend. Ademas, CustomerService captura clienteId una sola vez como campo de un singleton providedIn root (customer-service.service.ts:7,11) y lo reutiliza en el cuerpo y las URLs de subir/listar/borrar fotos de seguimiento (:24,:37,:40).",
+            "artifact": null
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/services/customers/customer-service.service.ts",
+              "src/services/auth-service/auth-service.service.ts",
+              "src/services/login/login.service.ts",
+              "src/app/public/login/login.component.ts",
+              "src/app/public/header/header.component.ts"
+            ],
+            "invariant": "Tras cambiar de cuenta en la misma pestana, las peticiones de fotos de seguimiento usan el id del cliente actual",
+            "method": "local",
+            "result": "Arnes Node 22 en el sandbox aprobado (sin red, env vacio, objetivo de solo lectura) que primero verifica textualmente las lineas citadas en el objetivo y luego reproduce el flujo: A (101) inicia sesion y se crea CustomerService; logout; B (202) inicia sesion sin recarga. Resultado: AuthService.getUserId()=202 pero CustomerService.customer='101'; peticiones emitidas: GET /usuarios/store-images/101/cliente, POST /usuarios/store-images con customer_id '101' y la foto de B, DELETE /usuarios/borrar/101/imagenes/5. Ninguno de los flujos de login/logout recarga la pagina.",
+            "artifact": "agents/h4-logica-negocio/artifacts/check-stale-customer-id.txt"
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/interceptors/auth.interceptor.ts"
+            ],
+            "invariant": "Que identidad acompana a las peticiones con id obsoleto",
+            "method": "source",
+            "result": "El interceptor lee el token de localStorage en cada peticion (auth.interceptor.ts:24-27), por lo que las peticiones de B con el id de A llevan el token de B: si el servidor liga el recurso al token, falla o se corrige; si confia en customer_id/ruta, mezcla datos entre cuentas.",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [
+          "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch"
+        ],
+        "unresolved": [
+          "Backend no disponible: si /ventas/cliente/{id}/*, /usuarios/update/{id}, /usuarios/customer-data?clienteId y el endpoint heredado /getData?clienteId comparan el id con el usuario del token Sanctum (IDOR de historial, estadisticas, recomendaciones y datos personales)",
+          "Backend no disponible: si /indicadores/pedidos/{sale}/preguntas y /respuestas verifican que la venta pertenece al cliente del token y que la encuesta no se responde dos veces (ya_respondio solo se aplica en la UI)",
+          "Backend no disponible: si /historial/guardar-accion toma el usuario del token o confia en el campo usuario del cuerpo (falsificacion de bitacora; el front usa '20' por defecto sin sesion)"
+        ],
+        "reassignment_reason": "critic-ola1: la unidad quedo blocked con hipotesis concretas hacia el backend que tienen camino fuente en este repo; debe producir candidatos needs_validation con bloqueo exacto en lugar de solo unresolved"
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h6-aislamiento-datos",
+    "reviewed_paths": [
+      "src/app/public/header/header.component.ts",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.html",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/logs/log-service.service.ts",
+      "src/services/mercadopago/mercadopago.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/auth-service/auth-service.service.ts",
+          "src/services/login/login.service.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "El id de cliente usado como selector en la API debe derivarse del token Sanctum, no de un valor que el navegador controla",
+        "method": "source",
+        "result": "AuthService.getUserId (auth-service.service.ts:78-81) solo hace parseInt de localStorage['clienteId'], escrito en login.service.ts:36 desde la respuesta del login; nada lo liga al token. El AuthInterceptor (auth.interceptor.ts:22-28) solo agrega Authorization: Bearer; ningun codigo del front compara clienteId con la identidad del token. El usuario puede editar clienteId en DevTools y el front lo usa tal cual.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/ventas/ventas.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/services/login/login.service.ts",
+          "src/services/customers/customer-service.service.ts"
+        ],
+        "invariant": "Lecturas y escrituras de historial, estadisticas, recomendaciones, datos personales y perfil deben quedar ligadas al dueno del token",
+        "method": "source",
+        "result": "user-profile.component.ts:83/111/482/691/726 toma customerId de getUserId y lo pone en la URL: /ventas/cliente/{id} (ventas.service.ts:274), /estadisticas (281), /recomendaciones (336), /usuarios/customer-data?clienteId= (login.service.ts:17) y PUT /usuarios/update/{id} (customer-service.service.ts:19). La API se diseno con el sujeto en la URL; git d4f655a^ muestra que estas mismas rutas se llamaban sin ningun header Authorization antes de Sanctum (backend 8c311b8) y el commit solo agrego el interceptor sin cambiar los selectores. Si el backend actual compara {id} con $request->user() no es visible: candidato needs_validation src/services:clienteId-localStorage:customer-selector-without-owner-binding.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/customers/customer-service.service.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.html",
+          "src/app/public/pages/pages-routing.module.ts"
+        ],
+        "invariant": "Las fotos de seguimiento se leen, suben y borran solo para el cliente del token",
+        "method": "source",
+        "result": "CustomerService.customer (customer-service.service.ts:11) se toma de localStorage y se usa en GET /usuarios/store-images/{id}/cliente (37), DELETE /usuarios/borrar/{id}/imagenes/{img} (40) y en el cuerpo customer_id de POST /usuarios/store-images (24). La ruta /pages/seguimiento sigue enrutada con AuthGuard (pages-routing.module.ts:35-39). La variante deliberada (editar clienteId o imageId) va en src/services:clienteId-localStorage:customer-selector-without-owner-binding; la variante de estado viejo tras cambio de cuenta ya esta en validacion como src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch y solo se enlaza.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/services/ventas/ventas.service.ts",
+          "src/services/mercadopago/mercadopago.service.ts"
+        ],
+        "invariant": "La venta se crea a nombre del cliente del token, no del customer_id del cuerpo",
+        "method": "source",
+        "result": "carrito.component.ts:310/337/392 pone customer_id=getUserId() en el cuerpo de POST /ventas (ventas.service.ts:263) y POST /mercadopago/create-preference (mercadopago.service.ts:59). El commit 922d086 dice que el backend calcula el descuento del mayorista: si lo toma del customer_id del cuerpo, otro cliente podria comprar con el descuento preferencial de la victima o cargar pedidos a su cuenta. Variante incluida en src/services:clienteId-localStorage:customer-selector-without-owner-binding (el calculo de precios en si es de la unidad de carrito).",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/ventas/ventas.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html"
+        ],
+        "invariant": "La encuesta de satisfaccion solo la responde el dueno de la venta y una sola vez",
+        "method": "source",
+        "result": "obtenerPreguntasSatisfaccion manda customer_id en query (ventas.service.ts:353) y guardarRespuestasSatisfaccion en el cuerpo (368) junto con saleId en la URL; ya_respondio y encuestasRespondidas solo ocultan el boton (user-profile.component.ts:205-208, 242-246, 330). La respuesta incluye ya_respondio, oraculo de existencia/estado por sale_id. Candidato src/services/ventas/ventas.service.ts:VentasService.guardarRespuestasSatisfaccion:sale-and-customer-from-client.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/logs/log-service.service.ts",
+          "src/app/public/header/header.component.ts"
+        ],
+        "invariant": "Sin otro selector de dueno en header y logs dentro de esta unidad",
+        "method": "source",
+        "result": "header.component.ts solo lee nombre y profileIsComplete de localStorage para la UI y alertas_leidas_ids locales; no manda ids de cliente. log-service.service.ts:20-27 manda usuario=clienteId ?? '20' en el cuerpo de /historial/guardar-accion; la falsificacion de bitacora pertenece a la unidad src/app/app.component.ts#ngOnInit::backend#historial-guardar-accion y no se reporta aqui.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services:clienteId-localStorage:customer-selector-without-owner-binding",
+      "src/services/ventas/ventas.service.ts:VentasService.guardarRespuestasSatisfaccion:sale-and-customer-from-client",
+      "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch"
+    ],
+    "unresolved": [],
+    "x_group": "h6",
+    "x_hardening": [
+      "CustomerService.getCustomerData (GET /getData?clienteId=, customer-service.service.ts:14-15) no tiene llamadas en src/app; es codigo muerto que apunta a un endpoint heredado. Conviene borrarlo del front y confirmar que la ruta ya no existe en el backend.",
+      "La API deberia exponer rutas del cliente sin id (por ejemplo /clientes/me, /ventas/mias) y el front dejar de mandar customer_id en cuerpos y query params; asi el id de localStorage deja de ser un selector y solo se usa para mostrar.",
+      "obtenerTodasVentas (GET /ventas, 'para administrador') y cancelarVenta viven en el servicio del cliente sin uso en la UI; su autorizacion es de la unidad src/services#admin-like-calls."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services:clienteId-localStorage:customer-selector-without-owner-binding",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.guardarRespuestasSatisfaccion:sale-and-customer-from-client",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Fauth-service%2Fauth-service.service.ts%23logout::src%2Fservices%2Fauth-service%2Fauth-service.service.ts%23AuthService::src%2Fservices%2Fauth-service::WEB-PROTOCOL-AND-AUTH.md%23Session%20fixation%20and%20invalidation",
+    "canonical_refs": {
+      "surface": "src/services/auth-service/auth-service.service.ts#logout",
+      "boundary": "src/services/auth-service/auth-service.service.ts#AuthService",
+      "subsystem": "src/services/auth-service",
+      "attack_class": "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation"
+    },
+    "surface": "Cierre de sesion, inactividad y 401",
+    "boundary": "Revocacion e invalidacion de sesion",
+    "subsystem": "Sesion del cliente",
+    "attack_class": "Session fixation and invalidation",
+    "starting_paths": [
+      "src/services/auth-service",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/login",
+      "src/app/public/header"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Universal moves",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#Session fixation and invalidation",
+      "WEB-PROTOCOL-AND-AUTH.md#API-key exposure and unsafe transport"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "h3-sesion-tokens",
+    "reviewed_paths": [
+      "src/app/public/header/header.component.ts",
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/services/login/login.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/auth-service/auth-service.service.ts",
+          "src/services/login/login.service.ts",
+          "src/app/public/header/header.component.ts",
+          "src/app/public/pages/carrito/carrito.component.ts"
+        ],
+        "invariant": "El logout debe eliminar todo dato del cliente guardado al iniciar sesion para que el siguiente usuario del navegador no lo herede",
+        "method": "local",
+        "result": "handleLoginResponse escribe 10 claves (login.service.ts:32-41) pero logout solo borra 6 (auth-service.service.ts:68-73). El arnes en sandbox ejecuto el texto real de ambos metodos y tras logout quedaron clienteTelefono, clienteSaldo, clienteTipoCliente, clienteDescuentoPreferencial, carrito_franco y profileIsComplete del cliente A.",
+        "artifact": "agents/h3-sesion-tokens/artifacts/check-sesion-residuo-y-cliente-obsoleto.txt"
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/auth-service/auth-service.service.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "El logout, la inactividad y el 401 deben revocar el token en el servidor y no reutilizarlo despues",
+        "method": "source",
+        "result": "logout hace POST best-effort a /clientes/logout con el bearer usando HttpBackend sin interceptores (sin recursion) y borra el token local sin importar el resultado; el interceptor llama logout ante 401 excepto en /clientes/logout. La inactividad de 10 min es solo del cliente. Si la revocacion falla por red, el token sigue valido en el servidor, pero no queda copia accesible en el cliente; la revocacion y expiracion efectivas son del backend (no visible).",
+        "artifact": null
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/crear-cuenta/crear-cuenta.service.ts",
+          "src/services/login/login.service.ts"
+        ],
+        "invariant": "Al iniciar sesion o registrarse no debe quedar un token previo valido y reutilizable desde el cliente",
+        "method": "source",
+        "result": "El registro guarda el token de registro y luego el componente hace login y lo sobreescribe sin revocar el primero; handleLoginResponse sobreescribe cualquier token previo sin revocarlo. Los tokens huerfanos no quedan expuestos en el cliente; es hardening del ciclo de vida, no fijacion (el token lo emite el servidor, no lo elige el atacante).",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/auth-service/auth-service.service.ts:AuthService.logout:incomplete-localstorage-cleanup"
+    ],
+    "unresolved": [
+      "No es visible si el backend /clientes/logout revoca currentAccessToken ni la expiracion configurada de los tokens Sanctum (repo carniceria-franco-backend no disponible)."
+    ],
+    "x_group": "h3",
+    "x_hardening": [
+      "log-service.service.ts:20 envia usuario = localStorage clienteId o el literal '20' al registrar acciones; el backend deberia atribuir el historial al usuario del token y no a ese campo (lo decide el unit de clienteId-from-localStorage del backend).",
+      "crear-cuenta.service.ts guarda el token del registro y luego el componente hace login y lo sobreescribe sin revocarlo; handleLoginResponse tampoco revoca un token previo. Conviene que el registro no emita token si el front vuelve a loguear, o reutilizar ese token.",
+      "No hay listener de 'storage' ni BroadcastChannel: una pestana vieja sigue mostrando los datos de A en memoria despues de un logout o de un login de B en otra pestana. Conviene escuchar 'storage' sobre 'token' y 'clienteId' para reiniciar el estado o recargar.",
+      "La inactividad de 10 min es solo del cliente (setTimeout y lastActivityTime compartido); la expiracion real del token Sanctum debe configurarse en el backend. Ademas, si el pago en Mercado Pago tarda mas de 10 min, al volver checkInactivity cierra la sesion y AuthGuard manda a /login sin conservar los query params de payment-callback (afecta disponibilidad de la confirmacion, no seguridad).",
+      "AuthGuard solo comprueba que exista el token: es correcto como control de UX siempre que el backend autorice cada endpoint."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/auth-service/auth-service.service.ts:AuthService.logout:incomplete-localstorage-cleanup",
+        "final": "confirmed"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Fcustomers%2Fcustomer-service.service.ts%23updateCustomer::backend%23field-level-authorization::src%2Fapp%2Fpublic%2Fpages%2Fuser-profile::ATTACK-CLASSES.md%23Access%20control",
+    "canonical_refs": {
+      "surface": "src/services/customers/customer-service.service.ts#updateCustomer",
+      "boundary": "backend#field-level-authorization",
+      "subsystem": "src/app/public/pages/user-profile",
+      "attack_class": "ATTACK-CLASSES.md#Access control"
+    },
+    "surface": "Escritura de campos privilegiados del cliente: PUT /usuarios/update/{id} (CustomerService.updateCustomer) y POST /clientes/registro (CrearCuentaService.crearCuenta) aceptan un cuerpo JSON armado en el navegador. El modelo de cliente tiene tipo_cliente, descuento_preferencial, saldo_cuenta, total_compras, numero_compras y correo, y la UI los deja solo de lectura",
+    "boundary": "Autorizacion a nivel de campo en el backend (lista blanca o fillable). El cliente no debe poder subirse a mayorista, fijarse un descuento preferencial o saldo, ni cambiar su correo sin verificarlo",
+    "subsystem": "Perfil y registro del cliente (src/app/public/pages/user-profile, src/services/customers, src/services/crear-cuenta)",
+    "attack_class": "Access control",
+    "starting_paths": [
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/app/public/pages/create-account/create-account.component.ts",
+      "src/services/login/login.service.ts",
+      "src/app/public/pages/carrito/carrito.component.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#Core discipline",
+      "WEB-PROTOCOL-AND-AUTH.md#Validation rules",
+      "WEB-PROTOCOL-AND-AUTH.md#Account linking and identity collision"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "candidate",
+    "agent_id": "h8-campos-privilegiados",
+    "reviewed_paths": [
+      "src/app/public/pages/carrito/carrito.component.ts",
+      "src/app/public/pages/create-account/create-account.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/crear-cuenta/crear-cuenta.service.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/login/login.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h8-campos-privilegiados",
+        "reviewed_paths": [
+          "src/services/customers/customer-service.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html",
+          "src/services/auth-service/auth-service.service.ts"
+        ],
+        "invariant": "El PUT /usuarios/update/{id} solo debe poder escribir campos de perfil (nombre, apellidos, telefono, direccion, ciudad, estado, codigo_postal, pais, rfc); tipo_cliente, descuento_preferencial, saldo_cuenta, total_compras, numero_compras, correo y password no deben ser escribibles por el cliente",
+        "method": "source",
+        "result": "La unica barrera visible es la lista blanca del navegador camposEditables (user-profile.component.ts:795-806) aplicada en construirPayloadPerfil (780-791); correo, tipo_cliente, saldo_cuenta, total_compras y numero_compras son controles disabled (675, 683-686) y el HTML no tiene formControlName para ellos salvo correo (html:95). CustomerService.updateCustomer (customer-service.service.ts:18-19) reenvia customerData: any sin filtro. Un cliente con su bearer token puede mandar el PUT directo con cualquier campo; si el backend lo rechaza depende de $fillable / validated() del controlador de update, que no esta en este repo.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h8-campos-privilegiados",
+        "reviewed_paths": [
+          "src/services/crear-cuenta/crear-cuenta.service.ts",
+          "src/app/public/pages/create-account/create-account.component.ts"
+        ],
+        "invariant": "POST /clientes/registro no debe aceptar tipo_cliente, descuento_preferencial ni saldo_cuenta desde el cuerpo",
+        "method": "source",
+        "result": "crear-cuenta.service.ts:11-19 arma {nombre, apellido, correo, password} y create-account.component.ts:42-43 lo llama; el endpoint es anonimo (sin token) y nada en el front impide un cuerpo directo con campos extra. La asignacion depende del backend (no visible).",
+        "artifact": null
+      },
+      {
+        "agent_id": "h8-campos-privilegiados",
+        "reviewed_paths": [
+          "src/services/login/login.service.ts",
+          "src/app/public/pages/carrito/carrito.component.ts",
+          "src/services/ventas/ventas.service.ts"
+        ],
+        "invariant": "El impacto de escribir tipo_cliente/descuento_preferencial/saldo_cuenta: el servidor usa esos atributos del cliente para precio/credito",
+        "method": "source",
+        "result": "login.service.ts:39-41 confirma que el modelo de cliente tiene tipo_cliente, descuento_preferencial y saldo_cuenta. carrito.component.ts:95-99 aplica descuento solo si tipo_cliente == 'mayorista' y el commit 922d086 indica que ahora el backend calcula el descuento del mayorista a partir del cliente, por lo que esos campos alimentan el precio cobrado. El metodo de pago 'credito' (carrito.component.ts:23, 393) sugiere uso de saldo_cuenta, sin logica visible.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h8-campos-privilegiados",
+        "reviewed_paths": [
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/services/crear-cuenta/crear-cuenta.service.ts"
+        ],
+        "invariant": "La interfaz no envia campos privilegiados aunque los controles disabled se alteren (getRawValue los incluye)",
+        "method": "local",
+        "result": "Arnes Node 22 en sandbox (sin red, env vacio) que reproduce construirPayloadPerfil/obtenerDatosEditablesPerfil/normalizarValorPerfil: con tipo_cliente='mayorista', saldo_cuenta='99999', descuento_preferencial=50 y correo alterados el payload resultante es {\"nombre\":\"Dummy2\"}; el cuerpo de registro es solo {nombre,apellido,correo,password}. Esto prueba que la proteccion es exclusivamente un filtro del navegador, que un cliente omite enviando el PUT/POST directamente.",
+        "artifact": "agents/h8-campos-privilegiados/artifacts/check-profile-whitelist.txt"
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/customers/customer-service.service.ts:CustomerService.updateCustomer:privileged-field-mass-assignment",
+      "src/services:clienteId-localStorage:customer-selector-without-owner-binding"
+    ],
+    "unresolved": [],
+    "x_group": "h8",
+    "x_critic_reason": "user-profile.component.ts:675 y 683-684 declaran correo, tipo_cliente y saldo_cuenta como controles disabled. La unica barrera es la lista blanca del navegador camposEditables (user-profile.component.ts:795-812) antes de PUT /usuarios/update/{id} (customer-service.service.ts:18-19). login.service.ts:39-41 confirma que tipo_cliente, descuento_preferencial y saldo_cuenta son atributos del cliente. Segun el commit 922d086, el backend calcula el descuento mayorista a partir del cliente, asi que si el backend asigna en masa, un cliente podria fijarse el descuento con una llamada directa y luego comprar con el (precio y rol, que el dueno pidio revisar). Ninguna unidad reviso la autorizacion por campo. h3 cerro el registro solo con el argumento de que el formulario no manda rol, descuento ni saldo (crear-cuenta.service.ts:12-19), sin considerar un cuerpo enviado directo. La unidad de clienteId cubre de quien es el registro, no que campos se escriben. h7 solo cubre el render de texto libre. Debe cerrarse con un candidato needs_validation cuyo bloqueo exacto sea el $fillable o la validacion del controlador de update y de registro en el backend.",
+    "x_hardening": [
+      "UserProfileComponent.submitForm (user-profile.component.ts:749) envia solo campos cambiados de la lista blanca; es buen comportamiento de UI pero no es control de seguridad: documentar en el backend un FormRequest con reglas explicitas para el perfil y otro para el registro.",
+      "carrito.component.ts:550-557 toma tipo_cliente y descuento_preferencial de localStorage solo para mostrar; mantener que el servidor nunca acepte descuento del cuerpo (ver fingerprint src/services/ventas/ventas.service.ts:CrearVentaRequest.descuento:legacy-client-discount-field)."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.updateCustomer:privileged-field-mass-assignment",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services:clienteId-localStorage:customer-selector-without-owner-binding",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Flogin%2Flogin.service.ts%23handleLoginResponse::src%2Finterceptors%2Fauth.interceptor.ts%23AuthInterceptor::src%2Fservices%2Fauth-service::CLIENT-SIDE.md%23Browser-storage%20disclosure%20and%20stale%20authorization",
+    "canonical_refs": {
+      "surface": "src/services/login/login.service.ts#handleLoginResponse",
+      "boundary": "src/interceptors/auth.interceptor.ts#AuthInterceptor",
+      "subsystem": "src/services/auth-service",
+      "attack_class": "CLIENT-SIDE.md#Browser-storage disclosure and stale authorization"
+    },
+    "surface": "Token y datos de sesion en localStorage",
+    "boundary": "Token bearer Sanctum en el navegador",
+    "subsystem": "Sesion del cliente",
+    "attack_class": "Browser-storage disclosure and stale authorization",
+    "starting_paths": [
+      "src/services/login",
+      "src/services/auth-service",
+      "src/services/crear-cuenta",
+      "src/interceptors",
+      "src/app/public/header",
+      "src/app/public/login",
+      "src/app/public/pages/create-account"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#Browser-storage disclosure and stale authorization",
+      "CLIENT-SIDE.md#Cross-context storage and broadcast confusion"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "candidate",
+    "agent_id": "h3-sesion-tokens",
+    "reviewed_paths": [
+      "src/app/public/pages/pages-routing.module.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/environments/environment.prod.ts",
+      "src/environments/environment.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/auth-service/auth-service.service.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/login/login.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/customers/customer-service.service.ts",
+          "src/services/login/login.service.ts",
+          "src/services/auth-service/auth-service.service.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/pages-routing.module.ts"
+        ],
+        "invariant": "Al cambiar de cuenta en la misma pestana, las peticiones deben usar la identidad de la sesion actual y no una cacheada de la anterior",
+        "method": "local",
+        "result": "CustomerService (providedIn root) captura clienteId en un inicializador de campo (customer-service.service.ts:11) y lo reutiliza en getImagenes, uploadCustomerImages (customer_id en el cuerpo) y deleteImage. Login y logout solo hacen router.navigate sin recargar. En el arnes, tras A(101) -> logout -> login B(202), el singleton siguio con 101 y emitio GET /usuarios/store-images/101/cliente y POST store-images con customer_id 101, ambos con Bearer TOKEN-B.",
+        "artifact": "agents/h3-sesion-tokens/artifacts/check-sesion-residuo-y-cliente-obsoleto.txt"
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/interceptors/auth.interceptor.ts",
+          "src/environments/environment.prod.ts",
+          "src/environments/environment.ts"
+        ],
+        "invariant": "El bearer solo debe adjuntarse a peticiones hacia el host de la API",
+        "method": "source",
+        "result": "El interceptor adjunta el token solo si req.url.startsWith(environment.apiUrl). apiUrl de produccion incluye la ruta (https://carniceriafrancoadmin.shop/api/v1), asi que un prefijo coincidente no puede cambiar de host; todas las llamadas HttpClient se construyen desde environment.apiUrl. El avatar de ui-avatars.com es un <img>, sin bearer. No hay fuga del token a terceros.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h3-sesion-tokens",
+        "reviewed_paths": [
+          "src/services/auth-service/auth-service.service.ts",
+          "src/services/login/login.service.ts"
+        ],
+        "invariant": "Los eventos de storage o el estado entre pestanas no deben dejar que una pestana vieja actue con la identidad nueva",
+        "method": "source",
+        "result": "No hay listeners de 'storage' ni BroadcastChannel. Una pestana vieja conserva la UI y los datos en memoria de A mientras el localStorage ya tiene el token de B; las acciones que leen getUserId() en ese momento usan B con B y el servidor decide. El unico estado de identidad que queda congelado es CustomerService.customer (candidato aparte). El resto se registra como hardening.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch",
+      "src/services/auth-service/auth-service.service.ts:AuthService.logout:incomplete-localstorage-cleanup"
+    ],
+    "unresolved": [
+      "No es visible si el backend de /usuarios/store-images (GET/POST) y /usuarios/borrar/{id}/imagenes/{img} toma el cliente del token Sanctum o del id del path o cuerpo."
+    ],
+    "x_group": "h3",
+    "x_hardening": [
+      "log-service.service.ts:20 envia usuario = localStorage clienteId o el literal '20' al registrar acciones; el backend deberia atribuir el historial al usuario del token y no a ese campo (lo decide el unit de clienteId-from-localStorage del backend).",
+      "crear-cuenta.service.ts guarda el token del registro y luego el componente hace login y lo sobreescribe sin revocarlo; handleLoginResponse tampoco revoca un token previo. Conviene que el registro no emita token si el front vuelve a loguear, o reutilizar ese token.",
+      "No hay listener de 'storage' ni BroadcastChannel: una pestana vieja sigue mostrando los datos de A en memoria despues de un logout o de un login de B en otra pestana. Conviene escuchar 'storage' sobre 'token' y 'clienteId' para reiniciar el estado o recargar.",
+      "La inactividad de 10 min es solo del cliente (setTimeout y lastActivityTime compartido); la expiracion real del token Sanctum debe configurarse en el backend. Ademas, si el pago en Mercado Pago tarda mas de 10 min, al volver checkInactivity cierra la sesion y AuthGuard manda a /login sin conservar los query params de payment-callback (afecta disponibilidad de la confirmacion, no seguridad).",
+      "AuthGuard solo comprueba que exista el token: es correcto como control de UX siempre que el backend autorice cada endpoint."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/auth-service/auth-service.service.ts:AuthService.logout:incomplete-localstorage-cleanup",
+        "final": "confirmed"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Fproductos%2Fproductos.service.ts%23getProductos::backend%23catalog-query-construction::src%2Fservices%2Fproductos::ATTACK-CLASSES.md%23Injection",
+    "canonical_refs": {
+      "surface": "src/services/productos/productos.service.ts#getProductos",
+      "boundary": "backend#catalog-query-construction",
+      "subsystem": "src/services/productos",
+      "attack_class": "ATTACK-CLASSES.md#Injection"
+    },
+    "surface": "API publica del catalogo sin sesion. GET /productos acepta search, order_by, order_dir, per_page, category_id, en_oferta y destacado (ProductosService.getProductos copia cualquier clave a la query). Tambien GET /productos/buscar?query=, GET /productos/{id}, GET /productos/{id}/stock, GET /categorias/{id} y /categorias/{id}/productos, con ids y texto de busqueda de un visitante anonimo",
+    "boundary": "Construccion de consultas en el backend (columna y direccion de orden, LIKE de busqueda, tamano de pagina) y filtro de productos inactivos u ocultos, frente a un visitante anonimo",
+    "subsystem": "Catalogo publico (src/services/productos, src/services/categorias, src/app/public/pages/productos, src/app/public/home)",
+    "attack_class": "Injection",
+    "starting_paths": [
+      "src/services/productos/productos.service.ts",
+      "src/services/categorias/categorias.service.ts",
+      "src/app/public/pages/productos/productos.component.ts",
+      "src/app/public/pages/categorias/categorias.component.ts",
+      "src/app/public/home/home.component.ts"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Injection",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Search, cache, and index ACL drift",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Enumeration and aggregate oracles"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 3,
+    "status": "blocked",
+    "agent_id": "h9-catalogo-pendientes",
+    "reviewed_paths": [
+      "src/app/public/home/home.component.ts",
+      "src/app/public/pages/categorias/categorias.component.ts",
+      "src/app/public/pages/productos/productos.component.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "src/services/categorias/categorias.service.ts",
+      "src/services/productos/productos.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h9-catalogo-pendientes",
+        "reviewed_paths": [
+          "src/services/productos/productos.service.ts",
+          "src/app/public/pages/productos/productos.component.ts",
+          "src/app/public/home/home.component.ts"
+        ],
+        "invariant": "Los parametros de catalogo controlados por un visitante anonimo (order_by, order_dir, per_page, search, query) no deben llegar a una construccion de consulta sin lista blanca, escape de LIKE ni tope de pagina",
+        "method": "source",
+        "result": "En el front, getProductos (productos.service.ts:100-121) copia cualquier clave a HttpParams (Angular las codifica en la URL; no hay sumidero en el navegador). La UI solo envia category_id (productos.component.ts:44 y 71-73, coaccionado con '+', NaN no se envia) y el texto libre a /productos/buscar (productos.component.ts:75-77, productos.service.ts:141-144). order_by/order_dir/per_page/search nunca se usan desde la UI pero un anonimo puede mandarlos directo a la API. La interfaz declara order_by como string libre (productos.service.ts:105) y order_dir solo como tipo TS. No hay codigo fuente visible del controlador: no existe causa raiz en este repo que sostenga un candidato (gate 1), por lo que la unidad queda bloqueada en hechos del backend.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h9-catalogo-pendientes",
+        "reviewed_paths": [
+          "src/services/productos/productos.service.ts",
+          "src/services/categorias/categorias.service.ts",
+          "src/app/public/pages/categorias/categorias.component.ts",
+          "src/app/public/home/home.component.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "Productos y categorias inactivos u ocultos no deben poder leerse por id, busqueda o listado de categoria por un anonimo",
+        "method": "source",
+        "result": "El comentario de productos.service.ts:96-97 afirma que el listado solo trae activos con stock; /productos/{id} (156-158), /productos/{id}/stock (163-165), /productos/buscar (141-144), /productos/categoria/{id} (149-151), /categorias/{id} y /categorias/{id}/productos (55-64) no documentan ese filtro, y /categorias/all (48-50) se describe como 'incluyendo inactivas' sin llamadores en src/. Las peticiones anonimas no llevan Authorization (auth.interceptor.ts solo agrega Bearer si hay token). Los campos expuestos (activo, stock, stock_minimo, codigo, fecha_vencimiento) ya se muestran en parte en la UI publica; no se identifico un dato confidencial concreto ni un filtro visible que falte en el front, porque el filtro vive en el backend.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [
+      "Backend (carniceria-franco-backend) no disponible: falta ver si el controlador de GET /productos aplica lista blanca a order_by y order_dir antes de orderBy() (o si usa orderByRaw/DB::raw con esos valores), y si per_page tiene tope.",
+      "Falta ver si /productos/buscar?query= y el parametro search usan LIKE con binding (sin concatenacion en whereRaw) y si escapan % y _.",
+      "Falta ver si GET /productos/{id}, /productos/{id}/stock, /productos/buscar, /productos/categoria/{id}, /categorias/{id}/productos filtran activo=1, y si GET /categorias/all (inactivas) exige rol admin o queda publico."
+    ],
+    "x_group": "h9",
+    "x_critic_reason": "productos.service.ts:96-121 documenta que el backend acepta search, order_by, order_dir y per_page, y reenvia cualquier clave como query string. productos.service.ts:140-144 manda el texto libre de busqueda del visitante (productos.component.ts:76-77) a /productos/buscar. Producto (productos.service.ts:7-33) trae activo, stock y stock_minimo, y el comentario de la linea 96 dice que solo se listan activos con stock, pero /productos/{id}, /buscar y /categorias/{id}/productos no muestran ese filtro. Ninguna unidad mapeo las peticiones anonimas al catalogo. La unidad de DOM-XSS solo reviso como se renderizan las respuestas, y admin-like-calls solo cubre escrituras y el listado global. Es un punto de entrada anonimo sin mapear: orderBy o LIKE con valor del cliente, per_page sin tope, y lectura de productos inactivos por id o busqueda. Debe dar un candidato needs_validation con el bloqueo exacto en el controlador de productos del backend, o descartarse con razon.",
+    "x_hardening": [
+      "El front deberia llamar a la cancelacion de la venta pendiente propia cuando el callback de Mercado Pago llega sin pago, y mostrar al cliente una opcion de cancelar transferencias pendientes; aun asi la expiracion debe imponerla el servidor.",
+      "venta_pendiente_mp se guarda en localStorage (carrito.component.ts:362-366) y nunca se lee; solo se borra en aprobado/pendiente, por lo que queda como dato obsoleto tras un pago abandonado.",
+      "Catalogo: la UI no restringe order_by/order_dir/per_page (productos.service.ts:100-121 reenvia cualquier clave); no es un fallo del front porque Angular codifica los parametros, pero la lista blanca y el tope deben estar en el backend."
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Fventas%2Fventas.service.ts%23obtenerDetalleVenta::backend%23sale-owner-check::src%2Fservices%2Fventas::DATA-ISOLATION-AND-LIFECYCLE.md%23Missing%20tenant%20or%20owner%20enforcement",
+    "canonical_refs": {
+      "surface": "src/services/ventas/ventas.service.ts#obtenerDetalleVenta",
+      "boundary": "backend#sale-owner-check",
+      "subsystem": "src/services/ventas",
+      "attack_class": "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement"
+    },
+    "surface": "Detalle de venta por id: VentasService.obtenerDetalleVenta GET /ventas/{saleId} (user-profile verDetalleCompra), que devuelve Venta con customer (email, telefono, direccion, ciudad, codigo_postal) y detalles con precios",
+    "boundary": "Verificacion de dueno de la venta contra el token Sanctum (id de objeto secuencial, no clienteId)",
+    "subsystem": "src/services/ventas",
+    "attack_class": "Missing tenant or owner enforcement",
+    "starting_paths": [
+      "src/services/ventas/ventas.service.ts",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Access control",
+    "selected_companion_blocks": [
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Core discipline",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Universal moves",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Validation rules",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Missing tenant or owner enforcement",
+      "DATA-ISOLATION-AND-LIFECYCLE.md#Enumeration and aggregate oracles"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h6-aislamiento-datos",
+    "reviewed_paths": [
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/ventas/ventas.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html"
+        ],
+        "invariant": "GET /ventas/{saleId} debe devolver la venta solo si pertenece al cliente del token",
+        "method": "source",
+        "result": "verDetalleCompra(compraId) (user-profile.component.ts:128-143) llama obtenerDetalleVenta(saleId) (ventas.service.ts:294-295) con un id numerico secuencial; no se manda customer_id ni nada que limite el dueno, asi que la unica defensa posible es el backend. El tipo Venta (ventas.service.ts:52-69) incluye customer con email, telefono, direccion, ciudad, codigo_postal, total_compras y details con precios. El mismo patron por saleId existe en cancelarVenta PUT /ventas/{id}/cancelar (301-302), sin uso en src/app. No visible si el backend verifica dueno: candidato src/services/ventas/ventas.service.ts:VentasService.obtenerDetalleVenta:sale-owner-check.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/ventas/ventas.service.ts:VentasService.obtenerDetalleVenta:sale-owner-check"
+    ],
+    "unresolved": [],
+    "x_group": "h6",
+    "x_critic_reason": "ventas.service.ts:294-295 (GET /ventas/{saleId}) se usa en user-profile.component.ts:128-140. La interfaz Venta.customer (ventas.service.ts:36-50,68) trae datos personales de terceros. La unidad de clienteId-from-localStorage solo enumero selectores basados en clienteId (/ventas/cliente/{id}/*, /usuarios/update/{id}, customer-data), y la de subidas solo vio saleId en evidencia-transferencia. Esta lectura por id de venta secuencial es un camino paralelo que ninguna unidad reviso. Es un camino fuente concreto hacia la verificacion de dueno del backend y debe dar un candidato needs_validation.",
+    "x_hardening": [
+      "CustomerService.getCustomerData (GET /getData?clienteId=, customer-service.service.ts:14-15) no tiene llamadas en src/app; es codigo muerto que apunta a un endpoint heredado. Conviene borrarlo del front y confirmar que la ruta ya no existe en el backend.",
+      "La API deberia exponer rutas del cliente sin id (por ejemplo /clientes/me, /ventas/mias) y el front dejar de mandar customer_id en cuerpos y query params; asi el id de localStorage deja de ser un selector y solo se usa para mostrar.",
+      "obtenerTodasVentas (GET /ventas, 'para administrador') y cancelarVenta viven en el servicio del cliente sin uso en la UI; su autorizacion es de la unidad src/services#admin-like-calls."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.obtenerDetalleVenta:sale-owner-check",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "src%2Fservices%2Fventas%2Fventas.service.ts%23subirEvidenciaTransferencia::backend%23upload-validation::src%2Fapp%2Fpublic%2Fpages%2Fseguimiento::ATTACK-CLASSES.md%23Resource%20and%20file%20handling",
+    "canonical_refs": {
+      "surface": "src/services/ventas/ventas.service.ts#subirEvidenciaTransferencia",
+      "boundary": "backend#upload-validation",
+      "subsystem": "src/app/public/pages/seguimiento",
+      "attack_class": "ATTACK-CLASSES.md#Resource and file handling"
+    },
+    "surface": "Subida de evidencia de transferencia e imagenes de seguimiento",
+    "boundary": "Validacion de archivos subidos",
+    "subsystem": "Subidas de archivos",
+    "attack_class": "Resource and file handling",
+    "starting_paths": [
+      "src/services/ventas",
+      "src/services/customers",
+      "src/app/public/pages/seguimiento",
+      "src/app/public/pages/user-profile",
+      "src/app/public/pages/datos-bancarios"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Resource and file handling",
+    "selected_companion_blocks": [
+      "CLIENT-SIDE.md#Core discipline",
+      "CLIENT-SIDE.md#Universal moves",
+      "CLIENT-SIDE.md#Validation rules",
+      "CLIENT-SIDE.md#DOM-based XSS"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [
+      {
+        "wave": 1,
+        "status": "blocked",
+        "agent_id": "h4-logica-negocio",
+        "reviewed_paths": [
+          "src/app/public/pages/datos-bancarios/datos-bancarios.component.html",
+          "src/app/public/pages/seguimiento/seguimiento.component.html",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/services/customers/customer-service.service.ts",
+          "src/services/ventas/ventas.service.ts"
+        ],
+        "local_checks": [
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/services/ventas/ventas.service.ts",
+              "src/app/public/pages/user-profile/user-profile.component.ts",
+              "src/app/public/pages/user-profile/user-profile.component.html"
+            ],
+            "invariant": "El tipo, tamano, nombre y venta destino de la evidencia de transferencia se validan en el servidor",
+            "method": "source",
+            "result": "La evidencia se sube como multipart 'evidencia' a /ventas/{saleId}/evidencia-transferencia (ventas.service.ts:342-350). La unica validacion es del cliente: file.type en [image/jpeg, image/png, application/pdf] y 5 MB (user-profile.component.ts:369-385), y accept en el input (user-profile.component.html:588); file.type lo deriva el navegador y es evitable con una llamada directa. saleId sale del historial del propio cliente. El front no vuelve a mostrar la evidencia (no hay sink DOM aqui); el nombre del archivo se muestra por interpolacion (user-profile.component.html:581).",
+            "artifact": null
+          },
+          {
+            "agent_id": "h4-logica-negocio",
+            "reviewed_paths": [
+              "src/app/public/pages/seguimiento/seguimiento.component.ts",
+              "src/app/public/pages/seguimiento/seguimiento.component.html",
+              "src/services/customers/customer-service.service.ts",
+              "src/app/public/pages/datos-bancarios/datos-bancarios.component.html"
+            ],
+            "invariant": "Las imagenes de seguimiento subidas y devueltas no llegan a un sink ejecutable",
+            "method": "source",
+            "result": "Las fotos se envian como base64 JSON sin validacion de tipo ni tamano mas alla de accept='image/*' (seguimiento.component.html:43; seguimiento.component.ts:233-269). Al volver se renderizan como 'data:image/png;base64,'+img.image en <img [src]> (seguimiento.component.ts:125; .html:84,107); una imagen en <img> no ejecuta script y Angular sanea [src]; no hay innerHTML ni bypassSecurityTrust en src/app. La restriccion de una subida cada 15 dias es solo de UI (seguimiento.component.ts:42-55). Sin sink del lado del cliente; la validacion real es del backend.",
+            "artifact": null
+          }
+        ],
+        "result_fingerprints": [],
+        "unresolved": [
+          "Backend no disponible: si /ventas/{id}/evidencia-transferencia valida dueno y estado de la venta, tipo real del contenido (no solo extension/MIME declarado), tamano, y genera el nombre de almacenamiento sin usar el nombre del cliente (path traversal)",
+          "Backend no disponible: con que Content-Type y Content-Disposition sirve el panel admin la evidencia (HTML/SVG subido con MIME falso podria ejecutarse en el origen del panel)",
+          "Backend no disponible: si /usuarios/store-images decodifica y valida el base64 (tipo, dimensiones, tamano, cantidad) y aplica el limite de 15 dias del lado servidor"
+        ],
+        "reassignment_reason": "critic-ola1: la unidad quedo blocked con hipotesis concretas hacia el backend que tienen camino fuente en este repo; debe producir candidatos needs_validation con bloqueo exacto en lugar de solo unresolved"
+      }
+    ],
+    "wave": 2,
+    "status": "candidate",
+    "agent_id": "h6-aislamiento-datos",
+    "reviewed_paths": [
+      "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts",
+      "src/app/public/pages/seguimiento/seguimiento.component.html",
+      "src/app/public/pages/seguimiento/seguimiento.component.ts",
+      "src/app/public/pages/user-profile/user-profile.component.html",
+      "src/app/public/pages/user-profile/user-profile.component.ts",
+      "src/services/customers/customer-service.service.ts",
+      "src/services/ventas/ventas.service.ts"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/ventas/ventas.service.ts",
+          "src/app/public/pages/user-profile/user-profile.component.ts",
+          "src/app/public/pages/user-profile/user-profile.component.html",
+          "src/app/public/pages/datos-bancarios/datos-bancarios.component.ts"
+        ],
+        "invariant": "La evidencia de transferencia solo se adjunta a una venta propia, pendiente y por transferencia, con contenido validado en el servidor",
+        "method": "source",
+        "result": "subirEvidenciaTransferencia (ventas.service.ts:342-349) manda multipart 'evidencia' a /ventas/{saleId}/evidencia-transferencia con el nombre de archivo del cliente. Los controles (tipo declarado image/jpeg|image/png|application/pdf, 5 MB, accept .jpg/.png/.pdf y esTransferenciaPendiente) estan solo en user-profile.component.ts:199-203 y 358-389 y en el html:588; file.type lo deriva el navegador de la extension. datos-bancarios solo muestra la configuracion publica. Candidato src/services/ventas/ventas.service.ts:VentasService.subirEvidenciaTransferencia:sale-owner-and-file-validation.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h6-aislamiento-datos",
+        "reviewed_paths": [
+          "src/services/customers/customer-service.service.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.ts",
+          "src/app/public/pages/seguimiento/seguimiento.component.html"
+        ],
+        "invariant": "Las imagenes base64 de seguimiento se validan (tipo, tamano, cantidad) y el limite de 15 dias se aplica en el servidor",
+        "method": "source",
+        "result": "seguimiento.component.ts:233-269 manda base64 de cualquier archivo seleccionado sin limite de tamano ni cantidad; accept='image/*' (html:43) es solo sugerencia; canUpload (42-55) solo oculta el selector (html:18-23) e incluso el boton 'Subir fotos' aparece cuando !canUpload (html:69-73). Las imagenes se vuelven a mostrar como 'data:image/png;base64,'+img.image (125), sin camino de XSS en el front (Angular sanitiza [src]). Candidato src/services/customers/customer-service.service.ts:CustomerService.uploadCustomerImages:server-side-image-validation; el envio a nombre de otro cliente por clienteId viejo ya esta en src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch.",
+        "artifact": null
+      }
+    ],
+    "result_fingerprints": [
+      "src/services/ventas/ventas.service.ts:VentasService.subirEvidenciaTransferencia:sale-owner-and-file-validation",
+      "src/services/customers/customer-service.service.ts:CustomerService.uploadCustomerImages:server-side-image-validation",
+      "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch"
+    ],
+    "unresolved": [],
+    "x_group": "h6",
+    "x_hardening": [
+      "CustomerService.getCustomerData (GET /getData?clienteId=, customer-service.service.ts:14-15) no tiene llamadas en src/app; es codigo muerto que apunta a un endpoint heredado. Conviene borrarlo del front y confirmar que la ruta ya no existe en el backend.",
+      "La API deberia exponer rutas del cliente sin id (por ejemplo /clientes/me, /ventas/mias) y el front dejar de mandar customer_id en cuerpos y query params; asi el id de localStorage deja de ser un selector y solo se usa para mostrar.",
+      "obtenerTodasVentas (GET /ventas, 'para administrador') y cancelarVenta viven en el servicio del cliente sin uso en la UI; su autorizacion es de la unidad src/services#admin-like-calls."
+    ],
+    "x_decisions": [
+      {
+        "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.subirEvidenciaTransferencia:sale-owner-and-file-validation",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.uploadCustomerImages:server-side-image-validation",
+        "final": "needs_validation"
+      },
+      {
+        "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch",
+        "final": "needs_validation"
+      }
+    ]
+  },
+  {
+    "coverage_id": "vercel.json%23rewrites::vercel.json%23destination::deploy::CLOUD-AND-DEPLOYMENT.md%23Edge%2Fruntime%20boundary%20mismatch",
+    "canonical_refs": {
+      "surface": "vercel.json#rewrites",
+      "boundary": "vercel.json#destination",
+      "subsystem": "deploy",
+      "attack_class": "CLOUD-AND-DEPLOYMENT.md#Edge/runtime boundary mismatch"
+    },
+    "surface": "Rewrite /api/v1/* de Vercel hacia Heroku",
+    "boundary": "Borde de Vercel vs API de terceros",
+    "subsystem": "Configuracion de despliegue",
+    "attack_class": "Edge/runtime boundary mismatch",
+    "starting_paths": [
+      "vercel.json",
+      "server.js",
+      "Procfile",
+      "proxy.conf.json",
+      "src/.htaccess",
+      "angular.json"
+    ],
+    "ordinary_attack_class_block": "ATTACK-CLASSES.md#Obvious things",
+    "selected_companion_blocks": [
+      "CLOUD-AND-DEPLOYMENT.md#Core discipline",
+      "CLOUD-AND-DEPLOYMENT.md#Universal moves",
+      "CLOUD-AND-DEPLOYMENT.md#Validation rules",
+      "CLOUD-AND-DEPLOYMENT.md#Edge/runtime boundary mismatch"
+    ],
+    "excluded_blocks": [
+      {
+        "block": "AI-AND-LLM.md",
+        "reason": "sin superficie de modelos o agentes en src/"
+      },
+      {
+        "block": "MEMORY-SAFETY-AND-BINARY.md",
+        "reason": "TypeScript/JS sin codigo nativo"
+      }
+    ],
+    "prior_status": "none",
+    "attempts": [],
+    "wave": 1,
+    "status": "covered",
+    "agent_id": "h1-secretos-despliegue",
+    "reviewed_paths": [
+      "Procfile",
+      "angular.json",
+      "proxy.conf.json",
+      "server.js",
+      "src/.htaccess",
+      "src/environments/environment.prod.ts",
+      "src/interceptors/auth.interceptor.ts",
+      "vercel.json"
+    ],
+    "local_checks": [
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "vercel.json",
+          "src/environments/environment.prod.ts",
+          "src/interceptors/auth.interceptor.ts"
+        ],
+        "invariant": "El rewrite de borde /api/v1/* no cambia autoridad: no hace que el token o datos del cliente lleguen a un backend distinto del esperado",
+        "method": "source",
+        "result": "vercel.json reescribe /api/v1/:path* a https://infinity-api-app-05bb275c7cec.herokuapp.com (API de otro proyecto, no la de la carniceria). La SPA nunca usa rutas relativas /api: todas las llamadas usan el apiUrl absoluto https://carniceriafrancoadmin.shop/api/v1 y el interceptor solo adjunta el Bearer a ese prefijo, asi que el rewrite es configuracion muerta para el trafico de la app y no transporta el token. El nombre de host de Heroku incluye un sufijo aleatorio asignado por Heroku, por lo que no es reclamable por terceros si la app se borra. No hay actor de menor confianza ni operacion no autorizada demostrable.",
+        "artifact": null
+      },
+      {
+        "agent_id": "h1-secretos-despliegue",
+        "reviewed_paths": [
+          "server.js",
+          "Procfile",
+          "angular.json",
+          "proxy.conf.json",
+          "src/.htaccess"
+        ],
+        "invariant": "Los modos de despliegue alternativos (Express/Heroku, proxy de desarrollo) no exponen una frontera distinta a la de Apache",
+        "method": "local",
+        "result": "server.js sirve dist/onvert-theme pero angular.json produce dist/convert-theme, asi que el modo Express/Procfile esta roto (servira 404/error de sendFile); no sirve archivos fuera del directorio (express.static y sendFile con ruta fija). proxy.conf.json solo aplica a ng serve local hacia 127.0.0.1:8000. .htaccess solo hace rewrite SPA. Ninguno introduce secretos ni proxy de autoridad.",
+        "artifact": "agents/h1-secretos-despliegue/artifacts/check-historial-y-despliegue.txt"
+      }
+    ],
+    "result_fingerprints": [],
+    "unresolved": [],
+    "x_group": "h1",
+    "x_hardening": [
+      "Ninguno de los tres despliegues (src/.htaccess, server.js, vercel.json) envia X-Frame-Options/CSP frame-ancestors, CSP, X-Content-Type-Options ni Referrer-Policy. Hoy no hay accion sensible enmarcable porque la sesion vive solo en localStorage y los navegadores modernos particionan el almacenamiento de iframes de terceros, pero en navegadores sin particion (p. ej. Chrome anterior a 115) un iframe tendria el token. Agregar en .htaccess: Header always set X-Frame-Options \"DENY\" y Content-Security-Policy \"frame-ancestors 'none'\" (y equivalentes en server.js/vercel.json si se usan).",
+      "src/index.html carga jQuery 3.4.1 y bootstrap 5.0.0 desde CDNs sin integrity ni crossorigin; agregar SRI (sha384) y crossorigin=\"anonymous\", o servirlos desde el bundle (bootstrap ^5.2.2 ya esta en package.json). jQuery 3.4.1 esta afectado por CVE-2020-11022/11023 (htmlPrefilter); main.js no pasa HTML externo a jQuery, pero conviene actualizar a 3.5+.",
+      "vercel.json reescribe /api/v1/* hacia infinity-api-app-05bb275c7cec.herokuapp.com, una API de otro proyecto (InfinityTech) que la SPA no usa; si existe un proyecto Vercel activo con este repo, ese origen expone bajo el dominio de la tienda las respuestas de una app ajena. Eliminar el rewrite o apuntarlo al backend real.",
+      "server.js sirve dist/onvert-theme mientras angular.json genera dist/convert-theme: el modo Express/Heroku (Procfile) esta roto. Corregir la ruta o retirar server.js/Procfile y las dependencias express, cors e http-proxy-middleware no usadas.",
+      "El historial conserva URLs publicas de Firebase Storage con token de descarga (bucket infinitytech-15a41) del tema de gimnasio retirado; son tokens de lectura de objetos publicos (placeholders/banner), sin autoridad adicional. Revocarlos en la consola de Firebase solo si esos objetos no deben ser publicos.",
+      "src/assets/lib/waypoints/links.php se copia a dist/assets y Apache en Hostinger lo ejecutaria; es inocuo (solo define un arreglo), pero conviene borrarlo junto con flaticon/backup.txt.",
+      "angular.json conserva cli.analytics con un UUID; no es secreto, pero se puede quitar."
+    ]
+  }
+]

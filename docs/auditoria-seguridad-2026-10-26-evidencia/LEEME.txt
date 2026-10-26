@@ -1,0 +1,16 @@
+Evidencia de respaldo de la auditoria de seguridad del front (2026-10-26).
+
+Para que sirve: poder retomar o repetir la auditoria con la skill security-audit de Cloudflare
+sin empezar de cero. Si se corre de nuevo con el backend a la vista, la skill lee
+coverage-ledger.json y findings.json como "corrida previa" (findings.json esta en la carpeta
+docs/, un nivel arriba).
+
+- coverage-ledger.json: las 24 unidades de cobertura y su estado final (10 cubiertas, 12 con
+  candidato, 1 bloqueada, 1 fuera de alcance).
+- architecture.md: resumen de arquitectura usado por los cazadores.
+- run-metadata.json: perfil, alcance, commit auditado y reglas de ejecucion (sandbox).
+- agents/<id>/artifacts/*.txt: salidas de las pruebas locales hechas en el sandbox (datos
+  ficticios). Las rutas "agents/..." que cita el JSON apuntan a esta carpeta.
+
+No incluye los transcripts de los agentes ni los scripts de la corrida (viven en el contenedor
+de la sesion y no se guardan).

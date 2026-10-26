@@ -1,0 +1,7 @@
+check v3-02: cuerpo de POST /ventas armado desde localStorage (arnes Node 22 que copia carrito.component.ts:396-408, 469-490 y auth-service.service.ts:78-81; datos ficticios)
+comando: run-1/bin/sandbox.sh <scratch> sh -c 'node /mnt/h.js' (sin red, env vacio, cpu 20s, mem 2GB, reloj 30s); rc=0
+---
+valido=true
+body={"customer_id":7,"metodo_pago":"transferencia","productos":[{"product_id":10,"cantidad":100000,"monto_pesos":1},{"product_id":11,"cantidad":0.001}]}
+---
+nota: validarDatosCarrito solo corre en el navegador; un cliente con su Bearer puede enviar este cuerpo sin pasar por el front, asi que el resultado decisivo depende del backend (no presente).

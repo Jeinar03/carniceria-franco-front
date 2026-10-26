@@ -1,0 +1,97 @@
+# Comando: run-1/bin/sandbox.sh <scratch> node /mnt/harness.js (sin red, env vacio, objetivo ro, cpu 20s, mem 2GB, 64 procs, 5MB, 30s). Node 22. Datos dummy 101/202, TOKEN-A/TOKEN-B; HTTP stub sin red.
+## Salida
+Lineas verificadas:
+  providedIn root -> 7 | inicializador -> 11
+  customer_id: this.customer -> 24 | getImagenes URL -> 37 | deleteImage URL -> 40
+  login setItem clienteId -> 36 | login navigate -> 43
+  logout removeItem clienteId -> 73 | logout navigate -> 75
+  interceptor token por peticion -> 24
+  ocurrencias de "this.customer =" (reasignacion): 0
+  reload/location.href en servicios de sesion: false
+
+== 1. Login de A (dummy 101), A abre /pages/seguimiento ==
+== 2. A cierra sesion (AuthService.logout real) ==
+   clienteId en storage: null | singleton.customer: 101
+== 3. Login de B (dummy 202) en la misma pestana, abre seguimiento, sube y borra ==
+   clienteId en storage: 202 | singleton.customer: 101
+
+Peticiones registradas:
+  GET | http://127.0.0.1:9/api/v1/usuarios/store-images/101/cliente | Bearer TOKEN-A
+  GET | http://127.0.0.1:9/api/v1/usuarios/store-images/101/cliente | Bearer TOKEN-B
+  POST | http://127.0.0.1:9/api/v1/usuarios/store-images | {"customer_id":"101","images":[{"base64":"AAAA","peso":"80","comentarios":"dummy B"}]} | Bearer TOKEN-B
+  DELETE | http://127.0.0.1:9/api/v1/usuarios/borrar/101/imagenes/5 | Bearer TOKEN-B
+## Fuente del arnes (harness.js)
+// Arnes independiente v3-06: ejecuta el texto real (sin anotaciones de tipo) de
+// CustomerService (inicializador + getImagenes/uploadCustomerImages/deleteImage),
+// LoginService.handleLoginResponse y AuthService.logout con localStorage simulado.
+// HTTP = stubs que solo registran; datos dummy; sin red.
+const fs = require('fs');
+const R = '/home/user/carniceria-franco-front/';
+const read = p => fs.readFileSync(R + p, 'utf8');
+function body(src, sig) {
+  const i = src.indexOf(sig); if (i < 0) throw new Error('firma no encontrada: ' + sig);
+  let j = src.indexOf('{', i + sig.length - 1), d = 0, k = j;
+  for (; k < src.length; k++) { if (src[k] === '{') d++; else if (src[k] === '}') { d--; if (!d) break; } }
+  return src.slice(j, k + 1);
+}
+const lineOf = (src, needle) => src.split('\n').findIndex(l => l.includes(needle)) + 1;
+const cust = read('src/services/customers/customer-service.service.ts');
+const login = read('src/services/login/login.service.ts');
+const auth = read('src/services/auth-service/auth-service.service.ts');
+const icpt = read('src/interceptors/auth.interceptor.ts');
+console.log('Lineas verificadas:');
+console.log('  providedIn root ->', lineOf(cust, "providedIn: 'root'"), '| inicializador ->', lineOf(cust, "public customer=localStorage.getItem('clienteId')"));
+console.log('  customer_id: this.customer ->', lineOf(cust, 'customer_id: this.customer'), '| getImagenes URL ->', lineOf(cust, 'store-images/${this.customer}/cliente'), '| deleteImage URL ->', lineOf(cust, 'borrar/${this.customer}/imagenes'));
+console.log('  login setItem clienteId ->', lineOf(login, "setItem('clienteId'"), '| login navigate ->', lineOf(login, "this.router.navigate(['/'])"));
+console.log('  logout removeItem clienteId ->', lineOf(auth, "removeItem('clienteId')"), '| logout navigate ->', lineOf(auth, "this.router.navigate(['/'])"));
+console.log('  interceptor token por peticion ->', lineOf(icpt, "localStorage.getItem('token')"));
+console.log('  ocurrencias de "this.customer =" (reasignacion):', (cust.match(/this\.customer\s*=/g) || []).length);
+console.log('  reload/location.href en servicios de sesion:', /location\.(reload|href|assign|replace)/.test(login + auth));
+
+const store = new Map();
+global.localStorage = { getItem: k => store.has(k) ? store.get(k) : null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
+const environment = { apiUrl: 'http://127.0.0.1:9/api/v1' };
+const calls = [];
+// Interceptor: la logica real lee el token de localStorage en cada peticion
+const bearer = () => { const t = localStorage.getItem('token'); return t ? 'Bearer ' + t : '(sin token)'; };
+const strip = s => s.replace(/<any>/g, '');
+const initExpr = cust.match(/public customer\s*=\s*(localStorage\.getItem\('clienteId'\));/)[1];
+const HttpHeaders = function () {};
+class CustomerService {
+  constructor() {
+    this.customer = eval(initExpr);
+    this.http = {
+      get: u => calls.push(['GET', u, bearer()]),
+      post: (u, p) => calls.push(['POST', u, JSON.stringify(p), bearer()]),
+      delete: u => calls.push(['DELETE', u, bearer()]),
+    };
+  }
+}
+const mk = (sig, params) => new Function('environment', 'HttpHeaders', 'return function(' + params + ')' + strip(body(cust, sig)))(environment, HttpHeaders);
+CustomerService.prototype.getImagenes = mk('getImagenes(): Observable<any>', '');
+CustomerService.prototype.uploadCustomerImages = mk('}[]): Observable<any>', 'images');
+CustomerService.prototype.deleteImage = mk('deleteImage(imageId: number): Observable<any>', 'imageId');
+
+const authSvc = { http: { post: () => ({ subscribe() {} }) }, showSuccess() {}, router: { navigate() {} }, setLoggedIn() {} };
+authSvc.logout = new Function('environment', 'return function()' + body(auth, 'logout(): void'))(environment);
+const loginSvc = { authService: authSvc, router: { navigate() {} } };
+loginSvc.handleLoginResponse = new Function('return function(response)' + body(login, 'handleLoginResponse(response: any)'))();
+const resp = (id, tok, n) => ({ data: { token: tok, cliente: { id, nombre: n, correo: n + '@example.test', apellido: 'X', telefono: '', tipo_cliente: 'minorista', descuento_preferencial: '0', saldo_cuenta: '0' } } });
+
+// Singleton de raiz: una sola instancia por pestana (simulada con lazy getter unico)
+let inst = null; const inject = () => inst || (inst = new CustomerService());
+
+console.log('\n== 1. Login de A (dummy 101), A abre /pages/seguimiento ==');
+loginSvc.handleLoginResponse(resp(101, 'TOKEN-A', 'dummyA'));
+inject().getImagenes();
+console.log('== 2. A cierra sesion (AuthService.logout real) ==');
+authSvc.logout();
+console.log('   clienteId en storage:', localStorage.getItem('clienteId'), '| singleton.customer:', inst.customer);
+console.log('== 3. Login de B (dummy 202) en la misma pestana, abre seguimiento, sube y borra ==');
+loginSvc.handleLoginResponse(resp(202, 'TOKEN-B', 'dummyB'));
+inject().getImagenes();
+inject().uploadCustomerImages([{ base64: 'AAAA', peso: '80', comentarios: 'dummy B' }]);
+inject().deleteImage(5);
+console.log('   clienteId en storage:', localStorage.getItem('clienteId'), '| singleton.customer:', inst.customer);
+console.log('\nPeticiones registradas:');
+calls.forEach(c => console.log('  ' + c.join(' | ')));
