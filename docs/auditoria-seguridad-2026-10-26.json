@@ -1,0 +1,1482 @@
+[
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.confirmarCompra:unbounded-pending-sales-stock-hold",
+    "title": "Ventas pendientes ilimitadas sin cancelacion ni expiracion visibles podrian retener o agotar el stock",
+    "description": "Un cliente registrado (registro abierto en POST /clientes/registro, que ya devuelve token Sanctum) puede crear ventas en estado pendiente repetidamente: por transferencia (POST /ventas, queda 'pendiente' hasta que se sube evidencia) y por Mercado Pago (POST /mercadopago/create-preference, que devuelve venta_pendiente_id antes de cualquier pago). El front no cancela nunca una venta abandonada: si el cliente sale de Mercado Pago sin pagar, handleMercadoPagoCallback llama finalizar('cancelled'), que solo muestra un toast y ni siquiera llama limpiarCompra, de modo que el carrito y venta_pendiente_mp se conservan y un reintento crea otra venta pendiente; cancelarVenta (PUT /ventas/{id}/cancelar) no tiene llamadores en src/. Los unicos frenos visibles antes de crear la venta (horario de atencion, metodo de pago, validarDatosCarrito con cantidades/subtotales > 0) viven en la UI y no limitan el numero de ventas abiertas. Si el backend descuenta o reserva stock al crear la venta pendiente y no la expira ni limita por cliente, un cliente podria dejar productos con stock <= 0, que la tienda publica muestra como 'Producto sin stock' y no permite agregar para los demas clientes. Matiz del verificador: el comentario de cancelarVenta ('devuelve stock') no dice que aplique a ventas pendientes (podria referirse a ventas completadas), asi que es indicio debil, no prueba, de que la creacion de la venta pendiente descuente stock. Nada en el repo (codigo, README, historial git) refuta ni confirma el comportamiento del servidor.",
+    "claimed_root_cause": "La creacion de ventas pendientes (POST /ventas con transferencia y POST /mercadopago/create-preference) podria descontar o reservar stock en el servidor sin limite por cliente y sin expiracion/cancelacion automatica de las ventas no pagadas; el front no cancela las ventas abandonadas y las unicas restricciones visibles son de interfaz.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 304,
+        "scope": "CarritoComponent.confirmarCompra",
+        "description": "El cliente autenticado confirma la compra; si metodoPago es 'mercado_pago' va a procesarPagoMercadoPago y si no a realizarCompraTradicional (transferencia es la unica opcion no-MP en carrito.component.html:239). La API es invocable directamente con el token, sin pasar por esta UI."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 391,
+        "scope": "CarritoComponent.realizarCompraTradicional",
+        "description": "Se arma CrearVentaRequest con customer_id, metodo_pago y productos/cantidad; solo validarDatosCarrito (469-490) revisa cantidad, monto_pesos y subtotal > 0; no hay limite de ventas abiertas."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 263,
+        "scope": "VentasService.crearVenta",
+        "description": "POST /ventas crea la venta; la de transferencia queda en estatus 'pendiente' hasta subir evidencia (user-profile.component.ts:199-203)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 358,
+        "scope": "CarritoComponent.procesarPagoMercadoPago",
+        "description": "Variante Mercado Pago: create-preference devuelve venta_pendiente_id (mercadopago.service.ts:27) antes de cualquier pago; se guarda en localStorage (362-366) y se redirige a init_point."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 197,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "Sin payment_id numerico (cliente abandona el pago) solo se llama finalizar('cancelled'), que muestra un toast (245-247); no se cancela la venta pendiente ni se limpia el carrito, por lo que un reintento crea otra venta pendiente."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 301,
+        "scope": "VentasService.cancelarVenta",
+        "description": "Unico camino visible que 'devuelve stock' (comentario linea 299); no tiene llamadores en src/, asi que la liberacion del stock de ventas pendientes depende enteramente de un proceso del backend no visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 299,
+        "description": "Comentario 'Cancelar una compra (devuelve stock y actualiza estadisticas)': indica que alguna venta descuenta stock, pero no establece que ocurra al crear la venta pendiente."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 199,
+        "description": "esTransferenciaPendiente: las ventas por transferencia quedan en estatus 'pendiente' hasta subir evidencia; no hay accion de cancelar para el cliente."
+      },
+      {
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 245,
+        "description": "El caso 'cancelled' solo muestra un aviso; no llama limpiarCompra (257-260), asi que venta_pendiente_mp y el carrito persisten y la venta pendiente no se cancela."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 274,
+        "description": "procederPago: horario de atencion, metodo de pago, carrito no vacio y sesion son las unicas restricciones previas, todas en la UI."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 469,
+        "description": "validarDatosCarrito solo revisa cantidad, monto_pesos y subtotal > 0; no hay limite por cliente ni de ventas abiertas."
+      },
+      {
+        "file": "src/app/public/home/home.component.ts",
+        "line": 146,
+        "description": "Con stock <= 0 (tieneStock, 238-241) la tienda publica bloquea agregar el producto al carrito ('Producto sin stock'), efecto visible para otros clientes."
+      },
+      {
+        "file": "src/services/crear-cuenta/crear-cuenta.service.ts",
+        "line": 19,
+        "description": "Registro de clientes abierto (POST /clientes/registro), por lo que cualquiera obtiene la capacidad de cliente registrado."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend) no esta en este objetivo: no se puede ver si POST /ventas con metodo_pago 'transferencia' y POST /mercadopago/create-preference descuentan o reservan stock al crear la venta 'pendiente' o solo al completarse/aprobarse el pago.",
+      "No se puede ver si existe un job/scheduler que expire y cancele ventas pendientes no pagadas (devolviendo stock) ni su plazo, ni si el webhook de Mercado Pago cancela la venta ante pagos rechazados/expirados.",
+      "No se puede ver si el backend limita el numero de ventas pendientes abiertas por cliente o aplica rate limiting (throttle) a POST /ventas y POST /mercadopago/create-preference."
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend con base de datos de prueba y Mercado Pago simulado: crear un producto ficticio con stock=5 y un cliente ficticio; enviar 5 POST /ventas con metodo_pago=transferencia y cantidad=1 sin subir evidencia, y por separado 5 POST /mercadopago/create-preference sin pagar; consultar GET /productos/{id}/stock tras cada llamada y enviar una sexta venta. El candidato se confirma solo si el stock baja a 0 con ventas solo pendientes, ninguna regla rechaza o limita la sexta venta y ningun job la expira. Revisar en el controlador de ventas y de Mercado Pago donde ocurre el decremento de stock, en app/Console/Kernel.php (o routes/console.php) si hay tarea de expiracion, y en routes/api.php si hay throttle en esas rutas.",
+      "deployment": "El dueno revisa (solo lectura) en el panel admin o en la base de datos si existen ventas con estatus 'pendiente' antiguas (transferencia sin evidencia o Mercado Pago sin pago) y si el stock de esos productos se desconto al crearlas; confirma si hay una tarea programada activa que las cancele y con que plazo, y si las rutas de creacion de ventas tienen limite por cliente."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.procederPago:client-only-payment-method-and-schedule-gate",
+    "title": "Metodos de pago no ofrecidos ('credito'/'efectivo'/'tarjeta') y horario de atencion solo se restringen en la interfaz del carrito",
+    "description": "La vista del carrito solo ofrece los radios 'transferencia' y 'mercado_pago', y el horario de atencion solo deshabilita el boton y corta procederPago en el navegador (confirmarCompra no lo vuelve a comprobar). Sin embargo, el estado del componente y el contrato CrearVentaRequest aceptan metodo_pago 'efectivo', 'tarjeta' y 'credito', y realizarCompraTradicional envia el valor tal cual a POST {apiUrl}/ventas. Un cliente autenticado puede llamar directamente a POST /ventas con su token Sanctum, con un metodo_pago no ofrecido (p. ej. 'credito') o fuera del horario. Que esto produzca un pedido indebido (p. ej. a credito sin linea autorizada, o fuera de horario) depende por completo de la validacion del backend Laravel, que no esta en este repositorio; el front no es frontera de seguridad y nada en el codigo visible confirma ni refuta el control en servidor.",
+    "claimed_root_cause": "Las reglas de negocio de metodos de pago permitidos y de horario de compra estan implementadas en este repositorio solo como estado de la interfaz (radios del HTML, puedeProcederPago, fueraDeHorarioAtencion en procederPago) y el contrato de la API admite metodos no ofrecidos; no hay control del lado servidor visible.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/carrito/carrito.component.html",
+        "line": 239,
+        "scope": "carrito.component.html radios metodoPago",
+        "description": "El metodo de pago lo controla el cliente via [(ngModel)]; la UI solo ofrece 'transferencia' (239) y 'mercado_pago' (247), pero el valor es estado del navegador modificable por el usuario."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 23,
+        "scope": "CarritoComponent.metodoPago",
+        "description": "El tipo del estado admite 'efectivo' | 'tarjeta' | 'transferencia' | 'credito' | 'mercado_pago'."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 78,
+        "scope": "CarritoComponent.puedeProcederPago",
+        "description": "El horario (fueraDeHorarioAtencion, calculado en evaluarHorarioActual con limitar_horario y horarios de la configuracion publica) solo deshabilita el boton (html 262)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 274,
+        "scope": "CarritoComponent.procederPago",
+        "description": "Unico corte por horario antes de abrir el modal; confirmarCompra (304) no vuelve a comprobar el horario y despacha a realizarCompraTradicional para todo metodo distinto de 'mercado_pago' (319)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 393,
+        "scope": "CarritoComponent.realizarCompraTradicional",
+        "description": "metodo_pago se envia tal cual con cast a 'efectivo' | 'tarjeta' | 'transferencia' | 'credito'."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 263,
+        "scope": "VentasService.crearVenta",
+        "description": "POST {apiUrl}/ventas con el metodo_pago elegido por el cliente; la aceptacion del metodo y del momento de la compra la decide el backend no visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 73,
+        "description": "CrearVentaRequest.metodo_pago admite 'credito', 'efectivo' y 'tarjeta' aunque la UI no los ofrece."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 275,
+        "description": "procederPago corta fuera de horario solo en el cliente."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 536,
+        "description": "limitarHorario se toma de la configuracion publica del sitio; si el campo falta, el cliente asume true (config?.limitar_horario !== false)."
+      },
+      {
+        "file": "src/services/sitio-config/sitio-config.service.ts",
+        "line": 32,
+        "description": "limitar_horario es un campo opcional de la configuracion publica del sitio."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 440,
+        "description": "El manejador de error espera 422 con errores de validacion del backend: indica que el servidor valida algo, pero no que lista blanca de metodo_pago u horario aplica."
+      }
+    ],
+    "blockers": [
+      "Backend Laravel (carniceria-franco-backend) no disponible en este objetivo: no se puede ver si la validacion de POST /api/v1/ventas restringe metodo_pago a los metodos habilitados (p. ej. 'credito' solo para clientes con linea de credito, 'efectivo'/'tarjeta' solo en mostrador) ni si aplica horarios/limitar_horario al crear la venta. Ese hecho es decisivo y no es observable desde el codigo del front."
+    ],
+    "validation_plan": {
+      "local": "En un backend local con base de datos de prueba, autenticado como cliente general ficticio (sin linea de credito), enviar POST /api/v1/ventas con Authorization: Bearer <token de prueba> y cuerpo {\"customer_id\":<id propio>,\"metodo_pago\":\"credito\",\"tipo_entrega\":\"recoger\",\"productos\":[{\"product_id\":<producto de prueba>,\"cantidad\":1}]}; repetir con 'efectivo' y 'tarjeta'. Esperado seguro: 422 y ninguna fila nueva en ventas. Luego, con limitar_horario=true y horario del dia cerrado en la configuracion de prueba, enviar la misma venta con metodo_pago 'transferencia' y esperar rechazo; borrar cualquier venta de prueba creada.",
+      "deployment": "El dueno revisa, sin crear ventas reales, el FormRequest/controlador del endpoint POST /api/v1/ventas desplegado y confirma: (1) regla in: de metodo_pago limitada a los metodos que ofrece la tienda en linea y, si existe 'credito', ligada al tipo de cliente/linea de credito; (2) comprobacion en servidor de horarios y limitar_horario (en la zona horaria de la tienda) antes de crear la venta."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/app/public/pages/carrito/carrito.component.ts:CarritoComponent.realizarCompraTradicional:client-derived-checkout-body",
+    "title": "El checkout manda cantidad y monto_pesos calculados en el navegador con el precio cacheado en localStorage, sin coherencia garantizada",
+    "description": "POST /ventas (realizarCompraTradicional) y POST /mercadopago/create-preference (procesarPagoMercadoPago) arman, por producto, product_id, cantidad y (solo si tipoVenta es 'pesos' y monto_pesos es truthy) monto_pesos. La cantidad se calcula en el cliente como monto / precio cacheado en localStorage.carrito_franco (multiplicada por 1000 si unidad_venta cacheada es 'gramo(s)'), y todo el carrito es editable por el usuario. La unica verificacion previa es validarDatosCarrito, que solo exige cantidad, monto_pesos y subtotal > 0 y corre en el navegador; ademas un cliente autenticado puede enviar el cuerpo directamente con su Bearer Sanctum, asi que el front no es ni puede ser el control. Un arnes local en el sandbox (sin red, datos ficticios, replica literal de validarDatosCarrito y del map de productos) confirma que un carrito manipulado pasa la validacion y produce productos [{product_id:1, cantidad:100000, monto_pesos:1}, {product_id:2, cantidad:0.001}] (cantidad desproporcionada frente a monto_pesos y cantidad fraccionaria en un producto por pieza). Si el backend usa la cantidad enviada junto con monto_pesos (p. ej. registra/descuenta 100000 unidades pero cobra 1 peso, o cobra cantidad * precio solo cuando no hay monto_pesos) o no rechaza cantidades fraccionarias o incoherentes, un cliente obtiene producto por debajo del precio o descuadra inventario. Nada en este repo confirma ni refuta ese comportamiento: la decision es del servidor, que no esta en el objetivo. El customer_id del mismo cuerpo, tomado de localStorage.clienteId, es la misma causa raiz que el registro src/services:clienteId-localStorage:customer-selector-without-owner-binding y se rastrea alli.",
+    "claimed_root_cause": "El contrato de checkout (CrearVentaRequest y PreferenceData) acepta del cliente, por producto, una cantidad derivada de un precio cacheado en localStorage junto con un monto_pesos opcional, sin que el front garantice ni pueda garantizar coherencia entre ambos ni con la unidad de venta. La defensa depende por completo de que el backend recalcule precio y cantidad desde la base de datos y rechace cantidades <= 0, fraccionarias en unidades por pieza o incoherentes con monto_pesos.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/carrito/carrito.service.ts",
+        "line": 29,
+        "scope": "CarritoService.obtenerCarrito",
+        "description": "El carrito (producto con precio y unidad_venta, cantidad, monto_pesos, tipoVenta, subtotal) se lee de localStorage.carrito_franco, editable por el usuario, sin revalidar contra la API."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/carrito/carrito.service.ts",
+        "line": 113,
+        "scope": "CarritoService.actualizarMontoPesos",
+        "description": "cantidad = monto / precio cacheado; si unidad_venta es 'gramo(s)' se multiplica por 1000 (linea 118); monto_pesos se guarda aparte."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 469,
+        "scope": "CarritoComponent.validarDatosCarrito",
+        "description": "Solo exige cantidad, monto_pesos (si tipoVenta es 'pesos') y subtotal > 0; acepta fracciones, valores enormes e incoherencia cantidad/monto. Es una verificacion de UX en el navegador, eludible enviando la peticion directamente."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 391,
+        "scope": "CarritoComponent.realizarCompraTradicional",
+        "description": "Arma CrearVentaRequest con productos[{product_id, cantidad: Number(item.cantidad), monto_pesos?}] (lineas 396-408), ademas de metodo_pago, notas, tipo_entrega y customer_id."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 263,
+        "scope": "VentasService.crearVenta",
+        "description": "POST {apiUrl}/ventas con el cuerpo armado por el cliente; variante equivalente en src/services/mercadopago/mercadopago.service.ts:59 (create-preference) desde carrito.component.ts:336-358. El efecto final (cantidad registrada, precio cobrado) ocurre en el backend no visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 336,
+        "description": "procesarPagoMercadoPago arma PreferenceData con la misma lista de productos (product_id, cantidad, monto_pesos si tipoVenta es 'pesos')."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 396,
+        "description": "realizarCompraTradicional mapea itemsCarrito a {product_id, cantidad: Number(item.cantidad)} y agrega monto_pesos solo si tipoVenta es 'pesos' y monto_pesos es truthy (linea 403)."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 71,
+        "description": "El contrato CrearVentaRequest declara productos con cantidad y monto_pesos opcionales, es decir, el backend espera ambos campos del cliente."
+      },
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 6,
+        "description": "PreferenceData declara el mismo contrato de productos (cantidad y monto_pesos opcionales)."
+      },
+      {
+        "file": "src/services/carrito/carrito.service.ts",
+        "line": 118,
+        "description": "Conversion kg->gramos hecha en el cliente segun unidad_venta cacheada: para el mismo monto la cantidad enviada difiere 1000x."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (repo carniceria-franco-backend) no esta en el objetivo: no se puede ver si POST /api/v1/ventas y POST /api/v1/mercadopago/create-preference recalculan precio y cantidad desde la base de datos cuando llega monto_pesos, ni si rechazan cantidad <= 0, fraccionaria en productos por pieza o incoherente con monto_pesos. El arnes del front solo demuestra la forma del cuerpo, no su efecto.",
+      "No se debe enviar trafico a la API desplegada (carniceriafrancoadmin.shop / Heroku) ni a Mercado Pago para observarlo."
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend con base de datos de prueba, un cliente ficticio A y dos productos ficticios X (por kg, precio conocido) y P (por pieza): con el token de A enviar POST /api/v1/ventas con productos [{product_id: X, cantidad: 100000, monto_pesos: 1}] y otra con [{product_id: P, cantidad: 0.001}]. Verificar en las tablas de ventas, detalles y stock que la cantidad registrada y descontada es monto_pesos / precio en BD (o que se rechaza la incoherencia con 422), que el total cobrado corresponde a esa cantidad, y que la cantidad fraccionaria en pieza da 422. Repetir contra POST /api/v1/mercadopago/create-preference revisando items, quantity, unit_price y total de la preferencia generada (sin redirigir ni pagar). Alternativa solo-fuente: leer los FormRequest y controladores de ventas y Mercado Pago del backend.",
+      "deployment": "El dueno revisa en el codigo fuente desplegado de los controladores de ventas y de Mercado Pago (o en el registro de una venta de prueba propia hecha con su cuenta) que precio y cantidad se calculan en servidor desde el producto vigente cuando llega monto_pesos, y que las reglas de validacion limitan cantidad (> 0, entera para unidades por pieza, coherente con monto_pesos)."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/app/public/pages/payment-callback/payment-callback.component.ts:PaymentCallbackComponent.handleMercadoPagoCallback:payment-id-unbound-to-pending-sale",
+    "title": "confirm-payment recibe solo un payment_id tomado de la URL; la vinculacion pago-venta-cliente-monto y el uso unico dependen por completo del backend no visible",
+    "description": "Al volver de Mercado Pago, PaymentCallbackComponent toma payment_id (o collection_id) de la query string, solo comprueba que sea numerico y lo envia como unico campo a POST {apiUrl}/mercadopago/confirm-payment con el Bearer del cliente (AuthInterceptor). No envia la venta pendiente ni la preferencia que el carrito guarda en localStorage.venta_pendiente_mp (esa referencia solo se escribe y se borra). La ruta /pages/payment-callback solo tiene AuthGuard (existencia de token). Por tanto cualquier cliente autenticado puede invocar confirm-payment con un payment_id arbitrario y enumerable, ya sea llamando a la API directamente o abriendo (o haciendo que otro cliente con sesion abra) /pages/payment-callback?payment_id=N, lo que hace que el navegador de la victima confirme ese pago con su propio token y vacie su carrito. Si el servidor no exige que el pago consultado a Mercado Pago tenga external_reference/metadata igual a una venta pendiente del usuario del token, que transaction_amount y currency_id coincidan con el total de esa venta y que un payment_id ya aplicado no se reaplique, un pago aprobado de bajo monto o ajeno podria completar otra venta (descontando stock), y la respuesta (venta_id, folio, total, estatus) revelaria ventas de otros clientes. Nada en este repo demuestra ni refuta esos controles: el front no es frontera de seguridad y enviar desde el cliente la venta pendiente o un nonce no seria por si solo un control, porque el atacante controla la peticion; la vinculacion debe derivarse en el servidor del pago consultado a Mercado Pago.",
+    "claimed_root_cause": "El cierre del flujo de pago se basa en un payment_id controlado por el usuario y la peticion no lleva referencia a la venta pendiente ni estado ligado al inicio del pago; toda la vinculacion del pago con la venta pendiente, el cliente autenticado, el monto/moneda y el uso unico queda a cargo de MercadoPagoController@confirmPayment en el backend Laravel, que no esta en este objetivo.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 184,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "paymentId = params['payment_id'] || params['collection_id'] de la query string de la URL de retorno (controlable por quien construye el enlace)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 196,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "Unica validacion: que sea numerico (/^\\d+$/); no se compara con preference_id ni con venta_pendiente_mp."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 201,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "Llama confirmPayment(String(paymentId)) sin preference_id ni venta_pendiente_id."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 81,
+        "scope": "MercadoPagoService.confirmPayment",
+        "description": "POST {apiUrl}/mercadopago/confirm-payment con cuerpo {payment_id}; AuthInterceptor anade el Bearer del cliente."
+      },
+      {
+        "kind": "sink",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 203,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "Muestra el folio devuelto por el servidor para ese payment_id y, si estatus es 'completada' o el pago queda pendiente, vacia el carrito y borra venta_pendiente_mp (257-260). El efecto de estado (completar venta, stock) ocurre en el backend no visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 362,
+        "description": "La referencia venta_pendiente_mp (venta_id, preference_id) se guarda en localStorage pero nunca se lee ni se envia a confirm-payment."
+      },
+      {
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 259,
+        "description": "La unica otra referencia a venta_pendiente_mp en src es su borrado."
+      },
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 31,
+        "description": "ConfirmPaymentResponse devuelve venta_id, folio, estatus, total y pago_status de la venta asociada al pago."
+      },
+      {
+        "file": "src/app/public/pages/pages-routing.module.ts",
+        "line": 28,
+        "description": "La ruta payment-callback solo tiene AuthGuard, que unicamente verifica que exista 'token' en localStorage (src/guards/auth/auth.guard.ts:15)."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 27,
+        "description": "El Bearer del cliente se adjunta automaticamente a la peticion confirm-payment, tambien cuando la abre un enlace con payment_id elegido por terceros."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend, MercadoPagoController@confirmPayment y el webhook) no esta en este objetivo: no se ve si confirm-payment consulta el pago a Mercado Pago y exige external_reference/metadata = venta pendiente del usuario autenticado, compara transaction_amount/currency_id con el total de la venta y es idempotente (un payment_id aprobado no completa una segunda venta ni re-descuenta stock).",
+      "No se puede usar Mercado Pago, la API desplegada ni payment_id reales en esta verificacion (sin red ni servicios externos)."
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend con el cliente HTTP de Mercado Pago sustituido por un mock y dos clientes ficticios A y B: (1) A llama POST /api/v1/mercadopago/confirm-payment con un payment_id cuyo mock devuelve external_reference = venta pendiente de B -> esperar 403/404 sin venta_id, folio ni total de B; (2) payment_id aprobado por 1.00 MXN con external_reference = venta pendiente de 500.00 MXN de A -> la venta debe seguir 'pendiente'; (3) mismo payment_id aprobado enviado dos veces, y luego con el mock cambiando external_reference a otra venta pendiente de A -> solo una venta completada y stock descontado una sola vez; (4) payment_id sin external_reference -> rechazo.",
+      "deployment": "El dueno revisa en el codigo desplegado de MercadoPagoController@confirmPayment (y del webhook de Mercado Pago) que la venta se busque por el external_reference del pago consultado a Mercado Pago y se filtre por el cliente del token, que se comparen transaction_amount y currency_id con el total de la venta, y que exista una restriccion unica o comprobacion de payment_id ya aplicado; no se requieren pagos reales."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/app/public:customer-free-text:admin-panel-stored-xss",
+    "title": "Texto libre de clientes y visitantes anonimos llega al panel admin sin escape visible (posible XSS almacenado contra el operador)",
+    "description": "La SPA permite que un visitante anonimo (registro) y un cliente autenticado guarden texto libre en el backend: nombre y apellido del registro; nombre, apellidos, direccion, ciudad, estado, pais y rfc del perfil; notas de venta en crearVenta y createPreference; peso y comentarios de las fotos de seguimiento; comentarios de la encuesta; el nombre del archivo de evidencia de transferencia; y accion y contenido de la bitacora (/historial/guardar-accion). En el cliente ninguno tiene restriccion de caracteres, y como el front no es frontera, un atacante puede mandar cualquier valor llamando directo a la API. Dentro de la SPA esos valores solo se muestran con interpolacion de Angular (por ejemplo seguimiento.component.html:88,110), y en src/app y src/services no hay innerHTML, bypassSecurityTrust ni .html(); por eso la SPA no es el sumidero. El riesgo esta en el panel admin Laravel, que vive en otro origen y no esta en este repo ni en su historial git. Si alguna vista del panel imprime estos campos con {!! !!}, innerHTML/.html(), un render HTML de DataTables, atributos sin comillas o exportaciones CSV/Excel sin neutralizar formulas, un cliente podria ejecutar script en la sesion del operador. Desde el repo no se puede confirmar ni descartar.",
+    "claimed_root_cause": "Un principal de menor confianza (cliente o visitante anonimo) escribe datos que se guardan sin normalizacion. Que sea seguro mostrarlos depende por completo del escape de salida del panel admin Laravel, y ese escape no es visible en este repo.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/create-account/create-account.component.ts",
+        "line": 43,
+        "scope": "CreateAccountComponent.crearCuenta",
+        "description": "Un visitante anonimo envia nombre y apellido libres al registrarse."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/crear-cuenta/crear-cuenta.service.ts",
+        "line": 19,
+        "scope": "CrearCuentaService.crearCuenta",
+        "description": "POST /clientes/registro con {nombre, apellido, correo, password}, sin filtrado."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 795,
+        "scope": "UserProfileComponent.obtenerDatosEditablesPerfil",
+        "description": "Lista blanca de campos de perfil con texto libre (nombre, apellido, apellido2, direccion, ciudad, estado, pais, rfc) que se envia por PUT /usuarios/update/{id}."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 394,
+        "scope": "CarritoComponent.realizarCompraTradicional",
+        "description": "El cuerpo de la venta incluye 'notas' (tambien createPreference en la linea 352). La API acepta el campo y se controla con una llamada directa, aunque la plantilla no tenga un control para notasCompra."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 25,
+        "scope": "CustomerService.uploadCustomerImages",
+        "description": "Las fotos de seguimiento viajan con peso y comentarios libres por imagen a /usuarios/store-images."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 310,
+        "scope": "UserProfileComponent.guardarEncuesta (encuesta)",
+        "description": "Cada respuesta de la encuesta puede llevar un comentario libre que se envia con guardarRespuestasSatisfaccion."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 344,
+        "scope": "VentasService.subirEvidenciaTransferencia",
+        "description": "La evidencia se envia como multipart con el nombre de archivo que elige el cliente."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 263,
+        "scope": "VentasService.crearVenta",
+        "description": "POST /ventas guarda las notas en el backend. Es el ultimo punto visible; el sumidero real es el render de ventas, clientes, fotos, encuestas, evidencias y bitacora en el panel admin Laravel, que no es visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/create-account/create-account.component.ts",
+        "line": 36,
+        "description": "La unica validacion del registro es que los campos no esten vacios."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 672,
+        "description": "nombre y apellido solo tienen Validators.required; direccion, ciudad, estado, pais y rfc (lineas 677-682) no tienen validador de caracteres."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.html",
+        "line": 141,
+        "description": "Textarea libre de comentarios de foto, sin maxlength ni patron."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 366,
+        "description": "El endpoint /indicadores/pedidos/{sale}/respuestas recibe los comentarios de la encuesta."
+      },
+      {
+        "file": "src/services/logs/log-service.service.ts",
+        "line": 25,
+        "description": "Variante con la misma causa raiz: 'accion' y 'contenido' de la bitacora (POST /historial/guardar-accion) son texto libre que controla quien llama a la API; si el panel admin los muestra (no visible en este repo), comparten el mismo riesgo de salida."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.html",
+        "line": 88,
+        "description": "Calibracion: la SPA muestra comentarios con interpolacion de Angular, que escapa la salida. Ademas, grep no encontro innerHTML, bypassSecurityTrust ni .html() en src/app, src/services, src/interceptors ni src/guards, asi que el sumidero no esta en este origen."
+      }
+    ],
+    "blockers": [
+      "El panel admin Laravel (vistas Blade y JS de tablas) no esta en este repo ni en su historial git (no hay archivos blade, resources/views ni admin). No se puede ver si los campos de cliente, venta, foto, encuesta, evidencia y bitacora se imprimen con {{ }} (escapado) o con {!! !!}, innerHTML/.html(), un render HTML de DataTables, o en atributos o exportaciones sin neutralizar.",
+      "No se conoce la validacion del backend (FormRequest) de estos campos, ni si sanitiza el nombre original del archivo de evidencia, ni si el panel admin envia una cabecera CSP."
+    ],
+    "validation_plan": {
+      "local": "En el repo carniceria-franco-backend, revisar resources/views y los JS del panel admin. Buscar cada lugar que imprime nombre, apellido, apellido2, direccion, ciudad, estado, pais, rfc, notas, peso, comentarios, el comentario de la encuesta, el nombre original de la evidencia, accion y contenido de la bitacora. Marcar cualquier {!! !!}, .html(), innerHTML, columna de DataTables con render HTML, atributo sin comillas o exportacion CSV/Excel. Despues, con una base local y un cliente ficticio, guardar '<img src=x onerror=console.log(1)>' en cada campo y abrir la vista admin local para ver si se ejecuta. Probar tambien '=1+1' en las exportaciones.",
+      "deployment": "El propietario confirma que el panel admin desplegado (carniceriafrancoadmin.shop) usa la misma version de vistas revisada en local, e indica si envia una cabecera Content-Security-Policy que bloquee scripts en linea. Se revisan las cabeceras de respuesta del panel con su propia sesion y no se envian cargas a produccion."
+    }
+  },
+  {
+    "verdict": "confirmed",
+    "fingerprint": "src/services/auth-service/auth-service.service.ts:AuthService.logout:incomplete-localstorage-cleanup",
+    "title": "El logout deja en localStorage el telefono, el saldo, el tipo de cliente, el descuento y el carrito del cliente anterior",
+    "description": "LoginService.handleLoginResponse guarda 10 claves del cliente en localStorage (login.service.ts:32-41), pero AuthService.logout, que tambien usan la inactividad (auth-service.service.ts:126 y 137) y el interceptor ante 401 (auth.interceptor.ts:36), solo borra 6 (lineas 68-73). Despues de cerrar sesion, el navegador conserva clienteTelefono, clienteSaldo, clienteTipoCliente y clienteDescuentoPreferencial, ademas de profileIsComplete (escrita por updateProfileStatus desde user-profile.component.ts:769) y carrito_franco. Quien use despues ese perfil del navegador, sin sesion, puede leer esos datos personales y financieros en el almacenamiento del origen. La UI tambien los usa: la ruta /carrito no tiene AuthGuard (pages-routing.module.ts:21-23); alli cargarCarrito lista los articulos del carrito residual y cargarPreferenciasCliente lee el tipo y el descuento residuales, asi que un visitante anonimo ve los articulos, la etiqueta 'Mayorista' y el descuento del cliente anterior en el resumen (solo en pantalla; el carrito ya no envia el descuento al servidor). El menu de carrito del header solo se muestra con sesion (header.component.html:143), pero como carrito_franco no esta ligado al cliente, el siguiente usuario que inicie sesion en ese navegador hereda y ve el carrito del anterior. El tipo, el descuento y el telefono persisten hasta que otro login los sobreescriba; el saldo tambien. El token si se borra, asi que no permite actuar como el cliente.",
+    "root_cause": "La limpieza del logout es una lista fija de removeItem (auth-service.service.ts:68-73) que no corresponde con las claves que escribe handleLoginResponse (login.service.ts:38-41) ni con las que escriben otros puntos (profileIsComplete en AuthService.updateProfileStatus, carrito_franco en CarritoService.guardarCarrito). No existe una rutina unica de limpieza de la sesion del cliente.",
+    "intended_behavior": "Cerrar sesion, voluntariamente, por inactividad o por 401, debe borrar todo dato del cliente guardado en el navegador para que el siguiente usuario del mismo perfil no lo vea ni lo herede en la UI.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/login/login.service.ts",
+        "line": 38,
+        "scope": "LoginService.handleLoginResponse",
+        "description": "Con la respuesta de /clientes/login guarda clienteTelefono, clienteTipoCliente, clienteDescuentoPreferencial y clienteSaldo (lineas 38-41), ademas de las 6 claves que el logout si borra (32-37)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 57,
+        "scope": "AuthService.logout",
+        "description": "Unico camino de cierre de sesion (header, inactividad en lineas 126/137 e interceptor 401): borra solo token, clienteEmail, isLoggedIn, clienteNombre, clienteApellidoPaterno y clienteId (lineas 68-73) y deja el resto."
+      },
+      {
+        "kind": "sink",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 550,
+        "scope": "CarritoComponent.cargarPreferenciasCliente",
+        "description": "En la ruta /carrito, sin guardia, un visitante posterior sin sesion carga el tipo de cliente y el descuento residuales del cliente anterior y la plantilla los muestra (carrito.component.html:176 y 184-186); cargarCarrito (linea 102) lista ademas los articulos del carrito residual."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 68,
+        "description": "Lista de removeItem incompleta (68-73): no borra clienteTelefono, clienteSaldo, clienteTipoCliente, clienteDescuentoPreferencial, profileIsComplete ni carrito_franco."
+      },
+      {
+        "file": "src/services/login/login.service.ts",
+        "line": 41,
+        "description": "localStorage.setItem('clienteSaldo', saldo_cuenta): dato financiero del cliente que el logout no borra; el telefono se guarda en la linea 38."
+      },
+      {
+        "file": "src/app/public/pages/pages-routing.module.ts",
+        "line": 21,
+        "description": "La ruta 'carrito' no declara canActivate, asi que un visitante sin sesion llega a CarritoComponent, a cargarCarrito y a cargarPreferenciasCliente."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.html",
+        "line": 176,
+        "description": "Muestra tipoClienteDisplay (por ejemplo 'Mayorista') y, en 184-186, el porcentaje y el monto del descuento tomados del localStorage residual; en la linea 44 lista los articulos del carrito residual."
+      },
+      {
+        "file": "src/app/public/header/header.component.html",
+        "line": 143,
+        "description": "El menu de carrito del header esta bajo *ngIf=\"isLoggedIn\": sin sesion no se muestra, pero el header se suscribe al carrito persistido (header.component.ts:58) y, al iniciar sesion otro cliente en el mismo navegador, lista los articulos heredados del anterior."
+      },
+      {
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 39,
+        "description": "updateProfileStatus (llamado desde user-profile.component.ts:769) escribe profileIsComplete, que el logout tampoco borra."
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "user_interaction",
+        "description": "La victima inicia sesion y luego cierra sesion, o la cierra la inactividad o un 401, en un navegador compartido (equipo publico, familiar o de la tienda)."
+      },
+      {
+        "kind": "data_state",
+        "description": "Otra persona usa despues el mismo perfil del navegador y el mismo origen, sin sesion o antes de que su propio login sobreescriba las claves."
+      }
+    ],
+    "execution": {
+      "attacker_perspective": "Siguiente usuario del mismo perfil de navegador, sin sesion, despues de que el cliente anterior cerro sesion.",
+      "payloads": [
+        "login A {id:101, telefono:'5550001111', saldo_cuenta:'1234.50', tipo_cliente:'mayorista', descuento_preferencial:'15'} + updateProfileStatus('si') + carrito con 1 articulo -> AuthService.logout() -> volcado de localStorage y CarritoComponent.cargarPreferenciasCliente()"
+      ],
+      "instructions": [
+        "En el sandbox aprobado (sin red, entorno vacio, objetivo de solo lectura, cpu 20 s, memoria 2 GB, reloj 30 s) se ejecuto node /mnt/harness.js.",
+        "El arnes extrae del repo el texto real de LoginService.handleLoginResponse, AuthService.logout, AuthService.updateProfileStatus, CarritoService.guardarCarrito y CarritoComponent.cargarPreferenciasCliente y los ejecuta con un localStorage simulado, datos dummy y HTTP stub.",
+        "Tras el logout imprime el localStorage restante y la vista anonima de /carrito (tipo y descuento aplicable). Salida en agents/v3-05/artifacts/check-logout-residuo.txt."
+      ],
+      "observed_result": "Tras AuthService.logout quedan {\"clienteTelefono\":\"5550001111\",\"clienteTipoCliente\":\"mayorista\",\"clienteDescuentoPreferencial\":\"15\",\"clienteSaldo\":\"1234.50\",\"profileIsComplete\":\"si\",\"carrito_franco\":\"[...Arrachera...]\"}; token, clienteId, clienteEmail, clienteNombre, clienteApellidoPaterno e isLoggedIn si se borran. La vista anonima de /carrito obtiene {\"tipo\":\"mayorista\",\"descuentoAplicable\":15}."
+    },
+    "remediation": {
+      "strategy": "Centralizar en AuthService una lista unica de claves de sesion del cliente que escriban login, registro y perfil, y borrarla completa en logout (comun a usuario, inactividad y 401), incluyendo venta_pendiente_mp; decidir explicitamente si el carrito de invitado se conserva o se vacia via CarritoService.vaciarCarrito() para que el BehaviorSubject del header tambien se actualice. Agregar una prueba que, tras login y logout, compruebe que no queda ninguna clave de cliente.",
+      "code_changes": [
+        {
+          "file_name": "src/services/auth-service/auth-service.service.ts",
+          "fixed_code": "private static readonly SESSION_KEYS = ['token','isLoggedIn','clienteEmail','clienteNombre','clienteApellidoPaterno','clienteId','clienteTelefono','clienteTipoCliente','clienteDescuentoPreferencial','clienteSaldo','profileIsComplete','userId','image','venta_pendiente_mp'];\n// en logout(), en lugar de las lineas 68-73:\nAuthService.SESSION_KEYS.forEach(k => localStorage.removeItem(k));\n// y, si el carrito pertenece a la sesion: this.carritoService.vaciarCarrito();"
+        }
+      ]
+    },
+    "severity": {
+      "likelihood": {
+        "score": "low",
+        "reason": "Requiere que otra persona use despues el mismo perfil de navegador en el mismo origen tras el cierre de sesion de la victima."
+      },
+      "impact": {
+        "score": "low",
+        "reason": "Expone el telefono, el saldo, el tipo de cliente, el descuento de mayorista y el carrito de un cliente a un usuario posterior sin sesion; no expone el token ni permite actuar como el cliente, y el descuento mostrado no se envia al servidor."
+      },
+      "overall_severity": "low"
+    },
+    "confidence": {
+      "score": "high",
+      "reason": "Las claves escritas y borradas se ven completas en la fuente (grep de setItem/removeItem en src), la ruta /carrito no tiene guardia, y un arnes independiente en sandbox ejecuto el texto real de los metodos y reprodujo el residuo y la vista anonima; la persistencia de localStorage tras navegar es semantica estandar del navegador."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.customer:stale-clienteid-after-account-switch",
+    "title": "CustomerService conserva el clienteId de la primera cuenta y, tras cambiar de cuenta en la misma pestana, lista, sube y borra fotos de seguimiento con ese id y el token de la cuenta nueva",
+    "description": "CustomerService es un singleton providedIn root (customer-service.service.ts:7) cuyo campo customer copia localStorage['clienteId'] una sola vez en el inicializador (linea 11) y nunca se reasigna. Se crea la primera vez que un cliente autenticado abre /pages/seguimiento o /pages/profile (ambas con AuthGuard). AuthService.logout (auth-service.service.ts:57-77, tambien disparado por inactividad de 10 minutos o por un 401 en el interceptor) borra clienteId del storage y navega con router.navigate sin recargar; LoginService.handleLoginResponse (login.service.ts:31-44, usado por login y por crear cuenta) escribe el nuevo clienteId y tambien navega sin recargar. Ningun codigo reinicia el singleton. Resultado reproducido con el texto real de esos metodos: tras A(101) -> logout -> login B(202) en la misma pestana, el singleton sigue en 101 y la vista de seguimiento de B emite GET /usuarios/store-images/101/cliente, POST /usuarios/store-images con customer_id '101' (foto, peso y comentarios de B) y DELETE /usuarios/borrar/101/imagenes/{id}, todas con Bearer de B porque el interceptor lee el token en cada peticion. El front no tiene ningun control que compare el id con la sesion. Si el backend toma el dueno del path o de customer_id en lugar de $request->user(), B ve y puede borrar las fotos de seguimiento de A y las fotos/peso de B quedan guardadas en la cuenta de A (visibles para A); si el backend liga el recurso al token, el efecto se reduce a un fallo funcional (403/lista vacia). No requiere manipulacion deliberada: basta un equipo compartido.",
+    "claimed_root_cause": "El identificador del dueno se captura como estado de un servicio singleton de vida igual a la pestana (customer-service.service.ts:11) en lugar de leerse por peticion de la sesion actual (como hace AuthService.getUserId en auth-service.service.ts:78-81), se usa como selector de dueno en cuerpo y rutas (lineas 24, 37 y 40), y ni el logout ni el login reinician ese estado ni recargan la aplicacion.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/login/login.service.ts",
+        "line": 36,
+        "scope": "LoginService.handleLoginResponse",
+        "description": "El cliente A inicia sesion en la pestana y se guarda clienteId=A en localStorage."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 11,
+        "scope": "CustomerService.customer (singleton providedIn root)",
+        "description": "Al inyectarse por primera vez (SeguimientoComponent o UserProfileComponent) el campo customer copia clienteId=A; no existe ninguna reasignacion posterior."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 73,
+        "scope": "AuthService.logout",
+        "description": "El logout (manual, por inactividad o por 401) borra clienteId del storage pero no el campo en memoria del singleton, y navega con router.navigate (linea 75) sin recargar."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/login/login.service.ts",
+        "line": 43,
+        "scope": "LoginService.handleLoginResponse",
+        "description": "El cliente B inicia sesion (o crea cuenta) en la misma pestana: clienteId=B y token B en storage, navegacion sin recarga; el singleton sobrevive con A."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 103,
+        "scope": "SeguimientoComponent.ngOnInit / LOAD_IMAGES / deleteImage / saveImagesAsBase64",
+        "description": "La vista de seguimiento de B llama getImagenes (linea 121), deleteImage (linea 141) y uploadCustomerImages (linea 258) del singleton con el id de A."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 24,
+        "scope": "AuthInterceptor.intercept",
+        "description": "El interceptor lee el token de localStorage en cada peticion, asi que adjunta el Bearer de B."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 24,
+        "scope": "CustomerService.uploadCustomerImages / getImagenes / deleteImage",
+        "description": "POST /usuarios/store-images con customer_id=A (linea 24), GET /usuarios/store-images/A/cliente (linea 37) y DELETE /usuarios/borrar/A/imagenes/{img} (linea 40), todos con el token de B; la decision de dueno queda en el backend."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 11,
+        "description": "public customer=localStorage.getItem('clienteId'): inicializador evaluado una sola vez; el arnes confirma 0 reasignaciones de this.customer en el archivo."
+      },
+      {
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 7,
+        "description": "providedIn: 'root' sin otros providers en app.module.ts ni en componentes: una sola instancia por pestana."
+      },
+      {
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 40,
+        "description": "deleteImage arma /usuarios/borrar/${this.customer}/imagenes/${imageId} con el id en cache; linea 37 igual para la lista y linea 24 para customer_id del cuerpo."
+      },
+      {
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 75,
+        "description": "logout termina con router.navigate(['/']) sin location.reload; tambien lo invocan el temporizador de inactividad (lineas 126 y 137) y el interceptor ante 401 (auth.interceptor.ts:36)."
+      },
+      {
+        "file": "src/services/login/login.service.ts",
+        "line": 43,
+        "description": "handleLoginResponse termina con router.navigate(['/']) sin recargar; lo usan login.component.ts:43 y create-account.component.ts:53."
+      },
+      {
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 78,
+        "description": "Contraste: getUserId lee clienteId en cada llamada y si refleja la sesion actual; CustomerService no lo usa."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 665,
+        "description": "El perfil tambien inyecta CustomerService, por lo que abrir el perfil basta para fijar el id del primer usuario."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (repo carniceria-franco-backend) no esta en el objetivo: no se puede ver si POST /usuarios/store-images, GET /usuarios/store-images/{id}/cliente y DELETE /usuarios/borrar/{id}/imagenes/{img} derivan el dueno de $request->user() (token Sanctum) o confian en customer_id del cuerpo y en el {id} de la ruta; ese hecho decide entre exposicion/borrado/mezcla de fotos entre cuentas y un simple fallo funcional.",
+      "No hay node_modules ni build de Angular: la desincronizacion se reprodujo en el sandbox con un arnes Node 22 que ejecuta el texto real de los metodos con localStorage y HTTP simulados (agents/v3-06/artifacts/check-clienteid-obsoleto-cambio-cuenta.txt), no con la app compilada en un navegador."
+    ],
+    "validation_plan": {
+      "local": "Front: prueba unitaria de CustomerService con HttpTestingController: localStorage clienteId=101, inyectar el servicio, cambiar clienteId a 202 y token a TOKEN-B, llamar getImagenes, uploadCustomerImages y deleteImage(5) y comprobar que las URLs/cuerpo usan 202 (hoy usan 101). Backend local con dos clientes dummy A y B: con el token de B, GET /api/v1/usuarios/store-images/{A}/cliente, POST /api/v1/usuarios/store-images con customer_id={A} y una imagen dummy, y DELETE /api/v1/usuarios/borrar/{A}/imagenes/{imagen dummy de A}; esperado 403/404 o que se use siempre el id del token. Detenerse en la primera respuesta 200 que devuelva o altere datos de A.",
+      "deployment": "El dueno revisa en el controlador Laravel de store-images y de borrar imagenes (y su ruta/policy) si el cliente se toma de $request->user() o del parametro/cuerpo, y si una policy compara ambos. Opcionalmente en staging con dos cuentas de prueba: login A, abrir Seguimiento, cerrar sesion, login B en la misma pestana, abrir Seguimiento y subir una foto de prueba; observar en la pestana Red el id de ruta y customer_id enviados y verificar en la base de staging a que cliente quedo asociada la foto y si B ve las fotos de A."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.updateCustomer:privileged-field-mass-assignment",
+    "title": "Posible asignacion masiva de campos privilegiados del cliente (tipo_cliente, descuento_preferencial, saldo_cuenta, correo) en actualizar perfil y registro",
+    "description": "El perfil del cliente muestra como controles deshabilitados correo, tipo_cliente, saldo_cuenta, total_compras y numero_compras, y la respuesta de login confirma que el cliente tiene ademas descuento_preferencial. La unica restriccion visible en este repo es la lista blanca del navegador camposEditables (nombre, apellido, apellido2, telefono, direccion, ciudad, estado, codigo_postal, pais, rfc) aplicada en construirPayloadPerfil antes de PUT /usuarios/update/{id}; CustomerService.updateCustomer reenvia customerData: any sin filtrar, y POST /clientes/registro es anonimo con un cuerpo armado en el navegador. Un cliente con su propio bearer token (o un visitante en el registro) puede enviar el cuerpo directamente con tipo_cliente, descuento_preferencial, saldo_cuenta o correo. Si el controlador Laravel usa $request->all()/fill() y el modelo tiene esos atributos en $fillable sin reglas que los excluyan, el cliente podria hacerse mayorista con el descuento que elija, asignarse saldo o cambiar su correo de login sin verificacion; segun el commit 922d086 el backend calcula el descuento del mayorista a partir del cliente, por lo que afectaria el monto cobrado. Nada en este repo refuta ni confirma la proteccion del servidor.",
+    "claimed_root_cause": "La autorizacion por campo del perfil y del registro solo es visible en el navegador (lista blanca camposEditables y controles disabled); el endpoint recibe un cuerpo arbitrario y la exclusion de tipo_cliente, descuento_preferencial, saldo_cuenta, total_compras, numero_compras, correo y password depende de $fillable/$guarded y de validated() en el backend Laravel, que no esta en este objetivo.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 749,
+        "scope": "UserProfileComponent.submitForm",
+        "description": "El perfil llama updateCustomer(id, formValue) con el id del cliente obtenido de AuthService (localStorage) y el bearer token del cliente; el mismo PUT puede emitirse directamente fuera de la UI"
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 795,
+        "scope": "UserProfileComponent.obtenerDatosEditablesPerfil",
+        "description": "Lista blanca solo del navegador (camposEditables, 795-806) usada por construirPayloadPerfil (780-791): excluye correo, tipo_cliente, saldo_cuenta, total_compras y numero_compras; es la unica barrera visible"
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 19,
+        "scope": "CustomerService.updateCustomer",
+        "description": "PUT ${apiUrl}/usuarios/update/{clienteId} con customerData: any sin filtrado; el backend recibe cualquier campo que el cliente agregue"
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 675,
+        "description": "correo declarado como control disabled: la UI no permite cambiar el correo (identidad de login)"
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 683,
+        "description": "tipo_cliente (683), saldo_cuenta (684), total_compras (685) y numero_compras (686) son controles disabled: campos administrados, de solo lectura para el cliente"
+      },
+      {
+        "file": "src/services/login/login.service.ts",
+        "line": 40,
+        "description": "descuento_preferencial (y tipo_cliente en 39, saldo_cuenta en 41) son atributos del modelo de cliente devueltos por la API"
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 99,
+        "description": "El descuento solo aplica si tipo_cliente es mayorista (esMayorista, 94-96); el commit 922d086 indica que el backend calcula ese descuento a partir del cliente, por lo que estos campos determinan el precio cobrado"
+      },
+      {
+        "file": "src/services/crear-cuenta/crear-cuenta.service.ts",
+        "line": 19,
+        "description": "POST /clientes/registro anonimo con cuerpo {nombre, apellido, correo, password} armado en el navegador; un cuerpo directo puede incluir tipo_cliente/descuento_preferencial/saldo_cuenta"
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (repo carniceria-franco-backend) no esta disponible en este objetivo: no se puede ver el $fillable/$guarded del modelo de cliente ni si el controlador de PUT /usuarios/update/{id} usa $request->all()/fill() o $request->validated()/only() con reglas que excluyan tipo_cliente, descuento_preferencial, saldo_cuenta, total_compras, numero_compras, correo y password",
+      "Tampoco es visible si el controlador de POST /clientes/registro fija tipo_cliente='minorista', descuento_preferencial=0 y saldo_cuenta=0 ignorando el cuerpo, ni si la creacion de ventas recalcula el descuento y el credito desde el registro del cliente en BD (lo que determina el impacto en precio)"
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend carniceria-franco-backend con BD de prueba desechable: revisar el modelo de cliente ($fillable/$guarded) y los controladores de usuarios/update y clientes/registro (y su FormRequest). Luego, con un cliente dummy minorista y su token Sanctum local, enviar PUT /api/v1/usuarios/update/{id_dummy} con {\"nombre\":\"x\",\"tipo_cliente\":\"mayorista\",\"descuento_preferencial\":50,\"saldo_cuenta\":1000,\"correo\":\"otro@example.test\"} y POST /api/v1/clientes/registro con {nombre, apellido, correo dummy, password} mas los mismos campos extra; verificar en la BD local si alguno de esos atributos cambio y, solo si cambio, si una venta de prueba posterior aplica el descuento. Prueba de regresion: ambos endpoints deben ignorar o rechazar (422) esos campos.",
+      "deployment": "El dueno confirma en el codigo desplegado del backend (lectura de codigo, sin trafico contra produccion) que ambos controladores persisten solo campos de una lista blanca de perfil via validated()/only() y que tipo_cliente, descuento_preferencial, saldo_cuenta, total_compras, numero_compras y correo solo se modifican desde el panel admin o un flujo de verificacion de correo."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/customers/customer-service.service.ts:CustomerService.uploadCustomerImages:server-side-image-validation",
+    "title": "Las fotos de seguimiento se mandan como base64 sin limite y el plazo de 15 dias solo se aplica en la UI",
+    "description": "POST /usuarios/store-images recibe {customer_id, images:[{image, peso, comentarios}]} con el contenido base64 sin cabecera de cada archivo. El front no revisa tipo real, tamano ni cantidad (accept='image/*' es solo sugerencia y el arrastrar y soltar no la aplica) y la regla de 15 dias entre subidas es solo de presentacion: canUpload se calcula en el navegador, arranca en true hasta que responde LOAD_IMAGES y onFilesSelected no la respeta. Ademas, tras una subida correcta selectedFiles y uploadedImagesDetails no se limpian (solo previewImages), y el boton 'Subir fotos' que aparece justo cuando !canUpload llama a saveImagesAsBase64 y reenvia esos archivos, asi que la propia UI permite una segunda subida dentro del plazo. Cualquier cliente con su token Sanctum puede llamar el endpoint directo. Si el backend no decodifica y valida contenido, tamano y cantidad ni aplica el plazo, un cliente puede guardar contenido arbitrario que luego se muestra (en este front como data:image/png en <img>, sin ejecucion de script; en el panel admin, no visible) o llenar el almacenamiento con subidas repetidas. En este front no hay XSS: Angular sanitiza [src] y una imagen data: no ejecuta script.",
+    "claimed_root_cause": "La validacion de las imagenes y la regla de frecuencia de subida existen solo en SeguimientoComponent (y de forma incompleta); CustomerService.uploadCustomerImages manda lo que el navegador lea, por lo que cualquier control efectivo tiene que estar en el endpoint de Laravel, que no es visible.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 158,
+        "scope": "SeguimientoComponent.onFilesSelected",
+        "description": "Acepta cualquier FileList del selector o de arrastrar y soltar sin revisar tipo, tamano ni cantidad, y no bloquea si canUpload es false (solo lo recalcula)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 244,
+        "scope": "SeguimientoComponent.saveImagesAsBase64",
+        "description": "Convierte cada archivo seleccionado a base64 sin cabecera y lo agrega a base64Images con peso y comentarios libres."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 258,
+        "scope": "SeguimientoComponent.saveImagesAsBase64",
+        "description": "Llama a uploadCustomerImages con el arreglo completo sin limite de elementos."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 33,
+        "scope": "CustomerService.uploadCustomerImages",
+        "description": "POST /usuarios/store-images con {customer_id (localStorage), images}; la aceptacion y almacenamiento dependen solo del backend."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 51,
+        "description": "canUpload se calcula en el cliente a partir de created_at de la ultima imagen cargada; arranca en true (linea 26) y ngOnInit lo evalua antes de que responda LOAD_IMAGES."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.html",
+        "line": 69,
+        "description": "El boton 'Subir fotos' se muestra con !canUpload y llama a saveImagesAsBase64."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 263,
+        "description": "Tras subir solo se limpia previewImages; selectedFiles y uploadedImagesDetails quedan, por lo que el boton de la linea 69 del html reenvia los mismos archivos dentro del plazo de 15 dias."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.html",
+        "line": 43,
+        "description": "accept='image/*' es la unica restriccion de tipo y no aplica al arrastrar y soltar (onDrop, linea 92 del ts)."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 125,
+        "description": "Las imagenes guardadas se muestran como 'data:image/png;base64,'+img.image en <img [src]>: sin ejecucion de script en este front; el riesgo de mostrar contenido arbitrario queda en el panel del backend."
+      }
+    ],
+    "blockers": [
+      "Backend carniceria-franco-backend no disponible: no se ve si /api/v1/usuarios/store-images decodifica el base64 y valida tipo real, dimensiones, tamano por imagen y cantidad por peticion, si aplica el plazo de 15 dias o algun limite de frecuencia, si usa customer_id del cuerpo o el usuario del token, ni como guarda y sirve esas imagenes en el panel admin."
+    ],
+    "validation_plan": {
+      "local": "Con carniceria-franco-backend en local y base vacia, crear un cliente ficticio A con token Sanctum propio. Con ese token: (1) POST /api/v1/usuarios/store-images con customer_id de A e images=[{image: base64 de un texto plano ficticio, peso:'70', comentarios:'prueba'}]; (2) POST con un arreglo de 50 imagenes PNG validas de 1x1; (3) dos POST validos seguidos. Esperado seguro: 422 en (1), rechazo o tope en (2) y rechazo de la segunda peticion de (3) por el plazo de 15 dias. Revisar tambien las reglas de validacion del controlador y el limite de cuerpo (post_max_size / client_max_body_size).",
+      "deployment": "El dueno revisa en el codigo desplegado del backend las reglas de validacion y throttle de store-images y como el panel admin muestra esas imagenes (data URI con MIME de imagen fijo en <img> o archivo servido con Content-Type de imagen y X-Content-Type-Options: nosniff), sin hacer subidas contra produccion."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/logs/log-service.service.ts:LogService.setLog:client-asserted-usuario-anonymous-audit-write",
+    "title": "La bitacora de auditoria recibe el usuario desde el cuerpo y se escribe sin sesion, lo que permitiria atribuir acciones falsas a cualquier cliente",
+    "description": "AppComponent registra cada navegacion via LogService.setLog, que envia a POST /historial/guardar-accion un cuerpo {accion, contenido, usuario} donde usuario es localStorage.clienteId o el literal '20' cuando no hay sesion. Los visitantes anonimos envian esa peticion sin Authorization. Indicio fuerte de que el endpoint acepta escrituras anonimas: si devolviera 401, AuthInterceptor llamaria a AuthService.logout (toast y navegacion a '/') en cada navegacion de un visitante, rompiendo la navegacion publica; el fallback '20' tambien sugiere un usuario invitado previsto. Esto no lo prueba: el despliegue o el backend podrian comportarse distinto. Si el controlador Laravel persiste el campo 'usuario' del cuerpo en lugar de derivarlo del token Sanctum (o de forzar un invitado fijo sin sesion), un atacante anonimo, o un cliente autenticado que altere el campo, puede insertar entradas con accion y contenido arbitrarios (por ejemplo 'Inicio Sesion') atribuidas a cualquier id de cliente, y el operador las veria en el panel admin como hechos reales. Ademas, todo el trafico anonimo queda atribuido al id 20, que podria ser un cliente real. El atacante no necesita la SPA: basta un POST directo con el contrato que el front revela.",
+    "claimed_root_cause": "El cliente declara la identidad del autor de la entrada de auditoria (usuario = clienteId de localStorage o '20') y la llamada se hace tambien sin token; en este repo no hay ningun enlace entre la entrada registrada y el principal autenticado. Que se convierta en vulnerabilidad depende de que el backend confie en ese campo.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/app.component.ts",
+        "line": 16,
+        "scope": "AppComponent.ngOnInit",
+        "description": "Se suscribe a router.events y en cada NavigationEnd (tambien de visitantes anonimos) llama setLog('VISITA', 'Ruta visitada: ' + urlAfterRedirects); expone el contrato del endpoint que un atacante puede invocar directamente."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/logs/log-service.service.ts",
+        "line": 20,
+        "scope": "LogService.setLog",
+        "description": "usuario = localStorage.getItem('clienteId') ?? '20': la identidad sale del almacenamiento del navegador, controlable por el usuario, o de un id fijo para anonimos."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 24,
+        "scope": "AuthInterceptor.intercept",
+        "description": "Solo agrega Authorization si hay token; los visitantes anonimos envian la peticion de bitacora sin credencial, y un 401 provocaria logout (linea 36) en cada navegacion."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/logs/log-service.service.ts",
+        "line": 30,
+        "scope": "LogService.setLog",
+        "description": "POST ${apiUrl}/historial/guardar-accion con {accion, contenido, usuario} controlados por el cliente hacia la bitacora que lee el panel admin."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/logs/log-service.service.ts",
+        "line": 27,
+        "description": "El cuerpo lleva 'usuario: userId' explicito; el servidor no necesitaria este campo si atribuyera por token."
+      },
+      {
+        "file": "src/app/app.component.ts",
+        "line": 18,
+        "description": "La llamada global se hace en cada navegacion, sin condicion de sesion; el error solo se registra en consola."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 36,
+        "description": "Ante 401 de la API se llama authService.logout(), que muestra un toast y navega a '/' (auth-service.service.ts:74-75); si el endpoint exigiera auth, cada visita anonima dispararia esto, lo que indica que en la practica acepta peticiones anonimas."
+      },
+      {
+        "file": "src/app/public/login/login.component.ts",
+        "line": 46,
+        "description": "La accion 'Inicio Sesion' se registra desde el cliente con el mismo endpoint: una entrada de este tipo puede fabricarse con usuario arbitrario si el servidor confia en el cuerpo."
+      },
+      {
+        "file": "src/app/public/pages/seguimiento/seguimiento.component.ts",
+        "line": 33,
+        "description": "Otro llamador de setLog con accion/contenido libres, mismo camino de atribucion."
+      }
+    ],
+    "blockers": [
+      "El controlador Laravel de POST /historial/guardar-accion (repo carniceria-franco-backend) no esta disponible en este objetivo: no se sabe si la ruta esta tras auth:sanctum, si ignora el campo 'usuario' y usa auth()->id() o un invitado fijo, ni si valida 'accion' contra una lista cerrada.",
+      "No se sabe si el id 20 corresponde a un cliente real o a un registro reservado de invitado.",
+      "No se sabe como el panel admin presenta la bitacora (si muestra el usuario atribuido como hecho confiable)."
+    ],
+    "validation_plan": {
+      "local": "En el repo backend, leer routes/api.php para la ruta historial/guardar-accion (middleware aplicado) y el metodo del controlador que la atiende: confirmar si persiste $request->usuario o $request->input('usuario') en lugar de auth()->id(). Con una base local de prueba y dos clientes ficticios A y B, enviar sin token un POST {accion:'Inicio Sesion', contenido:'prueba', usuario:<id de B>} y, por separado, con el token de A el mismo cuerpo con usuario=<id de B>; verificar si se crea una fila atribuida a B. Revisar en la tabla de clientes/usuarios local a que corresponde el id 20 segun seeders o migraciones.",
+      "deployment": "El propietario revisa en el panel admin de produccion si existen entradas de bitacora atribuidas a clientes en momentos en que esos clientes no tenian sesion, comprueba a quien pertenece el id 20 y confirma en la configuracion desplegada el middleware de la ruta; sin generar trafico contra la API."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.checkPaymentStatus:payment-lookup-owner-check",
+    "title": "Consultas de pago y venta por payment_id / preference_id sin dueno visible en el contrato de la API",
+    "description": "MercadoPagoService declara GET {apiUrl}/mercadopago/payment-status/{paymentId} y GET {apiUrl}/mercadopago/venta-by-preference/{preferenceId}. Ningun componente los invoca hoy ni en ningun commit del historial (solo existen desde 42b106a), pero el bundle publica las rutas y el AuthInterceptor les adjuntaria el Bearer del cliente. El front no es frontera: cualquier usuario puede llamar esas rutas directamente con su propio token (o sin token). El contrato visible selecciona el recurso solo por un identificador externo en la ruta, sin customer_id ni otro dato de dueno. Si el backend Laravel mantiene registradas esas rutas y no verifica que el pago o la preferencia pertenezcan a una venta del usuario autenticado, un cliente podria leer el estado de pagos y los datos de ventas ajenas. Correcciones del verificador: la respuesta esta tipada como any, asi que el contenido (montos, productos, datos del comprador) no es visible y no se afirma; el payment_id de Mercado Pago es numerico (el callback lo valida con /^\\d+$/) pero de valores grandes y dispersos, y el preference_id es una cadena no secuencial, por lo que la enumeracion es parcial/costosa, no trivial.",
+    "claimed_root_cause": "Lecturas de recursos de pago seleccionados solo por un identificador externo en la ruta (payment_id / preference_id), sin parametro ni comprobacion visible de dueno; la autorizacion depende por completo del backend no disponible.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 65,
+        "scope": "MercadoPagoService.checkPaymentStatus",
+        "description": "Recibe un paymentId arbitrario; equivale a una peticion directa del cliente autenticado (o de cualquiera) a la API, porque el front no restringe la llamada."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 66,
+        "scope": "MercadoPagoService.checkPaymentStatus",
+        "description": "(camino paralelo 1) GET {apiUrl}/mercadopago/payment-status/{paymentId}: el recurso se elige solo por el id de la ruta; el dueno solo podria verificarse en el backend."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 72,
+        "scope": "MercadoPagoService.getVentaByPreference",
+        "description": "(camino paralelo 2) Recibe un preferenceId arbitrario."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 73,
+        "scope": "MercadoPagoService.getVentaByPreference",
+        "description": "GET {apiUrl}/mercadopago/venta-by-preference/{preferenceId}: devuelve detalles de una venta elegida solo por el id de preferencia."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 66,
+        "description": "GET {apiUrl}/mercadopago/payment-status/{paymentId}, respuesta Observable<any>, sin customer_id."
+      },
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 73,
+        "description": "GET {apiUrl}/mercadopago/venta-by-preference/{preferenceId}, respuesta Observable<any>, sin customer_id."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 27,
+        "description": "El interceptor adjunta el Bearer del cliente a toda URL bajo environment.apiUrl; es la unica identidad que llegaria al backend, sin rol ni dueno modelado en el front."
+      },
+      {
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 196,
+        "description": "El callback exige payment_id numerico (/^\\d+$/) y usa confirm-payment, no estas rutas; confirma que los ids de pago son numericos (grandes, no secuenciales por cliente)."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 364,
+        "description": "El preference_id llega de la respuesta de create-preference; es un identificador de Mercado Pago no secuencial, conocido por el comprador y expuesto en la URL de retorno."
+      }
+    ],
+    "blockers": [
+      "Backend Laravel (carniceria-franco-backend) no disponible en este objetivo: no se puede ver si GET /api/v1/mercadopago/payment-status/{id} y /api/v1/mercadopago/venta-by-preference/{id} siguen registradas, si estan bajo auth:sanctum ni si filtran por el cliente autenticado; tampoco que campos devuelven. El front no refuta ni demuestra el efecto."
+    ],
+    "validation_plan": {
+      "local": "En el backend local (php artisan route:list | grep mercadopago) confirmar si ambas rutas existen y su middleware. Con dos clientes de prueba A y B y Mercado Pago simulado/sandbox, crear una venta de B con preferencia y pago; con el token de A (y sin token) pedir GET /api/v1/mercadopago/payment-status/{payment_id_de_B} y GET /api/v1/mercadopago/venta-by-preference/{preference_id_de_B}. Esperado seguro: 401/403/404 sin datos de B; vulnerable: 200 con estado del pago o detalles de la venta de B. Solo lecturas, sin modificar datos.",
+      "deployment": "El dueno revisa en routes/api.php y en el controlador desplegado de carniceriafrancoadmin.shop si ambas rutas existen; si no se usan, eliminarlas; si se usan, confirmar que estan bajo auth:sanctum y que la consulta filtra la venta por customer_id del usuario autenticado (o devuelve 404). Puede observarse con sus propias cuentas de prueba A y B en el entorno desplegado, solo con GET."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/mercadopago/mercadopago.service.ts:MercadoPagoService.handlePaymentCallback:legacy-callback-endpoint-client-status",
+    "title": "Posible ruta heredada POST /mercadopago/callback en el backend que aceptaria el status enviado por el cliente",
+    "description": "Desde el primer commit (42b106a) hasta 009e9f8, MercadoPagoService declaraba handlePaymentCallback, un cliente para POST {apiUrl}/mercadopago/callback con cuerpo PaymentCallbackData {payment_id, status, merchant_order_id, preference_id, collection_status, payment_type}. Correccion al candidato: ese metodo era codigo muerto en todas las revisiones (git grep sobre git rev-list --all no encuentra ningun llamador fuera del servicio); el PaymentCallbackComponent de 42b106a no llamaba al backend (simulaba con setTimeout y solo mostraba el status de la URL) y ni siquiera tenia ruta registrada hasta 009e9f8. Por tanto el front nunca envio status al servidor y 009e9f8 no 'reemplazo' una llamada viva: quito un stub sin uso y agrego confirm-payment. Lo que queda es una senal: el servicio refleja rutas del backend (tambien conserva checkPaymentStatus y getVentaByPreference sin uso), asi que es plausible que la API Laravel exponga o haya expuesto POST /api/v1/mercadopago/callback. Si esa ruta sigue registrada y cambia el estado de la venta pendiente segun status/collection_status del cuerpo, cualquier cliente con su token Sanctum (o sin el, si la ruta es publica como suelen ser los webhooks) podria completar ventas sin pagar llamandola directamente. Nada en este repositorio prueba ni refuta la existencia ni el comportamiento de esa ruta.",
+    "claimed_root_cause": "El endurecimiento del retorno de pago (confirm-payment, verificado contra Mercado Pago) solo es visible en el front; si el backend mantiene registrada una ruta /mercadopago/callback que confia en el status recibido en el cuerpo, la politica efectiva es la de esa ruta mas debil, invocable directamente sin pasar por la SPA.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 183,
+        "scope": "PaymentCallbackComponent.handleMercadoPagoCallback",
+        "description": "Los query params de retorno (payment_id, status, collection_status, preference_id) son controlados por quien abre la URL; el comentario de las lineas 179-181 reconoce que ?status=approved puede falsificarse. El front actual ya no usa status y solo envia payment_id; el atacante del escenario no usa la SPA sino que llama directamente a la API."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 80,
+        "scope": "MercadoPagoService.confirmPayment",
+        "description": "Sustituye en 009e9f8 al metodo handlePaymentCallback, que en 42b106a:src/services/mercadopago/mercadopago.service.ts:71-72 hacia POST {apiUrl}/mercadopago/callback con PaymentCallbackData (status, collection_status). Ese metodo nunca tuvo llamadores en ninguna revision; su unica relevancia es indicar que la ruta existio o se planeo en el backend."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 51,
+        "scope": "MercadoPagoService.apiUrl",
+        "description": "Misma base de API (environment.apiUrl, https://carniceriafrancoadmin.shop/api/v1 en produccion) a la que AuthInterceptor adjunta el Bearer Sanctum del cliente (src/interceptors/auth.interceptor.ts:27). El efecto de frontera (marcar la venta pendiente como pagada segun el status recibido) ocurriria en el backend Laravel, no visible aqui."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 80,
+        "description": "confirmPayment reemplazo a handlePaymentCallback y a la interfaz PaymentCallbackData (git show 009e9f8 -- src/services/mercadopago/mercadopago.service.ts); el comentario de las lineas 77-78 afirma que el servidor verifica contra Mercado Pago."
+      },
+      {
+        "file": "src/app/public/pages/payment-callback/payment-callback.component.ts",
+        "line": 180,
+        "description": "Comentario: la URL no se toma como verdad porque cualquiera podria escribir ?status=approved; handleMercadoPagoCallback (linea 183) ya no lee status y llama confirmPayment (linea 201) solo con un payment_id numerico."
+      },
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 65,
+        "description": "checkPaymentStatus y getVentaByPreference (linea 72) siguen declarados sin ningun llamador: el servicio refleja rutas del backend aunque el front no las use, lo que hace plausible (no demostrado) que /mercadopago/callback exista o haya existido en la API."
+      },
+      {
+        "file": "src/app/public/pages/pages-routing.module.ts",
+        "line": 26,
+        "description": "La ruta payment-callback se agrego en 009e9f8 (git show 009e9f8 -- src/app/public/pages/pages-routing.module.ts); antes el componente no tenia ruta y en 42b106a no llamaba a ninguna API, por lo que handlePaymentCallback fue siempre codigo muerto."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend) no esta en el objetivo: no se puede ver si POST /api/v1/mercadopago/callback sigue registrada en routes/api.php, que middleware la protege (auth:sanctum, firma de webhook) ni si cambia el estado de la venta segun status/collection_status del cuerpo en lugar de consultar el pago a Mercado Pago. Ningun archivo de este repositorio resuelve ese hecho, que es decisivo."
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend con base de datos de prueba: 1) php artisan route:list --path=mercadopago y confirmar si existe POST api/v1/mercadopago/callback y su middleware; 2) si existe, leer el controlador y verificar si usa status/collection_status del request o consulta el pago a la API de Mercado Pago con credenciales de prueba; 3) con un cliente ficticio y una venta pendiente ficticia creada via create-preference, enviar POST /api/v1/mercadopago/callback {payment_id:'1', status:'approved', collection_status:'approved', preference_id:<preferencia de prueba>} con el token del cliente ficticio y luego sin token, y comprobar que la venta sigue en estatus 'pendiente'. No usar Mercado Pago real ni produccion.",
+      "deployment": "El dueno revisa en el codigo desplegado (routes/api.php y php artisan route:list en el servidor de carniceriafrancoadmin.shop) que la ruta /mercadopago/callback no existe, o que su controlador ignora el status del cuerpo y verifica el pago contra Mercado Pago (o valida la firma x-signature si es el webhook), y que el unico camino que completa ventas es confirm-payment/webhook verificado. No se requiere enviar peticiones a produccion."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/productos/productos.service.ts:ProductosService.crearProducto:admin-endpoints-on-customer-api",
+    "title": "Endpoints de administracion (alta/edicion de productos y categorias, categorias inactivas, listado global de ventas) se llaman en la misma API /api/v1 y con el mismo token Sanctum de cliente; la separacion por rol no es visible",
+    "description": "El bundle publico incluye ProductosService.crearProducto/actualizarProducto (POST {apiUrl}/productos, PUT {apiUrl}/productos/{id}), CategoriasService.crearCategoria/actualizarCategoria (POST {apiUrl}/categorias, PUT {apiUrl}/categorias/{id}), getAllCategorias (GET {apiUrl}/categorias/all, 'incluyendo inactivas') y VentasService.obtenerTodasVentas (GET {apiUrl}/ventas, comentado 'endpoint para administrador', tipado como Venta[] paginado con customer: nombre, apellido, email, telefono, direccion, total_compras). Ningun componente de src/app los invoca y el front no modela roles: LoginService guarda en localStorage.token el token emitido por /clientes/login y AuthInterceptor lo adjunta como Bearer a toda URL que empiece con environment.apiUrl. El front no es frontera de seguridad (un cliente puede enviar estas peticiones con su token aunque los metodos no existieran); su presencia solo documenta que las rutas de administracion comparten prefijo y tipo de token con las de cliente. Si el backend Laravel solo exige auth:sanctum (o nada) en esas rutas, un cliente registrado podria crear/modificar productos y precios, crear/modificar categorias, ver categorias inactivas y listar todas las ventas con datos personales de todos los clientes. Ningun control en este repo lo refuta ni lo confirma.",
+    "claimed_root_cause": "Las rutas de administracion de catalogo y el listado global de ventas comparten prefijo /api/v1, guard y tipo de token Sanctum con las rutas de clientes; la separacion de privilegios depende exclusivamente de un middleware de rol o abilities del token en el backend, que no esta en este repositorio.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/login/login.service.ts",
+        "line": 32,
+        "scope": "LoginService.handleLoginResponse",
+        "description": "El token de cliente devuelto por POST {apiUrl}/clientes/login (linea 26) se guarda en localStorage.token; es la credencial de menor confianza (cliente registrado)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 23,
+        "scope": "AuthInterceptor.intercept",
+        "description": "esPeticionApi = req.url.startsWith(environment.apiUrl); en 24-27 se adjunta Authorization: Bearer <token de cliente> a cualquier ruta de la API, sin distinguir rutas de cliente o de administracion."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/productos/productos.service.ts",
+        "line": 171,
+        "scope": "ProductosService.crearProducto",
+        "description": "POST {apiUrl}/productos con Partial<Producto>; actualizarProducto hace PUT {apiUrl}/productos/{id} en la linea 178 (apiUrl definido en 92)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/categorias/categorias.service.ts",
+        "line": 70,
+        "scope": "CategoriasService.crearCategoria",
+        "description": "POST {apiUrl}/categorias; actualizarCategoria hace PUT {apiUrl}/categorias/{id} en 77 y getAllCategorias GET {apiUrl}/categorias/all en 49."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 329,
+        "scope": "VentasService.obtenerTodasVentas",
+        "description": "GET {apiUrl}/ventas con filtros; respuesta tipada TodasVentasResponse (135-149) con Venta[] cuyo campo customer es CustomerVenta; marcado 'endpoint para administrador' (306)."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 306,
+        "description": "Comentario: 'Obtener todas las ventas con filtros (endpoint para administrador)'."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 35,
+        "description": "CustomerVenta incluye nombre, apellido, email, telefono, direccion, ciudad, total_compras y numero_compras; Venta.customer (68) lo referencia."
+      },
+      {
+        "file": "src/services/productos/productos.service.ts",
+        "line": 177,
+        "description": "actualizarProducto acepta Partial<Producto> (precio, precio_oferta, stock, activo) contra PUT {apiUrl}/productos/{id}."
+      },
+      {
+        "file": "src/services/categorias/categorias.service.ts",
+        "line": 46,
+        "description": "Comentario 'Obtener todas las categorias incluyendo inactivas' para GET {apiUrl}/categorias/all."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 15,
+        "description": "Comentario: adjunta el token Sanctum a toda peticion dirigida a la API. En src/ no existe concepto de rol ni de abilities: un grep de admin/role/rol en src/app solo encuentra el comentario 'Interruptor del admin apagado' en carrito.component.ts:591, las constantes adminBaseUrl (base de URL de imagenes) en home.component.ts:19 y categorias.component.ts:12, y atributos role=\"status\" de spinners."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend) no esta en este objetivo: no se ve el middleware (rol admin, guard distinto o abilities del token Sanctum) de POST/PUT /api/v1/productos, POST/PUT /api/v1/categorias, GET /api/v1/categorias/all y GET /api/v1/ventas.",
+      "El panel admin vive en el backend Laravel; no se sabe si usa estas mismas rutas /api/v1 o rutas web con otra autenticacion, ni si /clientes/login emite tokens con abilities restringidas."
+    ],
+    "validation_plan": {
+      "local": "En una copia local del backend con base de datos de prueba: (1) php artisan route:list --path=api/v1 -v y anotar el middleware de POST/PUT productos, POST/PUT categorias, GET categorias/all y GET ventas; revisar en el controlador de /clientes/login si createToken asigna abilities y si esas rutas usan abilities/ability o un middleware de rol. (2) Registrar un cliente ficticio, obtener su token con POST /api/v1/clientes/login y, con Authorization: Bearer <token>, enviar GET /api/v1/ventas, GET /api/v1/categorias/all, POST /api/v1/productos {\"nombre\":\"prueba-auditoria\",\"precio\":1}, PUT /api/v1/productos/{id de producto ficticio de prueba} {\"precio\":1} y PUT /api/v1/categorias/{id de categoria ficticia} {\"nombre\":\"prueba\"}. Esperado seguro: 401/403 en todas y ninguna fila creada o modificada (comparar SELECT antes/despues). Repetir sin token. Solo contra el backend local, nunca contra produccion.",
+      "deployment": "El dueno revisa el routes/api.php y los middlewares desplegados (o php artisan route:list en el servidor) y confirma que todas las rutas de escritura de productos/categorias, GET /categorias/all y GET /ventas exigen rol de administrador o abilities del token que los tokens de /clientes/login no tienen; sin enviar peticiones de escritura a produccion."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/ventas/ventas.service.ts:CrearVentaRequest.descuento:legacy-client-discount-field",
+    "title": "El backend aplicaba como pesos un 'descuento' enviado por el cliente; el arreglo visible es solo del front y el campo sigue en el contrato",
+    "description": "Segun el mensaje del commit 922d086, antes el carrito mandaba 'descuento' (el porcentaje leido de localStorage) y el backend lo 'restaba como pesos'; es decir, el servidor historicamente aplicaba un descuento decidido por el cuerpo de la peticion. El commit solo quita las dos lineas del front que lo enviaban (carrito.component.ts) y afirma que 'ahora el backend calcula el descuento del mayorista', pero el cambio del servidor no esta en este repo y nada aqui muestra que el servidor deje de leer o rechace el campo. Las interfaces CrearVentaRequest y PreferenceData siguen declarando descuento?: number; eso es solo un tipo TypeScript sobrante y no prueba por si mismo que el backend lo lea. Si el backend aun toma $request->descuento (por compatibilidad o como valor por defecto), cualquier cliente autenticado puede agregar 'descuento' al JSON de POST /ventas o /mercadopago/create-preference y reducir el total (hasta gratis) sin ser mayorista. El front no es frontera de seguridad: el cuerpo lo arma el navegador y puede reenviarse modificado.",
+    "claimed_root_cause": "El backend aceptaba un descuento monetario decidido por el cliente; el arreglo visible en este repo se hizo solo en el front (dejar de mandarlo) y no hay evidencia local de que el servidor haya dejado de leer o haya prohibido el campo 'descuento' del request.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 391,
+        "scope": "CarritoComponent.realizarCompraTradicional",
+        "description": "El cuerpo de la venta se arma en el navegador (controlado por el cliente autenticado); desde 922d086 ya no incluye 'descuento', pero el usuario puede reenviar la peticion con el campo agregado."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 74,
+        "scope": "CrearVentaRequest",
+        "description": "El contrato tipado de POST /ventas aun declara 'descuento?: number'."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 14,
+        "scope": "PreferenceData",
+        "description": "El contrato de create-preference tambien declara 'descuento?: number'."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 263,
+        "scope": "VentasService.crearVenta",
+        "description": "(camino paralelo, mismo efecto) POST {apiUrl}/ventas envia el cuerpo tal cual al backend, donde antes de 922d086 el valor se restaba como pesos."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 59,
+        "scope": "MercadoPagoService.createPreference",
+        "description": "POST {apiUrl}/mercadopago/create-preference envia el cuerpo tal cual; el backend fija el monto de la preferencia."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 391,
+        "description": "git show 922d086 elimina 'descuento: this.descuentoPorcentajeAplicable' de ventaRequest y preferenceData; el mensaje dice 'Antes mandaba un porcentaje que el backend restaba como pesos. Ahora el backend calcula el descuento del mayorista'. Es el unico cambio del commit (2 lineas borradas, 1 archivo)."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 74,
+        "description": "descuento?: number sigue en CrearVentaRequest (tipo sobrante; no prueba lectura en el servidor)."
+      },
+      {
+        "file": "src/services/mercadopago/mercadopago.service.ts",
+        "line": 14,
+        "description": "descuento?: number sigue en PreferenceData."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 98,
+        "description": "descuentoPorcentajeAplicable depende de clienteTipoCliente/clienteDescuentoPreferencial leidos de localStorage (lineas 549-561); antes de 922d086 ese valor del navegador era el que se enviaba como descuento."
+      },
+      {
+        "file": "src/services/login/login.service.ts",
+        "line": 40,
+        "description": "clienteDescuentoPreferencial viene de la respuesta de login y se guarda en localStorage, editable por el usuario."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend) no esta en este objetivo: no se puede ver si VentaController@store y el controlador de mercadopago/create-preference ignoran, prohiben (regla 'prohibited') o aun aplican el campo 'descuento' del request.",
+      "El historial git solo contiene el lado del front del commit 922d086; la afirmacion 'ahora el backend calcula el descuento' no es verificable desde este repo, y no hay forma local de ejecutar el backend."
+    ],
+    "validation_plan": {
+      "local": "En una instancia local del backend con base de datos de prueba, autenticado con el token Sanctum de un cliente ficticio tipo 'general' con descuento_preferencial 0, enviar POST /api/v1/ventas con customer_id propio, metodo_pago 'transferencia', un producto de precio conocido (p. ej. $100, cantidad 1) y 'descuento': 100; repetir con 'descuento': 99999 y con 'descuento': 50. Verificar en la respuesta y en la tabla de ventas que subtotal/total siguen siendo 100 y descuento 0. Repetir contra POST /api/v1/mercadopago/create-preference y revisar el total de la venta pendiente y el unit_price de los items de la preferencia (sin llegar a pagar). Ademas, buscar en el codigo del backend toda lectura de 'descuento' en el request (request->descuento, request->input('descuento'), $validated['descuento'], fill/create con $request->all()).",
+      "deployment": "El dueno revisa el codigo desplegado del backend (ventas y Mercado Pago) y confirma que el descuento se calcula solo desde customers.tipo_cliente/descuento_preferencial del usuario autenticado y que 'descuento' del request se ignora o se rechaza con 422; opcionalmente, con una cuenta de prueba propia tipo 'general', crea una venta por transferencia de un producto barato agregando 'descuento' al cuerpo y comprueba en el panel admin que el total registrado no cambio, luego cancela esa venta."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.cancelarVenta:sale-cancel-owner-state-check",
+    "title": "Endpoint PUT /ventas/{id}/cancelar (devuelve stock y altera estadisticas) direccionado solo por id, sin vinculacion visible a dueno, rol ni estado",
+    "description": "VentasService.cancelarVenta (src/services/ventas/ventas.service.ts:301-302) construye PUT {apiUrl}/ventas/{saleId}/cancelar con cuerpo vacio; el comentario de la linea 299 indica que la operacion devuelve stock y actualiza estadisticas. El metodo no tiene llamadores en src/app (grep), asi que el front no ofrece cancelar, pero la ruta queda expuesta en el bundle y cualquier cliente registrado puede invocarla directamente con su propio token Sanctum. La peticion no lleva parametro de dueno: la venta se elige solo por un id numerico (sale_id: number en las interfaces). Si el backend Laravel solo exige autenticacion, un cliente podria cancelar ventas de otros clientes o ventas ya pagadas/completadas/entregadas, restituyendo stock y alterando estadisticas y pedidos ajenos. El front no es frontera de seguridad (patron comparable); el control decisivo (politica por objeto y regla de transicion de estado) vive solo en el backend, que no esta en este objetivo. La enumerabilidad de ids es una inferencia por el tipo numerico, no esta demostrada.",
+    "claimed_root_cause": "Operacion de cambio de estado con efectos de inventario y estadisticas seleccionada unicamente por el id de la ruta, sin parametro de dueno; la autorizacion por objeto (dueno o rol admin) y la regla de estado permitido para cancelar dependen por completo del controlador/politica del backend, no visible.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 301,
+        "scope": "VentasService.cancelarVenta",
+        "description": "Define la forma de la peticion con saleId arbitrario en la ruta; sin llamadores en src/app, por lo que el punto de entrada real es un cliente autenticado que envia esta misma peticion HTTP directamente a la API."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 27,
+        "scope": "AuthInterceptor.intercept",
+        "description": "Adjunta Authorization: Bearer con el token del cliente a toda URL que empieza con environment.apiUrl; la unica identidad enviada es la del cliente, sin rol ni dueno de la venta."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 302,
+        "scope": "VentasService.cancelarVenta",
+        "description": "PUT {apiUrl}/ventas/{saleId}/cancelar con cuerpo {}: segun el comentario de la linea 299 cambia la venta a cancelada, devuelve stock y actualiza estadisticas; el efecto ocurre en el backend."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 299,
+        "description": "Comentario: 'Cancelar una compra (devuelve stock y actualiza estadisticas)', que describe el efecto de estado e inventario del endpoint."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 9,
+        "description": "sale_id es numerico en la interfaz VentaDetalle; sugiere ids enteros posiblemente enumerables (no demostrado)."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 183,
+        "description": "El perfil solo representa el estado 'cancelada' como clase CSS; no existe boton ni llamada a cancelarVenta en src/app, por lo que el front no limita ni condiciona su uso."
+      },
+      {
+        "file": "src/environments/environment.prod.ts",
+        "line": 4,
+        "description": "apiUrl de produccion https://carniceriafrancoadmin.shop/api/v1, base de la ruta /ventas/{id}/cancelar incluida en el bundle."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend) no esta en este objetivo: no se puede ver si la ruta PUT /api/v1/ventas/{id}/cancelar existe, que middleware la protege (auth:sanctum, rol admin), si su controlador/politica comprueba que la venta pertenece al cliente del token, ni si rechaza cancelar ventas en estado completada/entregada/ya cancelada (doble devolucion de stock)."
+    ],
+    "validation_plan": {
+      "local": "En un backend local con base de datos de prueba y clientes ficticios A y B (sin rol admin): 1) con token de A enviar PUT /api/v1/ventas/{id_venta_pendiente_de_B}/cancelar; esperado 403/404, estatus de la venta de B sin cambio y stock de sus productos sin cambio. 2) con token de A enviar PUT /api/v1/ventas/{id_venta_completada_o_entregada_de_A}/cancelar; esperado 422/409 y stock sin cambio. 3) repetir PUT sobre una venta ya cancelada de A; esperado rechazo y stock sin doble incremento. Registrar estatus HTTP y valores de estatus/stock antes y despues.",
+      "deployment": "El dueno revisa en el backend desplegado routes/api.php para la ruta ventas/{id}/cancelar (middleware y grupo de rol), y el metodo del controlador o Policy correspondiente, confirmando que compara sale->customer_id con el usuario del token o exige rol admin, y que valida el estatus actual antes de devolver stock; sin enviar peticiones contra ventas reales."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.guardarRespuestasSatisfaccion:sale-and-customer-from-client",
+    "title": "La encuesta de satisfaccion toma sale_id y customer_id del cliente y la regla de una sola respuesta solo esta en la UI",
+    "description": "GET /indicadores/pedidos/{sale}/preguntas?customer_id= y POST /indicadores/pedidos/{sale}/respuestas con customer_id en el cuerpo identifican la venta y el cliente con valores que controla el navegador (sale_id de la venta seleccionada y clienteId de localStorage). El front solo oculta el boton (user-profile.component.html:421) cuando la venta no esta completada o ya esta en el Set en memoria encuestasRespondidas, que se llena con ya_respondio o con un POST exitoso y se pierde al recargar. El AuthInterceptor solo adjunta el Bearer; nada en el repo liga sale_id/customer_id al token. Si el backend no verifica que la venta pertenece al cliente del token, que esta completada y que no tiene respuestas previas, un cliente autenticado puede responder encuestas de ventas ajenas o repetir respuestas (alterando los indicadores de satisfaccion que ve el operador) y, si la API devuelve datos para ventas ajenas, usar ya_respondio/customer_id de la respuesta como oraculo sobre ventas de otros. Ningun efecto ocurre completo en el front: depende por completo del backend.",
+    "claimed_root_cause": "VentasService manda el customer_id leido de localStorage (AuthService.getUserId) y el sale_id de la venta seleccionada sin ligadura visible al token Sanctum; la unicidad y el estado completada de la encuesta se aplican solo en el componente (puedeResponderSatisfaccion, encuestasRespondidas, ya_respondio).",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 291,
+        "scope": "UserProfileComponent.guardarEncuesta",
+        "description": "customerId = this.authService.getUserId() (parseInt de localStorage['clienteId'], editable por el usuario) y this.compraEncuestaSeleccionada.id como sale_id."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 317,
+        "scope": "UserProfileComponent.guardarEncuesta",
+        "description": "Llama guardarRespuestasSatisfaccion(compraEncuestaSeleccionada.id, customerId, respuestas) sin revalidar estatus ni respuesta previa."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 366,
+        "scope": "VentasService.guardarRespuestasSatisfaccion",
+        "description": "POST /indicadores/pedidos/{saleId}/respuestas con {customer_id, respuestas} en el cuerpo (linea 368); frontera navegador -> API donde la autorizacion depende del backend."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 353,
+        "description": "obtenerPreguntasSatisfaccion manda customer_id como query param a GET /indicadores/pedidos/{saleId}/preguntas; la interfaz de respuesta trae sale_id, customer_id y ya_respondio (lineas 225-235)."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 207,
+        "description": "puedeResponderSatisfaccion solo revisa estatus 'completada' de la venta (dato de la API) y un Set en memoria encuestasRespondidas: control solo de UX, usado en el *ngIf del boton (user-profile.component.html:421)."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 242,
+        "description": "ya_respondio solo agrega la venta al Set y cierra el modal; nada en el front impide reenviar el POST directo a la API."
+      },
+      {
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 78,
+        "description": "getUserId solo hace parseInt de localStorage['clienteId']; no se compara con la identidad del token."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 22,
+        "description": "El interceptor solo adjunta Authorization: Bearer a peticiones de la API; no hay otro control de dueno en el front."
+      }
+    ],
+    "blockers": [
+      "Backend carniceria-franco-backend no disponible en este objetivo: no se ve si el controlador de /api/v1/indicadores/pedidos/{sale}/preguntas y /respuestas exige auth:sanctum, valida que la venta pertenece a $request->user() (ignorando el customer_id del cliente), exige estatus completada y rechaza una segunda respuesta (restriccion unica sale_id+pregunta_id o chequeo previo). El repo del front no refuta ni confirma ninguno de esos controles."
+    ],
+    "validation_plan": {
+      "local": "Con el backend carniceria-franco-backend en local y base vacia, crear dos clientes ficticios A y B con tokens Sanctum propios y una venta ficticia de B con estatus completada, mas una venta pendiente de A. Con el token de A: GET /api/v1/indicadores/pedidos/{ventaB}/preguntas?customer_id={idB} y POST /api/v1/indicadores/pedidos/{ventaB}/respuestas con customer_id={idB} y respuestas validas; tambien POST sobre la venta pendiente de A. Con el token de B: POST /respuestas sobre ventaB dos veces. Esperado seguro: 403/404 para A sobre ventaB (sin sale_id/customer_id/ya_respondio en el cuerpo), 409/422 para la venta pendiente y para la segunda respuesta de B; contar filas de respuestas para ventaB (debe ser una por pregunta). Detenerse en la primera respuesta 2xx no autorizada.",
+      "deployment": "El dueno revisa en el codigo desplegado del backend (rutas api.php e IndicadoresController o equivalente) que las rutas /indicadores/pedidos/* esten bajo auth:sanctum, que el cliente se tome de $request->user() y no de customer_id, que se exija venta propia y completada, y que exista restriccion unica o chequeo previo de respuestas por venta; sin enviar respuestas a ventas reales."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.obtenerDetalleVenta:sale-owner-check",
+    "title": "El detalle de venta se pide solo por id numerico sin ligadura visible al cliente del token",
+    "description": "Un cliente registrado (ruta /profile tras AuthGuard, que solo comprueba que exista 'token' en localStorage) pulsa 'Ver Detalle' y la SPA llama GET {apiUrl}/ventas/{saleId} con el id entero de la venta y el Bearer Sanctum del interceptor; no se manda customer_id ni otro dato que limite el dueno. El tipo VentasResponse.data es Venta, que declara customer_id y customer?: CustomerVenta (nombre, apellido, apellido2, email, telefono, direccion, ciudad, estado, codigo_postal, tipo_cliente, total_compras, numero_compras, fecha_ultima_compra) y details con precios y descuentos. El front solo pinta folio, fecha, estatus, tipo de entrega, metodo de pago, details, montos y notas, pero cualquier cliente autenticado puede repetir la peticion con su propio token y otro id. El tipo id: number sugiere ids autoincrementales (Laravel), aunque la secuencialidad no es visible en este repo. Si el backend no restringe la consulta a ventas del cliente autenticado, un cliente obtiene pedidos, montos, notas y, si la API incluye la relacion customer, datos personales de otros clientes. La cancelacion por id (PUT /ventas/{id}/cancelar) y el listado global GET /ventas tienen sus propios registros (VentasService.cancelarVenta:sale-cancel-owner-state-check y ProductosService.crearProducto:admin-endpoints-on-customer-api) y no forman parte de este. Nada en este repo refuta ni confirma el control de dueno: la decision vive en el backend Laravel ausente.",
+    "claimed_root_cause": "VentasService.obtenerDetalleVenta identifica la venta solo por su id en la URL de lectura GET /ventas/{saleId}; la unica defensa posible es una verificacion de dueno (filtro customer_id del cliente autenticado o Policy) en el controlador de ventas del backend, que no es visible en este objetivo.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/user-profile/user-profile.component.html",
+        "line": 427,
+        "scope": "Boton Ver Detalle en el historial de compras",
+        "description": "(click)=\"verDetalleCompra(compra.id)\"; el id es un entero que el cliente autenticado puede sustituir al repetir la peticion HTTP con su propio token."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 129,
+        "scope": "UserProfileComponent.verDetalleCompra",
+        "description": "Pasa compraId tal cual a ventasService.obtenerDetalleVenta sin customerId ni otra ligadura al dueno; la respuesta se guarda en compraSeleccionada (linea 139)."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 295,
+        "scope": "VentasService.obtenerDetalleVenta",
+        "description": "GET ${apiUrl}/ventas/${saleId} (Bearer adjuntado por AuthInterceptor); respuesta tipada VentasResponse con data: Venta que puede incluir customer con PII. La frontera efectiva es el backend Laravel no visible."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 68,
+        "description": "Venta.customer?: CustomerVenta; CustomerVenta (lineas 35-50) declara nombre, apellido, apellido2, email, telefono, direccion, ciudad, estado, codigo_postal, tipo_cliente, total_compras, numero_compras y fecha_ultima_compra. Venta.customer_id en la linea 54."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 88,
+        "description": "VentasResponse.data: Venta, el tipo que devuelve obtenerDetalleVenta."
+      },
+      {
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 27,
+        "description": "Adjunta Authorization: Bearer con el token del cliente a toda URL que empieza con environment.apiUrl; es la unica identidad que acompana la peticion de detalle."
+      },
+      {
+        "file": "src/app/public/pages/pages-routing.module.ts",
+        "line": 33,
+        "description": "/profile protegido solo por AuthGuard (existencia de token en localStorage, src/guards/auth/auth.guard.ts), control de UX que no limita que venta se consulta."
+      }
+    ],
+    "blockers": [
+      "Backend Laravel carniceria-franco-backend no disponible en este objetivo ni en su historial git: no se puede ver si la ruta GET /api/v1/ventas/{id} esta en un grupo auth:sanctum de cliente o de admin, ni si el metodo show del controlador de ventas filtra por el customer_id del usuario autenticado o aplica una Policy/authorize; tampoco si la respuesta carga la relacion customer."
+    ],
+    "validation_plan": {
+      "local": "Levantar carniceria-franco-backend en local con base vacia (sin red externa). Crear dos clientes ficticios A y B con tokens Sanctum propios y una venta ficticia de B con id conocido. Con el token de A: GET /api/v1/ventas/{idVentaB}. Seguro: 403 o 404. Vulnerable: 200 con data.customer_id de B (y, si aparece, data.customer.email ficticio de B). Detenerse en ese registro.",
+      "deployment": "El dueno revisa en el codigo desplegado del backend routes/api.php (grupo y middleware de GET /ventas/{id}) y el metodo show del controlador de ventas o su Policy, confirmando que compara la venta con el cliente del token (p. ej. where customer_id = cliente autenticado o $this->authorize('view', $venta)) y que no basta con estar autenticado; sin hacer peticiones cruzadas con cuentas reales."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services/ventas/ventas.service.ts:VentasService.subirEvidenciaTransferencia:sale-owner-and-file-validation",
+    "title": "La evidencia de transferencia se sube a cualquier saleId con validacion de tipo, tamano y estado de venta solo en el navegador",
+    "description": "POST /ventas/{saleId}/evidencia-transferencia (ventas.service.ts:342-349) recibe un multipart con el campo 'evidencia'; FormData.append con un File envia tambien el nombre original del archivo en Content-Disposition. El saleId sale de la venta elegida en el historial (abrirModalEvidencia, user-profile.component.ts:342-343), pero cualquier cliente autenticado puede llamar el endpoint directamente con otro id. La lista blanca de MIME (image/jpeg, image/png, application/pdf segun file.type, que el navegador deriva de la extension), el limite de 5 MB, el accept del input y la condicion transferencia+pendiente (esTransferenciaPendiente, que solo decide si se muestra el boton) existen unicamente en el componente. El front no manda customer_id, asi que la ligadura al dueno solo puede venir del token Sanctum en el backend, que no esta en este repo. Si el backend no verifica que la venta pertenece al cliente del token y esta pendiente por transferencia, un cliente podria adjuntar o reemplazar comprobantes en pedidos ajenos y confundir al operador que marca pagos. Si no valida el contenido real ni genera el nombre de almacenamiento, un HTML/SVG renombrado a .png o un nombre con ../ podria guardarse y servirse desde el origen del panel de administracion. Nada de esto es observable desde el front: es un riesgo condicionado al backend, no un defecto demostrado.",
+    "claimed_root_cause": "El front deja la validacion del archivo (tipo declarado, tamano) y del estado/propiedad de la venta en comprobaciones del lado cliente y manda solo el saleId de la URL y el archivo con su nombre original; si la API no repite esas comprobaciones ligadas al cliente del token, nada mas las aplica.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 358,
+        "scope": "UserProfileComponent.onArchivoEvidenciaSeleccionado",
+        "description": "Archivo elegido por el usuario; solo revisa el file.type declarado (371) y file.size (379) antes de guardarlo en archivoEvidencia."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 404,
+        "scope": "UserProfileComponent.subirEvidenciaTransferencia",
+        "description": "Usa compraEvidenciaSeleccionada.id como saleId y el archivo seleccionado; no reverifica estatus ni metodo de pago."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 347,
+        "scope": "VentasService.subirEvidenciaTransferencia",
+        "description": "POST multipart con el campo 'evidencia' (incluye file.name como filename) a /ventas/{saleId}/evidencia-transferencia; el Bearer lo agrega el AuthInterceptor y no se manda customer_id."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 368,
+        "description": "Lista blanca de MIME declarados y limite de 5 MB (369) solo en el cliente."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 202,
+        "description": "esTransferenciaPendiente solo calcula metodo_pago=transferencia y estatus=pendiente a partir de datos de la respuesta."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.html",
+        "line": 413,
+        "description": "esTransferenciaPendiente solo controla con *ngIf si se muestra el boton Subir Evidencia; no impide una llamada directa a la API."
+      },
+      {
+        "file": "src/app/public/pages/user-profile/user-profile.component.html",
+        "line": 588,
+        "description": "accept='.jpg,.jpeg,.png,.pdf' es una sugerencia del selector de archivos, no un control."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 344,
+        "description": "formData.append('evidencia', archivo) envia el nombre original del archivo controlado por el cliente."
+      }
+    ],
+    "blockers": [
+      "Backend no disponible (carniceria-franco-backend no esta en el objetivo): no se ve si POST /api/v1/ventas/{id}/evidencia-transferencia verifica que la venta pertenece al cliente del token Sanctum y que tiene metodo_pago=transferencia y estatus=pendiente, ni si usa reglas mimes/max con deteccion por contenido y genera el nombre de almacenamiento (store()/hashName) en vez de getClientOriginalName().",
+      "No se ve con que Content-Type, Content-Disposition, X-Content-Type-Options y desde que origen sirve el panel de administracion la evidencia guardada."
+    ],
+    "validation_plan": {
+      "local": "Con el backend carniceria-franco-backend en local y base vacia, crear dos clientes ficticios A y B con tokens Sanctum propios y una venta ficticia de B por transferencia pendiente. 1) Con el token de A, POST multipart con un PNG ficticio en el campo 'evidencia' a /api/v1/ventas/{ventaB}/evidencia-transferencia: esperado 403 o 404 y sin cambios en la venta de B. 2) Con el token de B, sobre una venta de B ya pagada o por efectivo: esperado 422/409. 3) Con el token de B, subir un archivo de texto 'prueba' con filename '../x.png' y Content-Type image/png: esperado 422; si se acepta, revisar en storage el nombre y la ruta con que quedo. Revisar tambien en el codigo del controlador las reglas de validacion y el metodo de guardado.",
+      "deployment": "El dueno abre en el panel de administracion desplegado un comprobante existente y revisa en las herramientas del navegador los headers de la respuesta (Content-Type real, Content-Disposition: attachment, X-Content-Type-Options: nosniff) y si el archivo se sirve desde el mismo dominio del panel o desde uno separado, sin subir archivos nuevos."
+    }
+  },
+  {
+    "verdict": "needs_validation",
+    "fingerprint": "src/services:clienteId-localStorage:customer-selector-without-owner-binding",
+    "title": "La API recibe el id del cliente (tomado de localStorage) como selector de historial, datos personales, perfil, fotos y ventas, sin liga visible al token Sanctum",
+    "description": "Todas las operaciones del cliente identifican al sujeto con el clienteId que el front lee de localStorage (editable por el propio usuario, y de todos modos el cliente puede llamar la API directamente con su propio bearer), no con la identidad del token Sanctum: GET /ventas/cliente/{id}, /estadisticas y /recomendaciones (y /recientes, definido en VentasService aunque ningun componente lo invoca); GET /usuarios/customer-data?clienteId=; PUT /usuarios/update/{id}; GET /usuarios/store-images/{id}/cliente; DELETE /usuarios/borrar/{id}/imagenes/{img}; y customer_id en el cuerpo de POST /usuarios/store-images, POST /ventas y POST /mercadopago/create-preference. El commit d4f655a solo agrego el AuthInterceptor (Bearer) y la revocacion en logout, sin cambiar ninguno de estos selectores. Si el backend no compara {id}/customer_id con $request->user() (o no lo ignora para usar el del token), un cliente registrado A puede leer historial, estadisticas, recomendaciones y datos personales de B (nombre, apellidos, correo, telefono, direccion, RFC, tipo_cliente, saldo_cuenta, total_compras), sobrescribir su perfil (p. ej. direccion de entrega), leer o borrar sus fotos de seguimiento y crear pedidos a nombre de B o con el descuento de mayorista de B. Ningun codigo de este repo refuta ni confirma el control del lado del servidor.",
+    "claimed_root_cause": "El front usa AuthService.getUserId() y CustomerService.customer (ambos localStorage['clienteId']) como identificador del recurso en URLs y cuerpos; el contrato de la API pone al sujeto en la peticion, de modo que la unica garantia de aislamiento posible es una verificacion de dueno en el backend Laravel (carniceria-franco-backend), que no esta en este repositorio.",
+    "trace": [
+      {
+        "kind": "entrypoint",
+        "file": "src/services/login/login.service.ts",
+        "line": 36,
+        "scope": "LoginService.handleLoginResponse",
+        "description": "Guarda clienteId en localStorage desde la respuesta del login; el cliente autenticado (principal de menor confianza) lo puede reescribir en DevTools o simplemente llamar la API con cualquier id."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/services/auth-service/auth-service.service.ts",
+        "line": 79,
+        "scope": "AuthService.getUserId",
+        "description": "Lee localStorage['clienteId'] y lo devuelve con parseInt (linea 80), sin relacion alguna con el token."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/app/public/pages/user-profile/user-profile.component.ts",
+        "line": 691,
+        "scope": "UserProfileComponent.getData/loadCompras/loadRecomendaciones/submitForm",
+        "description": "Usa getUserId() como id del cliente (lineas 83, 111, 482, 691, 726) para historial, estadisticas, recomendaciones, customer-data y PUT de perfil (updateCustomer en 749)."
+      },
+      {
+        "kind": "propagation",
+        "file": "src/interceptors/auth.interceptor.ts",
+        "line": 27,
+        "scope": "AuthInterceptor.intercept",
+        "description": "Solo adjunta Authorization: Bearer del usuario actual a URLs de environment.apiUrl; no reescribe ni valida el id."
+      },
+      {
+        "kind": "sink",
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 274,
+        "scope": "VentasService.obtenerHistorialCliente",
+        "description": "GET /ventas/cliente/{customerId} con el id controlado por el cliente; mismo patron en ventas.service.ts:281 y 336 (y 288 sin llamador en UI), login.service.ts:17 y customer-service.service.ts:19, 24, 37, 40. El efecto final (lectura/escritura de datos de otro cliente) depende del backend."
+      }
+    ],
+    "evidence": [
+      {
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 19,
+        "description": "PUT /usuarios/update/{clienteId}: variante de escritura (nombre, telefono, direccion, RFC) con el id en la URL."
+      },
+      {
+        "file": "src/services/login/login.service.ts",
+        "line": 17,
+        "description": "GET /usuarios/customer-data?clienteId= llena el formulario de perfil con patchValue(data.data) (user-profile.component.ts:696; campos definidos en 671-686: correo, telefono, direccion, rfc, tipo_cliente, saldo_cuenta, total_compras)."
+      },
+      {
+        "file": "src/services/customers/customer-service.service.ts",
+        "line": 40,
+        "description": "DELETE /usuarios/borrar/{customer}/imagenes/{imageId}: customer sale de localStorage (linea 11) e imageId del cliente; GET de fotos en la linea 37 y customer_id en el cuerpo del POST en la linea 24."
+      },
+      {
+        "file": "src/app/public/pages/carrito/carrito.component.ts",
+        "line": 392,
+        "description": "POST /ventas con customer_id del cuerpo (tambien 337 para POST /mercadopago/create-preference, mercadopago.service.ts:59); el commit 922d086 indica que el servidor calcula el descuento, posiblemente segun ese customer_id."
+      },
+      {
+        "file": "src/services/ventas/ventas.service.ts",
+        "line": 281,
+        "description": "GET /ventas/cliente/{id}/estadisticas: totales y producto mas comprado de cualquier id si no se liga al dueno."
+      }
+    ],
+    "blockers": [
+      "El backend Laravel (carniceria-franco-backend, commit 8c311b8 o posterior) no esta en este objetivo: no se puede ver si /ventas/cliente/{id}/*, /usuarios/customer-data, /usuarios/update/{id}, /usuarios/store-images/{id}/cliente, /usuarios/borrar/{id}/imagenes/{img}, /usuarios/store-images, /ventas y /mercadopago/create-preference estan bajo auth:sanctum y comparan el id/customer_id con $request->user()->id, aplican una Policy, o ignoran el id y usan el del token.",
+      "No se sabe si el modelo autenticado por Sanctum es el mismo Customer cuyo id se manda (o un User relacionado), lo que decide si la comparacion existe o es posible."
+    ],
+    "validation_plan": {
+      "local": "Con carniceria-franco-backend en local y base vacia, crear dos clientes ficticios A y B con tokens Sanctum propios. Con el token de A: GET /api/v1/ventas/cliente/{idB}, /estadisticas, /recientes y /recomendaciones; GET /usuarios/customer-data?clienteId={idB}; PUT /usuarios/update/{idB} con un campo ficticio (p. ej. ciudad='prueba'); GET /usuarios/store-images/{idB}/cliente; DELETE /usuarios/borrar/{idB}/imagenes/{imagen ficticia de B}; POST /usuarios/store-images y POST /ventas con customer_id={idB} usando productos ficticios. Esperado seguro: 403/404 o que se ignore el id y se usen los datos de A. Cualquier 200 con datos de B o cambio en registros de B confirma; detenerse en el primer registro observado.",
+      "deployment": "El dueno revisa en el codigo desplegado del backend (php artisan route:list y los controladores/Policies) que cada una de esas rutas use middleware auth:sanctum y derive el cliente de $request->user() o compare el id/customer_id con el usuario autenticado, sin consultar produccion con datos reales."
+    }
+  }
+]
