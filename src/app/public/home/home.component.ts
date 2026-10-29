@@ -16,7 +16,7 @@ import { Inject } from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  private readonly adminBaseUrl = 'https://carniceriafrancoadmin.shop';
+  private readonly adminBaseUrl = environment.adminBaseUrl;
 
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
@@ -243,7 +243,7 @@ export class HomeComponent implements OnInit {
   private configurarSeoHome(): void {
     const title = 'Carniceria Franko | Carnes Premium y Entrega Rapida';
     const description = 'Compra carne de res, cerdo, pollo y cortes premium en Carniceria Franko. Productos frescos, calidad garantizada y entrega rapida.';
-    const canonicalUrl = 'https://tienda.carniceriafrancoadmin.shop/';
+    const canonicalUrl = 'https://carniceriafranko.com/';
     const imageUrl = 'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=1200';
 
     this.titleService.setTitle(title);
