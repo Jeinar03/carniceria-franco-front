@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CategoriasService, Categoria } from 'src/services/categorias/categorias.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-categorias',
@@ -9,7 +10,7 @@ import { CategoriasService, Categoria } from 'src/services/categorias/categorias
 })
 export class CategoriasComponent implements OnInit {
 
-  private readonly adminBaseUrl = 'https://carniceriafrancoadmin.shop';
+  private readonly adminBaseUrl = environment.adminBaseUrl;
   private readonly defaultCategoryImage = 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=500';
 
   categorias: Categoria[] = [];

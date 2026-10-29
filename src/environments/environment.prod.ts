@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  // Backend Laravel desplegado en Hostinger (mismo dominio que el panel admin).
-  apiUrl: 'https://carniceriafrancoadmin.shop/api/v1'
+  // Panel admin y API Laravel (Hostinger, subdominio admin de carniceriafranko.com).
+  apiUrl: 'https://admin.carniceriafranko.com/api/v1',
+  adminBaseUrl: 'https://admin.carniceriafranko.com'
 };
