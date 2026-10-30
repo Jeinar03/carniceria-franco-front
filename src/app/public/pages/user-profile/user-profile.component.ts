@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {LoginService} from "../../../../services/login/login.service";
 import {AuthService} from "../../../../services/auth-service/auth-service.service";
@@ -40,6 +40,9 @@ export class UserProfileComponent implements OnInit {
   mostrandoDetalle = false;
   // Evidencia de transferencia
   mostrandoModalEvidencia = false;
+  compraCancelacion: Venta | null = null;
+  motivoCancelacion = '';
+  procesandoCancelacion = false;
   compraEvidenciaSeleccionada: Venta | null = null;
   archivoEvidencia: File | null = null;
   nombreArchivoEvidencia = '';
@@ -176,6 +179,100 @@ export class UserProfileComponent implements OnInit {
       case 'transferencia': return 'fa-exchange-alt';
       case 'credito': return 'fa-file-invoice-dollar';
       default: return 'fa-dollar-sign';
+    }
+  }
+
+  /** Texto del estado como lo entiende el cliente (el estatus interno no distingue "sin pagar"). */
+  etiquetaEstatus(compra: Venta): string {
+    const estatus = (compra?.estatus || '').toLowerCase().trim();
+    const metodo = (compra?.metodo_pago || '').toLowerCase().trim();
+
+    if (estatus === 'cancelada') {
+      return compra.reembolso_estado === 'hecho' ? 'Cancelada, pago devuelto' : 'Cancelada';
+    }
+    if (compra.cancelacion_solicitada_at) {
+      return 'Cancelación solicitada';
+    }
+    if (estatus === 'pendiente' && metodo === 'mercado_pago') {
+      return 'Esperando pago';
+    }
+    return estatus ? estatus.charAt(0).toUpperCase() + estatus.slice(1) : '';
+  }
+
+  puedeCancelar(compra: Venta): boolean {
+    return !!compra?.opciones_cancelacion?.puede_cancelar;
+  }
+
+  puedeSolicitarCancelacion(compra: Venta): boolean {
+    return !!compra?.opciones_cancelacion?.puede_solicitar;
+  }
+
+  /** Pedido sin pagar: se cancela directo, tras confirmar. */
+  cancelarCompra(compra: Venta) {
+    if (this.procesandoCancelacion) { return; }
+    if (!window.confirm(`¿Cancelar el pedido ${compra.folio}? Esta acción no se puede deshacer.`)) { return; }
+
+    this.procesandoCancelacion = true;
+    this.ventasService.cancelarVenta(compra.id)
+      .pipe(
+        catchError(err => {
+          this.toastr.error(err?.error?.message || 'No se pudo cancelar el pedido', 'Error');
+          this.procesandoCancelacion = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        this.procesandoCancelacion = false;
+        if (response?.success) {
+          this.toastr.success('Pedido cancelado', 'Cancelación');
+          this.loadCompras();
+        }
+      });
+  }
+
+  /** Pedido ya pagado: se abre la ventana para pedir la cancelacion con un motivo. */
+  abrirModalCancelacion(compra: Venta) {
+    this.compraCancelacion = compra;
+    this.motivoCancelacion = '';
+    this.procesandoCancelacion = false;
+  }
+
+  cerrarModalCancelacion() {
+    this.compraCancelacion = null;
+    this.motivoCancelacion = '';
+    this.procesandoCancelacion = false;
+  }
+
+  enviarSolicitudCancelacion() {
+    if (!this.compraCancelacion || this.procesandoCancelacion) { return; }
+
+    this.procesandoCancelacion = true;
+    this.ventasService.solicitarCancelacion(this.compraCancelacion.id, this.motivoCancelacion.trim())
+      .pipe(
+        catchError(err => {
+          this.toastr.error(err?.error?.message || 'No se pudo enviar la solicitud', 'Error');
+          this.procesandoCancelacion = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response?.success) {
+          this.toastr.success('Recibimos tu solicitud. Te avisaremos por correo.', 'Cancelación');
+          this.cerrarModalCancelacion();
+          this.loadCompras();
+        } else if (response) {
+          // Respuesta sin exito: se libera el boton para que el cliente pueda intentar de nuevo.
+          this.toastr.warning(response.message || 'No se pudo enviar la solicitud', 'Cancelación');
+          this.procesandoCancelacion = false;
+        }
+      });
+  }
+
+  /** Escape cierra la ventana de solicitud de cancelacion, como el resto de las ventanas de la tienda. */
+  @HostListener('document:keydown.escape')
+  cerrarModalCancelacionConEscape() {
+    if (this.compraCancelacion && !this.procesandoCancelacion) {
+      this.cerrarModalCancelacion();
     }
   }
 

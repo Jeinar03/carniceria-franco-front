@@ -49,6 +49,14 @@ export interface CustomerVenta {
   fecha_ultima_compra?: string;
 }
 
+/** Lo que la API permite hacer con un pedido; la tienda solo pinta los botones segun esto. */
+export interface OpcionesCancelacion {
+  puede_cancelar: boolean;
+  puede_solicitar: boolean;
+  cancelacion_solicitada: boolean;
+  motivo_bloqueo: string | null;
+}
+
 export interface Venta {
   id: number;
   customer_id: number;
@@ -64,6 +72,10 @@ export interface Venta {
   referencias_entrega?: string | null;
   ubicacion_url?: string | null;
   estatus: string;
+  mercadopago_status?: string | null;
+  cancelacion_solicitada_at?: string | null;
+  reembolso_estado?: 'pendiente' | 'hecho' | 'manual' | null;
+  opciones_cancelacion?: OpcionesCancelacion;
   notas: string | null;
   created_at: string;
   updated_at: string;
@@ -312,6 +324,14 @@ export class VentasService {
    */
   cancelarVenta(saleId: number): Observable<VentasResponse> {
     return this.http.put<VentasResponse>(`${this.apiUrl}/ventas/${saleId}/cancelar`, {});
+  }
+
+  /**
+   * Pedir la cancelacion de un pedido ya pagado o con comprobante en revision.
+   * Un administrador la aprueba (y devuelve el pago) o la rechaza.
+   */
+  solicitarCancelacion(saleId: number, motivo: string): Observable<VentasResponse> {
+    return this.http.post<VentasResponse>(`${this.apiUrl}/ventas/${saleId}/solicitar-cancelacion`, { motivo });
   }
 
   /**
