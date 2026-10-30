@@ -1,13 +1,21 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CarritoService, ItemCarrito } from 'src/services/carrito/carrito.service';
-import { VentasService, CrearVentaRequest } from 'src/services/ventas/ventas.service';
+import { VentasService, CrearVentaRequest, DatosEntregaMandadito } from 'src/services/ventas/ventas.service';
+import { LoginService } from 'src/services/login/login.service';
+import { enlaceMapa, esLinkGoogleMaps } from 'src/services/utils/ubicacion-maps';
 import { MercadoPagoService, PreferenceData } from 'src/services/mercadopago/mercadopago.service';
 import { AuthService } from 'src/services/auth-service/auth-service.service';
 import { HorarioDia, HorariosAtencion, SitioConfigService } from 'src/services/sitio-config/sitio-config.service';
 import { environment } from 'src/environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import { take } from 'rxjs/operators';
+
+interface DireccionEntrega {
+  direccion: string;
+  referencias: string;
+  ubicacion_url: string;
+}
 
 @Component({
   selector: 'app-carrito',
@@ -24,6 +32,17 @@ export class CarritoComponent implements OnInit, OnDestroy {
   notasCompra: string = '';
   // Forma de entrega: mandadito a domicilio (servicio externo) o recoger en la carnicería.
   tipoEntrega: 'mandadito' | 'recoger' = 'mandadito';
+
+  // A donde se lleva el pedido (solo mandadito): la direccion guardada del cliente u otra.
+  direccionGuardada: DireccionEntrega = { direccion: '', referencias: '', ubicacion_url: '' };
+  usarDireccionGuardada: boolean = false;
+  otraDireccion: DireccionEntrega = { direccion: '', referencias: '', ubicacion_url: '' };
+  guardarComoMiDireccion: boolean = false;
+  // Casilla obligatoria del modal: el cliente acepta que el mandadito tiene costo aparte.
+  avisoMandaditoAceptado: boolean = false;
+  // Donde recoger el pedido (datos del sitio, capturados por el admin).
+  puntoRecoger: { direccion: string; enlace: string | null } = { direccion: '', enlace: null };
+
   clienteTipoCliente: string = '';
   clienteDescuentoPreferencial: number = 0;
   estaAbiertoAtencion: boolean = true;
@@ -53,6 +72,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
     private ventasService: VentasService,
     private mercadoPagoService: MercadoPagoService,
     private authService: AuthService,
+    private loginService: LoginService,
     private sitioConfigService: SitioConfigService,
     private router: Router,
     private toastr: ToastrService
@@ -62,6 +82,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
     this.cargarCarrito();
     this.cargarPreferenciasCliente();
     this.cargarHorarioAtencion();
+    this.cargarDireccionGuardada();
   }
 
   ngOnDestroy(): void {
@@ -76,7 +97,34 @@ export class CarritoComponent implements OnInit, OnDestroy {
   }
 
   get puedeProcederPago(): boolean {
-    return !this.procesandoPago && !!this.metodoPago && this.horarioCargado && !this.fueraDeHorarioAtencion;
+    return !this.procesandoPago && !!this.metodoPago && this.horarioCargado && !this.fueraDeHorarioAtencion
+      && this.datosEntregaCompletos;
+  }
+
+  get tieneDireccionGuardada(): boolean {
+    return !!this.direccionGuardada.direccion.trim();
+  }
+
+  /** La direccion que se usara en este pedido (solo aplica a mandadito). */
+  get direccionEntrega(): DireccionEntrega {
+    return this.usarDireccionGuardada && this.tieneDireccionGuardada ? this.direccionGuardada : this.otraDireccion;
+  }
+
+  get linkOtraDireccionInvalido(): boolean {
+    const link = this.otraDireccion.ubicacion_url.trim();
+    return !this.usarDireccionGuardada && !!link && !esLinkGoogleMaps(link);
+  }
+
+  /** Recoger no pide nada; mandadito necesita una direccion y, si hay link, que sea de Google Maps. */
+  get datosEntregaCompletos(): boolean {
+    if (this.tipoEntrega === 'recoger') {
+      return true;
+    }
+    return !!this.direccionEntrega.direccion.trim() && !this.linkOtraDireccionInvalido;
+  }
+
+  get enlaceMapaEntrega(): string | null {
+    return enlaceMapa(this.direccionEntrega.direccion, this.direccionEntrega.ubicacion_url);
   }
 
   get tipoClienteDisplay(): string {
@@ -294,6 +342,18 @@ export class CarritoComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.datosEntregaCompletos) {
+      this.toastr.warning(
+        this.linkOtraDireccionInvalido
+          ? 'El link debe ser de Google Maps (en Maps toca Compartir y Copiar link)'
+          : 'Indica a dónde te llevamos el pedido',
+        'Dirección de entrega'
+      );
+      return;
+    }
+
+    // La aceptación se pide de nuevo cada vez que se abre la confirmación.
+    this.avisoMandaditoAceptado = false;
     this.mostrarModalConfirmacion = true;
   }
 
@@ -304,6 +364,11 @@ export class CarritoComponent implements OnInit, OnDestroy {
   confirmarCompra(): void {
     if (!this.metodoPago) {
       this.toastr.warning('Selecciona un método de pago para continuar', 'Método requerido');
+      return;
+    }
+
+    if (this.tipoEntrega === 'mandadito' && !this.avisoMandaditoAceptado) {
+      this.toastr.warning('Marca la casilla para confirmar que sabes que el mandadito tiene un costo aparte', 'Aviso del mandadito');
       return;
     }
 
@@ -350,7 +415,8 @@ export class CarritoComponent implements OnInit, OnDestroy {
       }),
       metodo_pago: 'mercado_pago',
       notas: this.notasCompra || undefined,
-      tipo_entrega: this.tipoEntrega
+      tipo_entrega: this.tipoEntrega,
+      ...this.datosEntregaParaEnvio()
     };
 
     console.log('Enviando datos a Mercado Pago:', preferenceData); // Debug log
@@ -393,6 +459,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       metodo_pago: this.metodoPago as 'efectivo' | 'tarjeta' | 'transferencia' | 'credito',
       notas: this.notasCompra || undefined,
       tipo_entrega: this.tipoEntrega,
+      ...this.datosEntregaParaEnvio(),
       productos: this.itemsCarrito.map(item => {
         const producto: any = {
           product_id: Number(item.producto.id),
@@ -530,8 +597,53 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Datos de entrega que viajan con el pedido; recoger no manda nada. */
+  private datosEntregaParaEnvio(): DatosEntregaMandadito {
+    if (this.tipoEntrega !== 'mandadito') {
+      return {};
+    }
+
+    const direccion = this.direccionEntrega;
+    return {
+      acepta_aviso_mandadito: this.avisoMandaditoAceptado,
+      direccion_entrega: direccion.direccion.trim(),
+      referencias_entrega: direccion.referencias.trim() || undefined,
+      ubicacion_url: direccion.ubicacion_url.trim() || undefined,
+      // Solo tiene sentido guardar cuando escribio una direccion distinta a la guardada.
+      guardar_como_mi_direccion: !this.usarDireccionGuardada && this.guardarComoMiDireccion
+    };
+  }
+
+  /** Direccion guardada en el perfil: se ofrece como primera opcion. */
+  private cargarDireccionGuardada(): void {
+    const clienteId = this.authService.getUserId();
+    if (!clienteId) {
+      return;
+    }
+
+    this.loginService.getCustomerData(clienteId).pipe(take(1)).subscribe({
+      next: (respuesta) => {
+        const datos = respuesta?.data || {};
+        this.direccionGuardada = {
+          direccion: String(datos.direccion || ''),
+          referencias: String(datos.referencias || ''),
+          ubicacion_url: String(datos.ubicacion_url || '')
+        };
+        this.usarDireccionGuardada = this.tieneDireccionGuardada;
+      },
+      error: () => {
+        // Sin direccion guardada se pide la del pedido; no es un error para el cliente.
+        this.usarDireccionGuardada = false;
+      }
+    });
+  }
+
   private cargarHorarioAtencion(): void {
     this.sitioConfigService.obtenerConfiguracion().pipe(take(1)).subscribe((config) => {
+      this.puntoRecoger = {
+        direccion: (config?.direccion || '').trim(),
+        enlace: config?.enlace_mapa || enlaceMapa(config?.direccion, config?.ubicacion_url)
+      };
       this.horariosAtencion = config?.horarios || {};
       this.limitarHorario = config?.limitar_horario !== false;
       this.zonaHoraria = config?.zona_horaria || this.zonaHoraria;

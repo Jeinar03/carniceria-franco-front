@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {LoginService} from "../../../../services/login/login.service";
 import {AuthService} from "../../../../services/auth-service/auth-service.service";
@@ -9,7 +9,8 @@ import { environment } from 'src/environments/environment';
 import { ToastrService } from 'ngx-toastr';
 import {catchError, of} from "rxjs";
 import { CarritoService } from 'src/services/carrito/carrito.service';
-import { Producto } from 'src/services/productos/productos.service';
+import { aProductoParaCarrito, normalizarCarritoRecomendado, urlImagenProducto } from 'src/services/ventas/producto-recomendado.helper';
+import { linkMapsValidator } from 'src/services/utils/ubicacion-maps';
 
 @Component({
   selector: 'app-user-profile',
@@ -39,6 +40,9 @@ export class UserProfileComponent implements OnInit {
   mostrandoDetalle = false;
   // Evidencia de transferencia
   mostrandoModalEvidencia = false;
+  compraCancelacion: Venta | null = null;
+  motivoCancelacion = '';
+  procesandoCancelacion = false;
   compraEvidenciaSeleccionada: Venta | null = null;
   archivoEvidencia: File | null = null;
   nombreArchivoEvidencia = '';
@@ -155,25 +159,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   getImagenProducto(imagen: string | null | undefined): string {
-    if (!imagen) {
-      return 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400';
-    }
-
-    // Si ya es una URL completa, limpiar las barras invertidas
-    if (imagen.startsWith('http')) {
-      return imagen.replace(/\\/g, '');
-    }
-
-    // Si empieza con '/', construir la URL completa
-    if (imagen.startsWith('/')) {
-      return `${environment.apiUrl.replace('/api/v1', '')}${imagen.replace(/\\/g, '')}`;
-    }
-
-    const base = environment.apiUrl.replace('/api/v1', '');
-    const ruta = imagen.replace(/\\/g, '');
-
-    // Las fotos de productos se guardan como "productos/archivo.jpg" y se sirven desde /storage.
-    return ruta.startsWith('storage/') ? `${base}/${ruta}` : `${base}/storage/${ruta}`;
+    return urlImagenProducto(imagen);
   }
 
   getEstatusClass(estatus: string): string {
@@ -193,6 +179,100 @@ export class UserProfileComponent implements OnInit {
       case 'transferencia': return 'fa-exchange-alt';
       case 'credito': return 'fa-file-invoice-dollar';
       default: return 'fa-dollar-sign';
+    }
+  }
+
+  /** Texto del estado como lo entiende el cliente (el estatus interno no distingue "sin pagar"). */
+  etiquetaEstatus(compra: Venta): string {
+    const estatus = (compra?.estatus || '').toLowerCase().trim();
+    const metodo = (compra?.metodo_pago || '').toLowerCase().trim();
+
+    if (estatus === 'cancelada') {
+      return compra.reembolso_estado === 'hecho' ? 'Cancelada, pago devuelto' : 'Cancelada';
+    }
+    if (compra.cancelacion_solicitada_at) {
+      return 'Cancelación solicitada';
+    }
+    if (estatus === 'pendiente' && metodo === 'mercado_pago') {
+      return 'Esperando pago';
+    }
+    return estatus ? estatus.charAt(0).toUpperCase() + estatus.slice(1) : '';
+  }
+
+  puedeCancelar(compra: Venta): boolean {
+    return !!compra?.opciones_cancelacion?.puede_cancelar;
+  }
+
+  puedeSolicitarCancelacion(compra: Venta): boolean {
+    return !!compra?.opciones_cancelacion?.puede_solicitar;
+  }
+
+  /** Pedido sin pagar: se cancela directo, tras confirmar. */
+  cancelarCompra(compra: Venta) {
+    if (this.procesandoCancelacion) { return; }
+    if (!window.confirm(`¿Cancelar el pedido ${compra.folio}? Esta acción no se puede deshacer.`)) { return; }
+
+    this.procesandoCancelacion = true;
+    this.ventasService.cancelarVenta(compra.id)
+      .pipe(
+        catchError(err => {
+          this.toastr.error(err?.error?.message || 'No se pudo cancelar el pedido', 'Error');
+          this.procesandoCancelacion = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        this.procesandoCancelacion = false;
+        if (response?.success) {
+          this.toastr.success('Pedido cancelado', 'Cancelación');
+          this.loadCompras();
+        }
+      });
+  }
+
+  /** Pedido ya pagado: se abre la ventana para pedir la cancelacion con un motivo. */
+  abrirModalCancelacion(compra: Venta) {
+    this.compraCancelacion = compra;
+    this.motivoCancelacion = '';
+    this.procesandoCancelacion = false;
+  }
+
+  cerrarModalCancelacion() {
+    this.compraCancelacion = null;
+    this.motivoCancelacion = '';
+    this.procesandoCancelacion = false;
+  }
+
+  enviarSolicitudCancelacion() {
+    if (!this.compraCancelacion || this.procesandoCancelacion) { return; }
+
+    this.procesandoCancelacion = true;
+    this.ventasService.solicitarCancelacion(this.compraCancelacion.id, this.motivoCancelacion.trim())
+      .pipe(
+        catchError(err => {
+          this.toastr.error(err?.error?.message || 'No se pudo enviar la solicitud', 'Error');
+          this.procesandoCancelacion = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response?.success) {
+          this.toastr.success('Recibimos tu solicitud. Te avisaremos por correo.', 'Cancelación');
+          this.cerrarModalCancelacion();
+          this.loadCompras();
+        } else if (response) {
+          // Respuesta sin exito: se libera el boton para que el cliente pueda intentar de nuevo.
+          this.toastr.warning(response.message || 'No se pudo enviar la solicitud', 'Cancelación');
+          this.procesandoCancelacion = false;
+        }
+      });
+  }
+
+  /** Escape cierra la ventana de solicitud de cancelacion, como el resto de las ventanas de la tienda. */
+  @HostListener('document:keydown.escape')
+  cerrarModalCancelacionConEscape() {
+    if (this.compraCancelacion && !this.procesandoCancelacion) {
+      this.cerrarModalCancelacion();
     }
   }
 
@@ -435,49 +515,7 @@ export class UserProfileComponent implements OnInit {
     return this.toNumber(value).toFixed(2);
   }
 
-  // Métodos para Recomendaciones
-  private normalizarProductoRecomendado(producto: any): ProductoRecomendado {
-    const precio = Number(producto?.precio || 0);
-    const precioOferta = producto?.precio_oferta != null ? Number(producto.precio_oferta) : undefined;
-    const cantidadRecomendada = Number(
-      producto?.cantidad_recomendada ?? producto?.cantidad_sugerida ?? 1
-    );
-
-    return {
-      id: Number(producto?.id ?? producto?.product_id ?? 0),
-      nombre: producto?.nombre || '',
-      codigo: producto?.codigo || '',
-      precio,
-      descripcion: producto?.descripcion || producto?.motivo || '',
-      unidad_venta: producto?.unidad_venta || 'unidad',
-      precio_oferta: precioOferta,
-      en_oferta: Number(producto?.en_oferta || (precioOferta !== undefined ? 1 : 0)),
-      imagen: producto?.imagen || null,
-      stock: Number(producto?.stock ?? 100),
-      cantidad_recomendada: cantidadRecomendada,
-      subtotal: Number(producto?.subtotal ?? cantidadRecomendada * (precioOferta ?? precio)),
-      categoria_id: Number(producto?.categoria_id || 0),
-      categoria_nombre: producto?.categoria_nombre || producto?.categoria || ''
-    };
-  }
-
-  private normalizarCarritoRecomendado(carrito: any): CarritoRecomendado {
-    const productos = (carrito?.productos || []).map((producto: any) =>
-      this.normalizarProductoRecomendado(producto)
-    );
-
-    return {
-      id: Number(carrito?.id || 0),
-      nombre: carrito?.nombre || 'Recomendado',
-      descripcion: carrito?.descripcion || '',
-      productos,
-      total_estimado: Number(carrito?.total_estimado || 0),
-      ahorro_estimado: Number(carrito?.ahorro_estimado || 0),
-      icono: carrito?.icono,
-      color: carrito?.color
-    };
-  }
-
+  // Métodos para Recomendaciones (la conversión de datos vive en producto-recomendado.helper)
   loadRecomendaciones() {
     const customerId = this.authService.getUserId();
     if (!customerId) {
@@ -498,7 +536,7 @@ export class UserProfileComponent implements OnInit {
       .subscribe(response => {
         if (response && response.success) {
           this.recomendaciones = (response.data.recomendaciones || []).map(carrito =>
-            this.normalizarCarritoRecomendado(carrito)
+            normalizarCarritoRecomendado(carrito)
           );
           this.datosRecomendaciones = response.data;
         } else {
@@ -539,29 +577,7 @@ export class UserProfileComponent implements OnInit {
     }
 
     // Convertir ProductoRecomendado a Producto para el servicio de carrito
-    const productoParaCarrito: Producto = {
-      id: producto.id,
-      codigo: producto.codigo || '',
-      nombre: producto.nombre,
-      descripcion: producto.descripcion || '',
-      precio: Number(producto.precio || 0),
-      precio_oferta: producto.precio_oferta ? Number(producto.precio_oferta) : null,
-      precio_final: producto.precio_oferta ? Number(producto.precio_oferta) : Number(producto.precio || 0),
-      stock: producto.stock || 100,
-      stock_minimo: 0,
-      unidad_venta: producto.unidad_venta || 'unidad',
-      category_id: producto.categoria_id || 0,
-      imagen: producto.imagen || null,
-      imagen_url: null,
-      en_oferta: Number(producto.en_oferta) || 0,
-      activo: 1,
-      destacado: 0,
-      refrigerado: 0,
-      fecha_vencimiento: null,
-      tiene_stock: true,
-      created_at: '',
-      updated_at: ''
-    };
+    const productoParaCarrito = aProductoParaCarrito(producto);
 
     // Agregar al carrito con la cantidad recomendada
     const cantidadAgregar = Number(producto.cantidad_recomendada || 1);
@@ -588,29 +604,7 @@ export class UserProfileComponent implements OnInit {
         return;
       }
 
-      const productoParaCarrito: Producto = {
-        id: producto.id,
-        codigo: producto.codigo || '',
-        nombre: producto.nombre,
-        descripcion: producto.descripcion || '',
-        precio: Number(producto.precio || 0),
-        precio_oferta: producto.precio_oferta ? Number(producto.precio_oferta) : null,
-        precio_final: producto.precio_oferta ? Number(producto.precio_oferta) : Number(producto.precio || 0),
-        stock: producto.stock || 100,
-        stock_minimo: 0,
-        unidad_venta: producto.unidad_venta || 'unidad',
-        category_id: producto.categoria_id || 0,
-        imagen: producto.imagen || null,
-        imagen_url: null,
-        en_oferta: Number(producto.en_oferta) || 0,
-        activo: 1,
-        destacado: 0,
-        refrigerado: 0,
-        fecha_vencimiento: null,
-        tiene_stock: true,
-        created_at: '',
-        updated_at: ''
-      };
+      const productoParaCarrito = aProductoParaCarrito(producto);
 
       const cantidadAgregar = Number(producto.cantidad_recomendada || 1);
       this.carritoService.agregarProducto(productoParaCarrito, cantidadAgregar);
@@ -675,6 +669,8 @@ export class UserProfileComponent implements OnInit {
       correo: [{ value: '', disabled: true }],
       telefono: ['', [Validators.pattern(/^[0-9]{10}$/)]],
       direccion: [''],
+      referencias: [''],
+      ubicacion_url: ['', [linkMapsValidator]],
       ciudad: [''],
       estado: [''],
       codigo_postal: ['', [Validators.pattern(/^[0-9]{5}$/)]],
@@ -798,6 +794,8 @@ getData(){
       'apellido2',
       'telefono',
       'direccion',
+      'referencias',
+      'ubicacion_url',
       'ciudad',
       'estado',
       'codigo_postal',

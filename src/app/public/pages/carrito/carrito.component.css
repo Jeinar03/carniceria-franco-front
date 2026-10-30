@@ -1199,3 +1199,75 @@
     font-size: 0.75rem;
   }
 }
+
+/* Entrega: aviso del mandadito, direccion y punto de recoger */
+.entrega-bloque {
+  border-top: 2px solid #F2E6D0;
+  padding-top: 16px;
+}
+
+.aviso-mandadito {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: #FFF6DD;
+  border: 2px solid #E8C25C;
+  border-radius: 10px;
+  color: #59514F;
+}
+
+.aviso-mandadito > i {
+  color: #C9921A;
+  font-size: 1.3rem;
+  margin-top: 2px;
+}
+
+.aviso-mandadito p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.aceptar-aviso,
+.guardar-direccion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.guardar-direccion {
+  font-weight: 500;
+  margin-top: 0;
+}
+
+.aceptar-aviso input,
+.guardar-direccion input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  accent-color: #D9BB84;
+}
+
+.direccion-guardada {
+  align-items: flex-start;
+}
+
+.btn-mapa {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 2px solid #D9BB84;
+  border-radius: 10px;
+  color: #59514F;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn-mapa:hover {
+  background: rgba(217, 187, 132, 0.15);
+}

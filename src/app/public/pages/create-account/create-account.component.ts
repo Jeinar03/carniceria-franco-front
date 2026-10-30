@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CrearCuentaService } from 'src/services/crear-cuenta/crear-cuenta.service';
 import { LoginService } from 'src/services/login/login.service';
 import { ToastrService } from 'ngx-toastr';
+import { esLinkGoogleMaps } from 'src/services/utils/ubicacion-maps';
 @Component({
   selector: 'app-create-account',
   templateUrl: './create-account.component.html',
@@ -12,7 +13,16 @@ export class CreateAccountComponent {
   loading = false;
   nombre: string = '';
   apellido: string = '';
+  apellido2: string = '';
   correo: string = '';
+  telefono: string = '';
+  // Dirección para los envíos: opcional, se puede dar después al hacer el primer pedido.
+  direccion: string = '';
+  referencias: string = '';
+  ciudad: string = '';
+  estado: string = '';
+  codigoPostal: string = '';
+  ubicacionUrl: string = '';
   password: string = '';
   confirmarPassword: string = '';
 
@@ -27,20 +37,52 @@ export class CreateAccountComponent {
     this.router.navigate(['/login']);
   }
 
+  get linkInvalido(): boolean {
+    return !!this.ubicacionUrl.trim() && !esLinkGoogleMaps(this.ubicacionUrl);
+  }
+
   crearCuenta() {
     if (this.password !== this.confirmarPassword) {
       this.toastr.error('Las contrasenas no coinciden', 'Error');
       return;
     }
 
-    if (!this.nombre || !this.apellido || !this.correo || !this.password) {
+    if (!this.nombre || !this.apellido || !this.correo || !this.password || !this.telefono) {
       this.toastr.error('Completa todos los campos obligatorios', 'Error');
+      return;
+    }
+
+    if (!/^[0-9]{10}$/.test(this.telefono.trim())) {
+      this.toastr.error('El teléfono debe tener 10 dígitos', 'Error');
+      return;
+    }
+
+    if (this.codigoPostal.trim() && !/^[0-9]{5}$/.test(this.codigoPostal.trim())) {
+      this.toastr.error('El código postal debe tener 5 dígitos', 'Error');
+      return;
+    }
+
+    if (this.linkInvalido) {
+      this.toastr.error('El link debe ser de Google Maps', 'Error');
       return;
     }
 
     this.loading = true;
     this.crearCuentaService
-      .crearCuenta(this.nombre, this.apellido, this.correo, this.password)
+      .crearCuenta({
+        nombre: this.nombre.trim(),
+        apellido: this.apellido.trim(),
+        apellido2: this.apellido2.trim(),
+        correo: this.correo.trim(),
+        password: this.password,
+        telefono: this.telefono.trim(),
+        direccion: this.direccion.trim(),
+        referencias: this.referencias.trim(),
+        ubicacion_url: this.ubicacionUrl.trim(),
+        ciudad: this.ciudad.trim(),
+        estado: this.estado.trim(),
+        codigo_postal: this.codigoPostal.trim()
+      })
       .subscribe(
         response => {
           this.crearCuentaService.handleCrearCuentaResponse(response);
