@@ -13,6 +13,7 @@ import { LoginComponent } from './public/login/login.component';
 import { CreateAccountComponent } from './public/pages/create-account/create-account.component';
 import  {  ToastrModule  }  from  'ngx-toastr' ;
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { LegalComponentesModule } from './legal/componentes/legal-componentes.module';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     FormsModule,
     BrowserAnimationsModule,
     ToastrModule.forRoot(),
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    LegalComponentesModule
 
   ],
   providers: [

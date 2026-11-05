@@ -1,0 +1,28 @@
+<div class="aviso-legal" role="note">
+  <p class="aviso-legal-texto" *ngIf="configuracion$ | async as config">
+    <span class="dato-pendiente">{{ datos.nombreLegal }}</span>, con domicilio en {{ config.direccion }},
+    usa tu nombre, correo, teléfono, dirección de entrega y los datos de tus pedidos y comprobantes de pago
+    para crear tu cuenta, cobrar y entregar tus pedidos y avisarte de su estado. También para la encuesta
+    de satisfacción y las recomendaciones "Para ti", a lo que puedes negarte. Puedes limitar el uso de tus
+    datos o ejercer tus derechos escribiendo a <span class="dato-pendiente">{{ datos.correoDatosPersonales }}</span>.
+    Consulta el
+    <a routerLink="/legal/privacidad" target="_blank" rel="noopener">Aviso de privacidad completo</a>.
+  </p>
+
+  <p class="aviso-legal-texto" *ngIf="contexto === 'pedido'">
+    Al confirmar aceptas los
+    <a routerLink="/legal/terminos" target="_blank" rel="noopener">Términos y condiciones</a> y la
+    <a routerLink="/legal/devoluciones" target="_blank" rel="noopener">Política de devoluciones</a>.
+  </p>
+
+  <label class="aceptar-legales" *ngIf="conCasilla">
+    <input type="checkbox" name="aceptaLegales" [checked]="aceptado"
+           (change)="cambiar($any($event.target).checked)">
+    <span>
+      He leído el
+      <a routerLink="/legal/privacidad" target="_blank" rel="noopener">Aviso de privacidad</a> y acepto los
+      <a routerLink="/legal/terminos" target="_blank" rel="noopener">Términos y condiciones</a>.
+      Autorizo el uso de mis datos, incluidos los financieros de mis comprobantes de pago.
+    </span>
+  </label>
+</div>

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+import { LegalComponentesModule } from '../../legal/componentes/legal-componentes.module';
 import { PagesRoutingModule } from './pages-routing.module';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { SeguimientoComponent } from './seguimiento/seguimiento.component';
@@ -26,6 +27,7 @@ import { DatosBancariosComponent } from './datos-bancarios/datos-bancarios.compo
     PagesRoutingModule,
     FormsModule,
     ReactiveFormsModule,
+    LegalComponentesModule,
   ],
 })
 export class PagesModule {}

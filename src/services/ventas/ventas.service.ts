@@ -90,6 +90,8 @@ export interface DatosEntregaMandadito {
   referencias_entrega?: string;
   ubicacion_url?: string;
   guardar_como_mi_direccion?: boolean;
+  /** Casilla de privacidad y terminos; solo se manda si el cliente no tiene aceptada la version vigente. */
+  acepta_legales?: boolean;
 }
 
 export interface CrearVentaRequest extends DatosEntregaMandadito {

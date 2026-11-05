@@ -1,0 +1,75 @@
+<ng-container *ngIf="configuracion$ | async as config">
+  <section class="legal-page">
+    <div class="container">
+      <article class="legal-card">
+        <h1>Cookies y almacenamiento del navegador</h1>
+        <p class="legal-fecha">Ultima actualizacion: {{ fechaActualizacion }}</p>
+        <div class="legal-borrador">Borrador pendiente de revision legal. No es la version final.</div>
+
+        <h2>1. Lo que NO hacemos con tu informacion de navegacion</h2>
+        <p>
+          {{ config.nombre }} no usa cookies propias de seguimiento, analiticas ni publicidad.
+        </p>
+
+        <h2>2. Lo que guardamos en tu navegador para que la tienda funcione</h2>
+        <p>
+          Para permitir que navegues de forma comoda y puedas comprar sin inconvenientes, empleamos mecanismos de almacenamiento local
+          en tu navegador (LocalStorage). Guardamos unicamente la informacion esencial:
+        </p>
+        <ul>
+          <li><strong>Sesion y cuenta:</strong> Los identificadores tecnicos para mantener tu sesion iniciada y los datos basicos de tu perfil de usuario.</li>
+          <li><strong>Carrito de compras:</strong> La lista de productos y cortes que has anadido a tu pedido para que no se pierdan al navegar entre secciones.</li>
+          <li><strong>Preferencias de visualizacion:</strong> La eleccion del diseno de la pagina (tema claro o tema oscuro).</li>
+          <li><strong>Pago en curso:</strong> Datos temporales necesarios para dar seguimiento y completar la transaccion de compra.</li>
+        </ul>
+        <p>
+          Esta informacion se queda en tu equipo y se borra cuando vacias los datos del navegador.
+        </p>
+
+        <h2>3. Servicios externos que cargan con la pagina</h2>
+        <p>
+          Para que nuestro sitio web funcione correctamente y cargue de forma rapida, utilizamos herramientas y recursos provistos por terceros:
+        </p>
+        <ul>
+          <li><strong>Google Fonts:</strong> Para mostrar los tipos de letra de la tienda.</li>
+          <li><strong>jQuery, jsDelivr y cdnjs:</strong> Para cargar librerias de programacion e iconos del sistema.</li>
+          <li><strong>images.unsplash.com:</strong> Para mostrar fotografias e imagenes de referencia.</li>
+        </ul>
+        <p>
+          Al ingresar a nuestro sitio, estos proveedores reciben de manera automatica tu direccion IP con el fin de entregar los archivos solicitados
+          y podrian colocar cookies tecnicas de su lado. A la fecha de este borrador no hemos verificado exhaustivamente que cookies especificas pudiera instalar cada uno.
+        </p>
+
+        <h2>4. Procesamiento de pagos con Mercado Pago</h2>
+        <p>
+          Cuando seleccionas realizar tu pago a traves de Mercado Pago, la conexion y el procesamiento de la tarjeta bancaria
+          se hacen en el sitio de dicha plataforma. Mercado Pago cuenta con sus propias politicas de privacidad y politicas de cookies,
+          las cuales son independientes de {{ config.nombre }}.
+        </p>
+
+        <h2>5. Como borrar o bloquear las cookies y el almacenamiento local</h2>
+        <p>
+          Puedes revisar, restringir, bloquear o borrar en cualquier momento las cookies y los datos de almacenamiento local
+          desde el panel de configuracion o privacidad de tu navegador web (Google Chrome, Mozilla Firefox, Microsoft Edge, Safari u otros).
+        </p>
+        <p>
+          Ten presente que si decides bloquear el almacenamiento local de nuestro sitio, algunas funciones basicas de la tienda en linea,
+          tales como mantener abierto el carrito de compra o iniciar sesion en tu cuenta, no podran funcionar con normalidad.
+        </p>
+
+        <h2>6. Cambios y futuras actualizaciones</h2>
+        <p>
+          Si en el futuro decidimos incorporar herramientas de analitica de visitas, medicion estadistica o servicios de difusion publicitaria,
+          te lo informaremos con anticipacion actualizando este documento y te solicitaremos tu consentimiento previo a traves de un banner o aviso en el sitio.
+        </p>
+
+        <nav class="legal-enlaces" aria-label="Otros documentos legales">
+          <a routerLink="/legal/privacidad">Aviso de privacidad</a>
+          <a routerLink="/legal/terminos">Terminos y condiciones</a>
+          <a routerLink="/legal/devoluciones">Devoluciones</a>
+          <a routerLink="/legal/cookies">Cookies</a>
+        </nav>
+      </article>
+    </div>
+  </section>
+</ng-container>

@@ -1,0 +1,159 @@
+<ng-container *ngIf="configuracion$ | async as config">
+  <section class="legal-page">
+    <div class="container">
+      <article class="legal-card">
+        <h1>Terminos y condiciones</h1>
+        <p class="legal-fecha">Ultima actualizacion: {{ fechaActualizacion }}</p>
+        <div class="legal-borrador">Borrador pendiente de revision legal. No es la version final.</div>
+
+        <h2>1. Proveedor del servicio y medios de contacto</h2>
+        <p>
+          Este sitio web de comercio electronico es operado por
+          <span class="dato-pendiente">{{ datos.nombreLegal }}</span>
+          (con nombre comercial {{ config.nombre }}), con RFC
+          <span class="dato-pendiente">{{ datos.rfc }}</span>,
+          domicilio en {{ config.direccion }} y domicilio fiscal en
+          <span class="dato-pendiente">{{ datos.domicilioFiscal }}</span>.
+        </p>
+        <p>
+          Para cualquier duda, aclaracion, comentario o reclamacion sobre tus compras o el uso de la plataforma,
+          ponemos a tu disposicion los siguientes canales de atencion:
+        </p>
+        <ul>
+          <li><strong>Telefono:</strong> {{ config.telefono }}</li>
+          <li><strong>WhatsApp:</strong> {{ config.whatsapp || config.telefono }}</li>
+          <li><strong>Correo electronico:</strong> {{ config.correo }}</li>
+        </ul>
+
+        <h2>2. Tu cuenta y tus responsabilidades</h2>
+        <p>
+          Al registrarte o realizar pedidos en nuestro sitio, te comprometes a proporcionar informacion veridica,
+          exacta, completa y debidamente actualizada. Eres la persona responsable de mantener la confidencialidad de tu
+          usuario y contrasena, asi como de todas las operaciones realizadas desde tu cuenta.
+        </p>
+        <p>
+          Para comprar en esta tienda en linea debes tener una edad minima de
+          <span class="dato-pendiente">{{ datos.edadMinima }}</span>.
+        </p>
+
+        <h2>3. Productos, existencias y precios</h2>
+        <p>
+          Los productos comercializados son principalmente cortes de carne y alimentos perecederos cuya venta se realiza
+          conforme al peso del producto:
+        </p>
+        <ul>
+          <li>
+            <strong>Venta por peso y cantidad aproximada:</strong> Si al comprar seleccionas un monto en pesos,
+            la cantidad de carne indicada en pantalla es una estimacion cercana. Debido al corte natural de las piezas,
+            el peso final entregado puede variar ligeramente respecto a lo calculado originalmente.
+          </li>
+          <li>
+            <strong>Disponibilidad de existencias:</strong> El inventario de cortes frescos se ajusta de manera continua.
+            Si un producto no esta disponible al preparar tu pedido, te avisaremos.
+          </li>
+          <li>
+            <strong>Precios:</strong> Los precios se muestran en pesos mexicanos y el total del pedido se
+            muestra antes de que confirmes la compra.
+          </li>
+        </ul>
+
+        <h2>4. Horarios de atencion y recepcion de pedidos</h2>
+        <p>
+          La tienda en linea puede limitar la hora en que se pueden hacer pedidos segun el horario de atencion de la carniceria.
+          Fuera de ese horario puede no ser posible confirmar un pedido.
+        </p>
+
+        <h2>5. Formas de pago y vigencia del pedido</h2>
+        <p>
+          Ofrecemos dos metodos de pago: en linea a traves de Mercado Pago  o mediante
+          transferencia electronica bancaria.
+        </p>
+        <p>
+          Si seleccionas pago por transferencia, deberas adjuntar tu comprobante de pago en el sistema.
+          Cualquier pedido registrado que permanezca sin pagar y sin comprobante adjunto vencera y sera cancelado
+          de forma automatica transcurridas 24 horas desde su creacion.
+        </p>
+
+        <h2>6. Modalidades de entrega</h2>
+        <p>Ponemos a tu alcance dos modalidades para recibir tus productos:</p>
+        <ul>
+          <li>
+            <strong>Entrega a domicilio por mandadito:</strong> El envio lo hace
+            <span class="dato-pendiente">{{ datos.quienEsMandadito }}</span>.
+            El costo del mandadito es independiente al importe de los productos de tu compra, no se incluye en el total del pedido
+            y se paga directamente al mandadito al recibir tu pedido.
+            El costo del mandadito es de <span class="dato-pendiente">{{ datos.costoMandadito }}</span>,
+            con cobertura en la zona de <span class="dato-pendiente">{{ datos.zonaEntrega }}</span>
+            y tiempos de entrega estimados de <span class="dato-pendiente">{{ datos.tiemposEntrega }}</span>.
+          </li>
+          <li>
+            <strong>Recoger en la carniceria:</strong> Puedes pasar directamente por tu pedido a nuestra sucursal ubicada en
+            {{ config.direccion }}. Una vez que te notifiquemos que el pedido se encuentra listo, dispones de un plazo de
+            <span class="dato-pendiente">{{ datos.tiempoParaRecoger }}</span> para recogerlo en tienda.
+          </li>
+        </ul>
+
+        <h2>7. Cancelacion de pedidos</h2>
+        <p>El procedimiento de cancelacion depende del estado en que se encuentre tu orden:</p>
+        <ul>
+          <li>
+            <strong>Pedido sin pagar y en "Pendiente de envio":</strong> Puedes cancelarlo directamente desde tu cuenta.
+          </li>
+          <li>
+            <strong>Pedido pagado o con comprobante enviado:</strong> Debes enviar una solicitud de cancelacion desde tu cuenta,
+            que revisa el negocio.
+          </li>
+          <li>
+            <strong>Pedido en preparacion, enviado o entregado:</strong> Debido a la naturaleza perecedera de la carne ya cortada o empacada,
+            la cancelacion no podra solicitarse desde la plataforma; deberas comunicarte de inmediato por WhatsApp al
+            {{ config.whatsapp || config.telefono }} para revisar si tu pedido aun no ha sido cortado o despachado.
+          </li>
+        </ul>
+
+        <h2>8. Devoluciones y reposiciones</h2>
+        <p>
+          Cualquier solicitud de aclaracion, reposicion de producto o devolucion economica por defectos de calidad o entregas
+          incompletas se rige por lo dispuesto en nuestra
+          <a routerLink="/legal/devoluciones">Politica de devoluciones</a>.
+        </p>
+
+        <h2>9. Facturacion fiscal</h2>
+        <p>
+          Respecto a la emision de facturas electronicas:
+          <span class="dato-pendiente">{{ datos.seFactura }}</span>.
+        </p>
+
+        <h2>10. Privacidad de tus datos</h2>
+        <p>
+          El uso, resguardo y tratamiento de los datos personales que nos proporcionas se rigen integramente por nuestro
+          <a routerLink="/legal/privacidad">Aviso de privacidad</a>.
+        </p>
+
+        <h2>11. Modificaciones a los terminos y condiciones</h2>
+        <p>
+          Nos reservamos el derecho de modificar estos terminos en cualquier momento para reflejar mejoras operativas o ajustes normativos.
+          Las actualizaciones cobraran vigencia a partir de su publicacion en este sitio web.
+        </p>
+
+        <h2>12. Legislacion aplicable, jurisdiccion y Profeco</h2>
+        <p>
+          Para la interpretacion, ejecucion y cumplimiento de estos terminos y condiciones, las partes acuerdan someterse a
+          la legislacion y tribunales competentes de
+          <span class="dato-pendiente">{{ datos.leyYTribunal }}</span>.
+        </p>
+        <p>
+          Asimismo, te informamos que en todo momento tienes el derecho de acudir ante la
+          Procuraduria Federal del Consumidor (Profeco) por la via administrativa para presentar quejas
+          o solicitar la defensa de tus derechos como consumidor.
+        </p>
+
+        <nav class="legal-enlaces" aria-label="Otros documentos legales">
+          <a routerLink="/legal/privacidad">Aviso de privacidad</a>
+          <a routerLink="/legal/terminos">Terminos y condiciones</a>
+          <a routerLink="/legal/devoluciones">Devoluciones</a>
+          <a routerLink="/legal/cookies">Cookies</a>
+        </nav>
+      </article>
+    </div>
+  </section>
+</ng-container>

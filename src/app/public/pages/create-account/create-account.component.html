@@ -218,7 +218,9 @@
               </div>
             </div>
 
-            <button type="submit" class="login-button" [disabled]="loading">
+            <app-aviso-legal contexto="registro" [conCasilla]="true" [(aceptado)]="aceptaLegales"></app-aviso-legal>
+
+            <button type="submit" class="login-button" [disabled]="loading || !aceptaLegales">
               <span *ngIf="loading" class="button-spinner">
                 <i class="fas fa-circle-notch fa-spin"></i>
               </span>

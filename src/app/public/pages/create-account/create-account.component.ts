@@ -25,6 +25,8 @@ export class CreateAccountComponent {
   ubicacionUrl: string = '';
   password: string = '';
   confirmarPassword: string = '';
+  // Casilla del aviso de privacidad y terminos: nace sin marcar y es obligatoria.
+  aceptaLegales = false;
 
   constructor(
     private crearCuentaService: CrearCuentaService,
@@ -44,6 +46,11 @@ export class CreateAccountComponent {
   crearCuenta() {
     if (this.password !== this.confirmarPassword) {
       this.toastr.error('Las contrasenas no coinciden', 'Error');
+      return;
+    }
+
+    if (!this.aceptaLegales) {
+      this.toastr.warning('Marca la casilla para aceptar el Aviso de privacidad y los Términos y condiciones', 'Aviso de privacidad');
       return;
     }
 
@@ -81,7 +88,8 @@ export class CreateAccountComponent {
         ubicacion_url: this.ubicacionUrl.trim(),
         ciudad: this.ciudad.trim(),
         estado: this.estado.trim(),
-        codigo_postal: this.codigoPostal.trim()
+        codigo_postal: this.codigoPostal.trim(),
+        acepta_legales: this.aceptaLegales
       })
       .subscribe(
         response => {

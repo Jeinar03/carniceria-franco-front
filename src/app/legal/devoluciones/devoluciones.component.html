@@ -1,0 +1,100 @@
+<ng-container *ngIf="configuracion$ | async as config">
+  <section class="legal-page">
+    <div class="container">
+      <article class="legal-card">
+        <h1>Politica de devoluciones</h1>
+        <p class="legal-fecha">Ultima actualizacion: {{ fechaActualizacion }}</p>
+        <div class="legal-borrador">Borrador pendiente de revision legal. No es la version final.</div>
+
+        <h2>1. Cuando procede una devolucion o reposicion</h2>
+        <p>
+          En {{ config.nombre }} nos comprometemos a entregarte carne fresca y en optimas condiciones.
+          Tu solicitud de reposicion o devolucion procede en cualquiera de los siguientes casos:
+        </p>
+        <ul>
+          <li><strong>Producto equivocado:</strong> Recibiste un corte o producto diferente al que seleccionaste en tu pedido.</li>
+          <li><strong>Cantidad incompleta:</strong> La cantidad, el peso o las piezas entregadas son menores a lo cobrado en tu cuenta.</li>
+          <li><strong>Producto en mal estado:</strong> El producto presenta problemas de frescura, olor desagradable o defectos visibles al momento de recibirlo.</li>
+        </ul>
+
+        <h2>2. Tu eleccion: reposicion o devolucion de tu dinero</h2>
+        <p>
+          Cuando tu reporte sea verificado y procedente, tendras la libertad de elegir entre las siguientes opciones:
+        </p>
+        <ul>
+          <li>La reposicion del producto por uno en perfecto estado, sin ningun costo adicional para ti.</li>
+          <li>La devolucion integra del dinero pagado por el producto afectado.</li>
+        </ul>
+        <p>
+          En ambos casos, recibiras ademas la bonificacion correspondiente conforme a lo dispuesto en la
+          Ley Federal de Proteccion al Consumidor.
+        </p>
+
+        <h2>3. Como reportar un problema</h2>
+        <p>
+          Para brindarte una atencion rapida y resolver la situacion, te pedimos contactarnos a traves de:
+        </p>
+        <ul>
+          <li><strong>WhatsApp:</strong> {{ config.whatsapp || config.telefono }}</li>
+          <li><strong>Correo electronico:</strong> {{ config.correo }}</li>
+        </ul>
+        <p>
+          Al comunicarte, por favor comparte tu numero de pedido y una fotografia o video claro donde se aprecie
+          el problema del producto y su empaque o etiqueta.
+        </p>
+        <p>
+          Te sugerimos enviar tu reporte de preferencia al momento de la entrega o dentro de
+          {{ datos.plazoReporte }}.
+          Este plazo sugerido es una guia practica que nos permite revisar de inmediato la carne fresca y resolver
+          tu situacion con agilidad; de ninguna manera limita ni condiciona los derechos que la ley te reconoce como consumidor.
+        </p>
+
+        <h2>4. Casos en los que no procede la devolucion</h2>
+        <p>
+          Tratandose de productos alimenticios perecederos y por razones de salubridad y seguridad alimentaria,
+          la devolucion o reposicion no procede en los siguientes supuestos:
+        </p>
+        <ul>
+          <li>Cambio de opinion o de gusto personal una vez que recibiste el producto perecedero en buen estado y conforme a lo solicitado.</li>
+          <li>Danos, descomposicion o perdida de frescura derivados de una conservacion o manejo indebido despues de haberse realizado la entrega.</li>
+        </ul>
+        <p><strong>Recomendaciones para conservar tu carne:</strong></p>
+        <ul>
+          <li>Refrigera o congela el producto inmediatamente despues de recibirlo.</li>
+          <li>Conserva en todo momento la cadena de frio y evita dejar el paquete a temperatura ambiente o expuesto al sol.</li>
+        </ul>
+        <p>
+          <em>Nota: Estos supuestos de excepcion corresponden a una propuesta operativa y estan pendientes de revision y confirmacion por nuestro asesor legal.</em>
+        </p>
+
+        <h2>5. Como y en cuanto tiempo se devuelve el dinero</h2>
+        <p>
+          Si elegiste el reembolso de tu dinero, la devolucion se efectuara mediante el mismo metodo utilizado para el pago original:
+          a traves de Mercado Pago si pagaste con tarjeta, o mediante transferencia electronica si fue pago bancario.
+        </p>
+        <p>
+          El tiempo estimado para procesar y ver reflejado el reembolso es de
+          <span class="dato-pendiente">{{ datos.tiempoDevolucion }}</span>.
+        </p>
+        <p>
+          Respecto al costo del servicio de entrega:
+          <span class="dato-pendiente">{{ datos.devuelveMandadito }}</span>.
+        </p>
+
+        <h2>6. Cancelaciones antes de la entrega</h2>
+        <p>
+          Si requieres cancelar un pedido antes de recibirlo o antes de que comience su preparacion,
+          se aplica el procedimiento establecido en la seccion de cancelaciones de nuestros
+          <a routerLink="/legal/terminos">Terminos y condiciones</a>.
+        </p>
+
+        <nav class="legal-enlaces" aria-label="Otros documentos legales">
+          <a routerLink="/legal/privacidad">Aviso de privacidad</a>
+          <a routerLink="/legal/terminos">Terminos y condiciones</a>
+          <a routerLink="/legal/devoluciones">Devoluciones</a>
+          <a routerLink="/legal/cookies">Cookies</a>
+        </nav>
+      </article>
+    </div>
+  </section>
+</ng-container>

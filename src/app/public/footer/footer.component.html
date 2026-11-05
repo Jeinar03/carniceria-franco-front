@@ -12,10 +12,10 @@
               Pide por WhatsApp, consulta horarios o ubícanos en segundos. Te atendemos con el trato cercano de siempre.
             </p>
             <div class="social-links">
-              <a [href]="config.facebook_url || '#'" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+              <a *ngIf="config.facebook_url" [href]="config.facebook_url" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <i class="fab fa-facebook-f"></i>
               </a>
-              <a [href]="config.instagram_url || '#'" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <a *ngIf="config.instagram_url" [href]="config.instagram_url" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <i class="fab fa-instagram"></i>
               </a>
               <a [href]="whatsappLink" class="social-link social-link-whatsapp" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
@@ -69,6 +69,12 @@
   <!-- Copyright -->
   <div class="footer-bottom">
     <div class="container">
+      <nav class="footer-legal" aria-label="Documentos legales">
+        <a routerLink="/legal/privacidad">Aviso de privacidad</a>
+        <a routerLink="/legal/terminos">Términos y condiciones</a>
+        <a routerLink="/legal/devoluciones">Devoluciones</a>
+        <a routerLink="/legal/cookies">Cookies</a>
+      </nav>
       <div class="row align-items-center">
         <div class="col-md-6">
           <p class="copyright-text">
@@ -81,10 +87,6 @@
             <span class="feature-badge">
               <i class="fas fa-truck"></i>
               Entrega Rápida
-            </span>
-            <span class="feature-badge">
-              <i class="fas fa-shield-alt"></i>
-              100% Seguro
             </span>
           </div>
         </div>

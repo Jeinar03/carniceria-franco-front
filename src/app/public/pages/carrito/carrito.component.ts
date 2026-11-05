@@ -40,6 +40,10 @@ export class CarritoComponent implements OnInit, OnDestroy {
   guardarComoMiDireccion: boolean = false;
   // Casilla obligatoria del modal: el cliente acepta que el mandadito tiene costo aparte.
   avisoMandaditoAceptado: boolean = false;
+  // false = el servidor dice que este cliente no ha aceptado la version vigente (clientes/data).
+  // Si el dato no llega, no se pide la casilla: el servidor decide y responde 422 si hace falta.
+  legalesAlDia = true;
+  legalesAceptados = false;
   // Donde recoger el pedido (datos del sitio, capturados por el admin).
   puntoRecoger: { direccion: string; enlace: string | null } = { direccion: '', enlace: null };
 
@@ -354,6 +358,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
     // La aceptación se pide de nuevo cada vez que se abre la confirmación.
     this.avisoMandaditoAceptado = false;
+    this.legalesAceptados = false;
     this.mostrarModalConfirmacion = true;
   }
 
@@ -369,6 +374,11 @@ export class CarritoComponent implements OnInit, OnDestroy {
 
     if (this.tipoEntrega === 'mandadito' && !this.avisoMandaditoAceptado) {
       this.toastr.warning('Marca la casilla para confirmar que sabes que el mandadito tiene un costo aparte', 'Aviso del mandadito');
+      return;
+    }
+
+    if (!this.legalesAlDia && !this.legalesAceptados) {
+      this.toastr.warning('Marca la casilla para aceptar el Aviso de privacidad y los Términos y condiciones', 'Aviso de privacidad');
       return;
     }
 
@@ -416,7 +426,8 @@ export class CarritoComponent implements OnInit, OnDestroy {
       metodo_pago: 'mercado_pago',
       notas: this.notasCompra || undefined,
       tipo_entrega: this.tipoEntrega,
-      ...this.datosEntregaParaEnvio()
+      ...this.datosEntregaParaEnvio(),
+      ...this.legalesParaEnvio()
     };
 
     console.log('Enviando datos a Mercado Pago:', preferenceData); // Debug log
@@ -460,6 +471,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
       notas: this.notasCompra || undefined,
       tipo_entrega: this.tipoEntrega,
       ...this.datosEntregaParaEnvio(),
+      ...this.legalesParaEnvio(),
       productos: this.itemsCarrito.map(item => {
         const producto: any = {
           product_id: Number(item.producto.id),
@@ -597,6 +609,11 @@ export class CarritoComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** La casilla viaja solo cuando hacia falta marcarla. */
+  private legalesParaEnvio(): { acepta_legales?: boolean } {
+    return this.legalesAlDia ? {} : { acepta_legales: this.legalesAceptados };
+  }
+
   /** Datos de entrega que viajan con el pedido; recoger no manda nada. */
   private datosEntregaParaEnvio(): DatosEntregaMandadito {
     if (this.tipoEntrega !== 'mandadito') {
@@ -630,6 +647,7 @@ export class CarritoComponent implements OnInit, OnDestroy {
           ubicacion_url: String(datos.ubicacion_url || '')
         };
         this.usarDireccionGuardada = this.tieneDireccionGuardada;
+        this.legalesAlDia = datos.legales_al_dia !== false;
       },
       error: () => {
         // Sin direccion guardada se pide la del pedido; no es un error para el cliente.
