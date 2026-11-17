@@ -25,6 +25,11 @@ const routes: Routes = [
       import('./public/login/login.module').then((m) => m.LoginModule),
   },
   {
+    path: 'legal',
+    loadChildren: () =>
+      import('./legal/legal.module').then((m) => m.LegalModule),
+  },
+  {
     path: 'registro',
     component: CreateAccountComponent,
   },

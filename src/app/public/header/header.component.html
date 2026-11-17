@@ -240,15 +240,11 @@
               class="user-info d-flex flex-column align-items-center mx-2 position-relative"
             >
               <a
-                *ngIf="userImage"
+                *ngIf="userInitials"
                 [routerLink]="['/pages/profile']"
                 class="position-relative user-avatar"
               >
-                <img
-                  [src]="userImage"
-                  alt="User Image"
-                  class="user-image rounded-circle"
-                />
+                <span class="user-image user-initials rounded-circle" aria-hidden="true">{{ userInitials }}</span>
                 <i
                   *ngIf="profileStatusIcon"
                   class="fas {{

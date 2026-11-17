@@ -459,6 +459,8 @@
         </div>
       </div>
 
+      <app-aviso-legal contexto="pedido" [conCasilla]="!legalesAlDia" [(aceptado)]="legalesAceptados"></app-aviso-legal>
+
       <p class="text-muted text-center mt-3">
         <i class="fas fa-info-circle me-2"></i>
         ¿Deseas confirmar esta compra?
@@ -469,7 +471,7 @@
         <i class="fas fa-times me-2"></i>Cancelar
       </button>
       <button class="btn-confirm" (click)="confirmarCompra()"
-              [disabled]="tipoEntrega === 'mandadito' && !avisoMandaditoAceptado">
+              [disabled]="(tipoEntrega === 'mandadito' && !avisoMandaditoAceptado) || (!legalesAlDia && !legalesAceptados)">
         <i class="fas fa-check me-2"></i>Confirmar Compra
       </button>
     </div>

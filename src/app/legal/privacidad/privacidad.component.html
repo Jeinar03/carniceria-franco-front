@@ -1,0 +1,174 @@
+<ng-container *ngIf="configuracion$ | async as config">
+  <section class="legal-page">
+    <div class="container">
+      <article class="legal-card">
+        <h1>Aviso de privacidad</h1>
+        <p class="legal-fecha">Ultima actualizacion: {{ fechaActualizacion }}</p>
+        <div class="legal-borrador">Borrador pendiente de revision legal. No es la version final.</div>
+
+        <h2>1. Responsable del tratamiento de tus datos personales</h2>
+        <p>
+          El responsable del tratamiento y proteccion de tus datos personales es
+          <span class="dato-pendiente">{{ datos.nombreLegal }}</span>
+          (en adelante referida de forma comercial como {{ config.nombre }}), con domicilio en
+          {{ config.direccion }} (domicilio fiscal:
+          <span class="dato-pendiente">{{ datos.domicilioFiscal }}</span>).
+        </p>
+        <p>
+          La persona encargada de atender cualquier asunto relacionado con la proteccion de tus datos es
+          <span class="dato-pendiente">{{ datos.responsableDatos }}</span>, a quien puedes contactar directamente en el correo electronico
+          <span class="dato-pendiente">{{ datos.correoDatosPersonales }}</span>.
+        </p>
+
+        <h2>2. Datos personales que recabamos</h2>
+        <p>Para prestar nuestros servicios de venta y entrega, recabamos las siguientes categorias de datos:</p>
+        <ul>
+          <li>
+            <strong>Datos de tu cuenta:</strong> nombre, apellidos, correo electronico, telefono de contacto,
+            contrasena de acceso (guardada de forma protegida, nunca en texto legible), direccion de entrega,
+            referencias del domicilio, enlace de ubicacion de Google Maps, ciudad, estado, codigo postal, pais y Registro Federal de Contribuyentes (RFC) si decides proporcionarlo.
+          </li>
+          <li>
+            <strong>Datos que agrega el negocio a tu perfil:</strong> historial de compras, total gastado acumulado,
+            saldo de cuenta, limite de credito, porcentaje o tipo de descuento asignado, tipo de cliente y notas de seguimiento del personal de atencion.
+          </li>
+          <li>
+            <strong>Datos relacionados con tus pedidos:</strong> productos adquiridos, importes totales pagados,
+            metodo de pago seleccionado, forma y direccion de entrega, comprobante de transferencia bancaria (si aplica),
+            motivo de cancelacion en caso de presentarse, datos para procesar una devolucion e identificador unico de transaccion emitido por Mercado Pago.
+          </li>
+          <li>
+            <strong>Encuesta de satisfaccion:</strong> respuestas, opiniones y comentarios que decidas compartir voluntariamente para evaluar nuestro servicio.
+          </li>
+        </ul>
+        <p>
+          <strong>Aclaracion sobre datos sensibles y financieros:</strong> No recabamos datos personales sensibles
+          (como origen etnico, estado de salud presente o futuro, creencias religiosas, filosoficas o morales).
+          Son datos financieros o patrimoniales tu comprobante de transferencia bancaria, tu saldo y tu limite de credito.
+        </p>
+
+        <h2>3. Finalidades del tratamiento de los datos</h2>
+        <p>Utilizamos tu informacion personal para las siguientes finalidades necesarias para el servicio:</p>
+        <ul>
+          <li>Crear, autenticar y administrar tu cuenta de usuario en nuestra plataforma.</li>
+          <li>Procesar la venta de productos, gestionar el cobro y emitir comprobantes de compra.</li>
+          <li>Preparar, coordinar y entregar tus pedidos en tu domicilio o en tienda.</li>
+          <li>Notificarte sobre el estado de preparacion, envio y entrega de tus pedidos.</li>
+          <li>Atender y procesar solicitudes de cancelacion y devolucion.</li>
+          <li>Emitir facturas fiscales en caso de que aplique y sean solicitadas.</li>
+          <li>Mantener la seguridad de la plataforma, de nuestros clientes y de las transacciones comerciales.</li>
+        </ul>
+        <p>Asimismo, tratamos tus datos para finalidades secundarias que puedes rechazar en cualquier momento:</p>
+        <ul>
+          <li>Aplicacion de encuestas de satisfaccion para mejorar la calidad de nuestros productos y atencion.</li>
+          <li>Generacion de recomendaciones personalizadas de productos en la seccion "Para ti".</li>
+        </ul>
+        <p>
+          Actualmente no enviamos publicidad, boletines ni promociones por correo electronico.
+          Si en el futuro incorporamos el envio de publicidad, contara con una casilla u opcion especifica
+          para que puedas manifestar tu negativa antes de recibir cualquier comunicado comercial.
+        </p>
+
+        <h2>4. Transferencia y remision de datos</h2>
+        <p>Tus datos personales son compartidos exclusivamente con los siguientes terceros para la operacion del servicio:</p>
+        <ul>
+          <li>
+            <strong>Mercado Pago:</strong> procesador de pagos en linea para cobros con tarjeta bancaria.
+            Recibe tu nombre, apellidos, correo electronico, telefono, calle y codigo postal para validar la transaccion.
+          </li>
+          <li>
+            <strong>Hostinger:</strong> proveedor de infraestructura que aloja nuestros servidores web y gestiona los correos electronicos del sistema.
+          </li>
+          <li>
+            <strong>Servicio de entrega:</strong> la persona encargada de llevar tu pedido
+            (<span class="dato-pendiente">{{ datos.quienEsMandadito }}</span>),
+            quien recibe tu nombre, telefono de contacto y direccion de entrega unicamente para realizar la entrega.
+          </li>
+          <li>
+            <strong>Servicios tecnicos externos integrados:</strong> Google Fonts (fuentes tipograficas),
+            jQuery, jsDelivr, cdnjs (librerias de programacion e iconos) e images.unsplash.com (imagenes de referencia).
+            Estos servicios reciben de forma automatica tu direccion IP al cargar la pagina en tu navegador.
+          </li>
+        </ul>
+        <p>
+          Los servidores principales donde se alojan tus datos estan ubicados en
+          <span class="dato-pendiente">{{ datos.paisServidor }}</span>.
+          No vendemos, rentamos ni comercializamos tus datos personales con ninguna empresa o tercero.
+        </p>
+
+        <h2>5. Derechos ARCO y revocacion del consentimiento</h2>
+        <p>
+          Tienes derecho a acceder a tus datos personales, rectificarlos cuando sean inexactos o incompletos,
+          solicitar su cancelacion cuando consideres que no se requieren para los fines senalados,
+          o bien oponerte al tratamiento de los mismos para fines especificos (Derechos ARCO),
+          asi como a revocar en cualquier momento el consentimiento que nos hayas otorgado.
+        </p>
+        <p>
+          Para ejercer cualquiera de estos derechos, envia una solicitud por escrito al correo electronico
+          <span class="dato-pendiente">{{ datos.correoDatosPersonales }}</span>, acompanada de:
+        </p>
+        <ul>
+          <li>Tu nombre completo y direccion de correo electronico asociada a tu cuenta.</li>
+          <li>Copia legible de tu identificacion oficial vigente (INE o pasaporte).</li>
+          <li>Descripcion clara y precisa de los datos sobre los que deseas ejercer tus derechos y que derecho buscas ejercer, o la manifestacion de revocar tu consentimiento.</li>
+        </ul>
+        <p>
+          Te daremos respuesta en un plazo maximo de 20 dias contados a partir de la recepcion de tu solicitud completa.
+          Si tu solicitud resulta procedente, se hara efectiva dentro de los 15 dias siguientes a la fecha en que te comuniquemos la respuesta.
+          El tramite es gratuito; unicamente podran solicitarse los gastos justificados de envio o de reproduccion en copias u otros formatos si fuera necesario.
+        </p>
+        <p>
+          Ten en cuenta que cierta informacion sobre operaciones de compraventa debe conservarse bloqueada
+          durante los plazos previstos por las leyes fiscales, mercantiles y civiles aplicables,
+          por lo que la cancelacion de los datos procedera con un bloqueo previo antes de su eliminacion definitiva.
+        </p>
+
+        <h2>6. Limitacion del uso o divulgacion de tus datos</h2>
+        <p>
+          Si deseas limitar el uso o divulgacion de tu informacion personal (por ejemplo, para no ser incluido en
+          encuestas de satisfaccion ni recomendaciones personalizadas), puedes pedirlo enviando un correo electronico a
+          <span class="dato-pendiente">{{ datos.correoDatosPersonales }}</span>.
+        </p>
+
+        <h2>7. Plazos de conservacion de la informacion</h2>
+        <p>
+          Los registros de ventas, facturacion y comprobantes de pago se conservaran durante un periodo de
+          <span class="dato-pendiente">{{ datos.conservacionVentas }}</span>
+          en cumplimiento con nuestras obligaciones legales y fiscales.
+          Los datos vinculados a tu cuenta de usuario se conservaran mientras tu cuenta permanezca activa
+          y hasta que solicites expresamente su cancelacion o cierre.
+        </p>
+
+        <h2>8. Cookies y tecnologias de almacenamiento local</h2>
+        <p>
+          Nuestra pagina utiliza mecanismos de almacenamiento en tu navegador para mantener tu sesion activa,
+          recordar los productos de tu carrito y guardar tus preferencias de uso.
+          Para conocer a detalle como operan estas herramientas, consulta nuestro apartado de
+          <a routerLink="/legal/cookies">Cookies y almacenamiento del navegador</a>.
+        </p>
+
+        <h2>9. Modificaciones al aviso de privacidad</h2>
+        <p>
+          El presente aviso de privacidad puede ser modificado o actualizado para cumplir con cambios en la legislacion,
+          politicas internas o nuevos requerimientos de operacion.
+          Cualquier actualizacion estara disponible directamente en esta pagina con la fecha de su ultima revision.
+          Al realizar un nuevo pedido, el sistema solicitara tu aceptacion si existe una nueva version del documento.
+        </p>
+
+        <h2>10. Autoridad competente</h2>
+        <p>
+          Si consideras que tu derecho a la proteccion de datos personales ha sido lesionado por alguna conducta
+          o respuesta de nuestra parte, puedes presentar tu inconformidad o denuncia ante la
+          Secretaria Anticorrupcion y Buen Gobierno.
+        </p>
+
+        <nav class="legal-enlaces" aria-label="Otros documentos legales">
+          <a routerLink="/legal/privacidad">Aviso de privacidad</a>
+          <a routerLink="/legal/terminos">Terminos y condiciones</a>
+          <a routerLink="/legal/devoluciones">Devoluciones</a>
+          <a routerLink="/legal/cookies">Cookies</a>
+        </nav>
+      </article>
+    </div>
+  </section>
+</ng-container>

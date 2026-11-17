@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { AuthService } from '../auth-service/auth-service.service';
-import { Observable } from 'rxjs';
+import { EMPTY } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -16,10 +16,12 @@ export class LogService {
   ) {}
 
   setLog(accion: string, contenido: string) {
-    // Obtener el ID del usuario desde el localStorage
-    const userId = localStorage.getItem('clienteId') ?? '20';
-
-    // Validar si el ID del usuario existe
+    // Solo se registra a quien tiene sesion. Sin sesion no se guarda nada: antes se usaba el id 20
+    // y las visitas anonimas quedaban a nombre de ese cliente.
+    const userId = localStorage.getItem('clienteId');
+    if (!userId) {
+      return EMPTY;
+    }
 
     const formData = {
       accion: accion,

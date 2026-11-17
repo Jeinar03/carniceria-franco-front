@@ -16,6 +16,8 @@ export interface DatosRegistro {
   ciudad?: string;
   estado?: string;
   codigo_postal?: string;
+  /** Casilla del aviso de privacidad y terminos. El servidor pone la fecha y la version. */
+  acepta_legales: boolean;
 }
 
 @Injectable({

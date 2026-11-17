@@ -26,7 +26,8 @@ export class HeaderComponent implements OnInit {
   alertasLeidas: AlertaSitio[] = [];
   isLoggedIn = false;
   buttonText!: string;
-  userImage: string | null = null;
+  /** Iniciales del cliente para el avatar (antes se pedian a ui-avatars.com con su nombre). */
+  userInitials: string | null = null;
   userName: string | null = null;
   profileStatusIcon: string | null = null;
   itemsCarrito: ItemCarrito[] = [];
@@ -43,7 +44,7 @@ export class HeaderComponent implements OnInit {
       if (this.isLoggedIn) {
         this.updateUserData();
       } else {
-        this.userImage = null;
+        this.userInitials = null;
         this.userName = null;
         this.profileStatusIcon = null;
       }
@@ -63,9 +64,7 @@ export class HeaderComponent implements OnInit {
   private updateUserData() {
     const userData = this.authService.getUserData();
     this.userName = `${userData.nombre}`;
-    this.userImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      this.userName
-    )}`;
+    this.userInitials = this.userName.trim().charAt(0).toUpperCase() || null;
     this.updateProfileStatusIcon();
   }
 

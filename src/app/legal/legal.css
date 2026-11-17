@@ -1,0 +1,59 @@
+/* Estilo comun de las cuatro paginas legales. */
+.legal-page {
+  background: #f7efe4;
+  padding: 56px 0 72px;
+  color: #2b2118;
+}
+
+.legal-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 40px 44px;
+  box-shadow: 0 6px 24px rgba(60, 40, 20, 0.08);
+  line-height: 1.65;
+}
+
+.legal-card h1 { font-size: 1.9rem; margin-bottom: 4px; }
+.legal-card h2 { font-size: 1.25rem; margin: 30px 0 10px; }
+.legal-card h3 { font-size: 1.05rem; margin: 20px 0 8px; }
+.legal-card ul { padding-left: 1.2rem; }
+.legal-card li { margin-bottom: 4px; }
+
+.legal-fecha { color: #7a6a58; font-size: 0.9rem; margin-bottom: 18px; }
+
+/* Aviso de borrador, visible mientras no haya revision del abogado. */
+.legal-borrador {
+  background: #fff4d6;
+  border-left: 4px solid #d9a400;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  margin-bottom: 22px;
+}
+
+/* Dato que falta capturar: [ENTRE CORCHETES]. */
+.dato-pendiente {
+  background: #ffe1e1;
+  color: #9b1c1c;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.legal-enlaces {
+  margin-top: 34px;
+  padding-top: 16px;
+  border-top: 1px solid #eadfce;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 576px) {
+  .legal-page { padding: 28px 0 48px; }
+  .legal-card { padding: 24px 18px; border-radius: 10px; }
+  .legal-card h1 { font-size: 1.55rem; }
+}

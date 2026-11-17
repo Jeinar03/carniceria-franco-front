@@ -307,6 +307,17 @@
   transition: all 0.3s ease;
 }
 
+.user-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #D9BB84;
+  color: #2b2118;
+  font-weight: 700;
+  font-size: 1.15rem;
+  box-sizing: border-box;
+}
+
 .user-avatar:hover .user-image {
   transform: scale(1.1);
   box-shadow: 0 4px 15px rgba(217, 187, 132, 0.5);
